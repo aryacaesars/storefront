@@ -1,0 +1,92 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { z } from "zod";
+import { getAuthProvider, AuthError } from "./provider";
+import { setSessionCookie, clearSessionCookie } from "./session";
+import { resolveTenantFromIdentity } from "@/server/services/tenant.service";
+import { ScalevError } from "@/lib/scalev/client";
+import type { LoginFormState } from "./types";
+
+const LoginInput = z.object({
+  token: z.string().trim().min(1, "Masukkan token Scalev."),
+});
+
+/**
+ * Login via Scalev token connect. Signature matches useActionState:
+ * (prevState, formData). On success: set session cookie + redirect to dashboard.
+ * On failure: return { error } for the form to render.
+ */
+export async function loginAction(
+  _prev: LoginFormState,
+  formData: FormData,
+): Promise<LoginFormState> {
+  const parsed = LoginInput.safeParse({ token: formData.get("token") });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Input tidak valid." };
+  }
+
+  let identity, token;
+  try {
+    const result = await getAuthProvider().authenticate({ token: parsed.data.token });
+    identity = result.identity;
+    token = result.token;
+  } catch (e) {
+    if (e instanceof AuthError) return { error: e.message };
+    if (e instanceof ScalevError) {
+      // Shape mismatch = the response didn't match our ASSUMPTION schema
+      // (envelope or renamed key). The upstream call actually SUCCEEDED — log
+      // full detail server-side for week-1 validation instead of a useless
+      // "HTTP 200" to the user.
+      if (e.kind === "validation") {
+        console.error("[auth] Scalev /v3/me shape mismatch:", e.message, e.body);
+        return {
+          error:
+            "Respons Scalev tidak sesuai dugaan — cek server log (validasi struktur Minggu 1).",
+        };
+      }
+      if (e.status === 401) {
+        // ⚠️ Could be a bad token OR our unconfirmed auth SCHEME (Bearer).
+        return {
+          error:
+            "Token ditolak Scalev (401). Periksa token — atau skema auth (Bearer) yang belum dikonfirmasi.",
+        };
+      }
+      return { error: `Gagal menghubungi Scalev (HTTP ${e.status}).` };
+    }
+    return { error: "Login gagal. Coba lagi." };
+  }
+
+  const tenant = resolveTenantFromIdentity(identity);
+  if (!tenant) {
+    return { error: "Akun Scalev belum punya business/store yang terhubung." };
+  }
+
+  // Prefer the first non-empty display name; tolerate empty-string fields.
+  const displayName =
+    [identity.name, identity.full_name, identity.username].find(
+      (v): v is string => typeof v === "string" && v.trim().length > 0,
+    ) ?? tenant.name;
+
+  try {
+    await setSessionCookie({
+      merchantId: String(identity.id),
+      displayName,
+      tenantId: tenant.id,
+      tenantSlug: tenant.slug,
+      scalevToken: token,
+    });
+  } catch (e) {
+    // e.g. SESSION_SECRET missing/too short — controlled failure, no raw stack.
+    console.error("[auth] Failed to create session:", e);
+    return { error: "Gagal membuat sesi (konfigurasi server). Hubungi admin." };
+  }
+
+  redirect("/dashboard"); // throws NEXT_REDIRECT — must be last, outside try/catch
+}
+
+/** Log out: clear session + back to login. */
+export async function logoutAction(): Promise<void> {
+  await clearSessionCookie();
+  redirect("/login");
+}
