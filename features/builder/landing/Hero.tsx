@@ -16,7 +16,7 @@ export default function Hero() {
         </h1>
 
         <a
-          href="#templates"
+          href="/login"
           className="mt-8 inline-block rounded-full bg-brand px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-brand/30 transition-colors hover:bg-brand-dark"
         >
           Get Yours Now!

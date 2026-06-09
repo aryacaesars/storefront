@@ -12,24 +12,19 @@ export function LoginForm() {
 
   return (
     <form action={action} className="flex flex-col gap-4">
-      <label className="flex flex-col gap-1.5">
-        <span className="text-sm font-medium text-foreground/80">
-          Token API Scalev
-        </span>
-        <input
-          name="token"
-          type="password"
-          autoComplete="off"
-          placeholder="Tempel token Scalev kamu"
-          required
-          className="rounded-lg border border-black/10 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-foreground/40 focus:ring-2 focus:ring-foreground/10 dark:border-white/15 dark:bg-white/5"
-        />
-      </label>
+      <input
+        name="token"
+        type="password"
+        autoComplete="off"
+        placeholder="Tempel token API Scalev kamu"
+        required
+        className="rounded-xl border border-black/10 bg-white px-4 py-3 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+      />
 
       {state?.error && (
         <p
           role="alert"
-          className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300"
+          className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"
         >
           {state.error}
         </p>
@@ -38,9 +33,9 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="mt-1 rounded-lg bg-foreground px-4 py-2.5 text-sm font-semibold text-background transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-xl bg-brand px-4 py-3 text-base font-bold text-white shadow-lg shadow-brand/30 transition-colors hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {pending ? "Menghubungkan…" : "Connect Scalev"}
+        {pending ? "Menghubungkan…" : "Connect"}
       </button>
     </form>
   );
