@@ -1,79 +1,72 @@
 import { z } from "zod";
 
 /**
- * ⚠️ ASSUMPTION-ONLY DRAFT — NOT validated against the real Scalev API.
- * The guide (§6 + risk #1) says the /v3/me shape WAJIB divalidasi manual
- * Minggu 1 — JANGAN DITEBAK. Every field is a guess so we can build now and
- * swap later. Intentionally permissive: `.passthrough()` keeps unknown keys,
- * fields are `.optional()`/`.nullish()`.
+ * ✅ VALIDATED against the real Scalev API (week-1, GET /v3/me — docs:
+ * https://docs.scalev.com/api-reference/identity/get-authenticated-identity).
  *
- * AFTER manual validation: tighten types (email(), enums), drop the hedged
- * alternative fields (name/full_name/username, stores/store), lock the
- * businesses array key name + envelope.
+ * Real shape differs from the earlier assumption draft:
+ *  - identity fields are NESTED under `user` (not top-level id/email/name)
+ *  - the response is NOT enveloped (no { data: ... } wrapper)
+ *  - a business is keyed by `unique_id` (string) + `username`; there is NO
+ *    numeric business id, slug, currency, or embedded store on /v3/me
+ *  - new top-level fields: `auth_method`, `oauth_application`
+ *
+ * Still `.passthrough()` + tolerant nullability so sandbox quirks don't reject.
  */
 
-// A store possibly embedded under a business (speculative; stores more likely
-// live on GET /v3/business/stores).
-export const BusinessStoreSchema = z
-  .object({
-    id: z.union([z.string(), z.number()]).optional(),
-    name: z.string().optional(),
-    slug: z.string().nullish(),
-    domain: z.string().nullish(),
-  })
-  .passthrough();
-
-// One connected business — drives platform Tenant creation.
+// connected_businesses[] item. `unique_id` is the business key (b_uid for
+// business-scoped routes); `username` is the url-safe handle (subdomain basis).
 export const ConnectedBusinessSchema = z
   .object({
-    id: z.union([z.string(), z.number()]),
-    name: z.string().optional(),
-    // Guessed url-safe key for subdomain routing; may not exist on /v3/me.
-    slug: z.string().nullish(),
-    role: z.string().nullish(),
-    is_owner: z.boolean().nullish(),
-    currency: z.string().nullish(),
-    country: z.string().nullish(),
-    timezone: z.string().nullish(),
-    // Only one of these (or neither) is likely real.
-    stores: z.array(BusinessStoreSchema).optional(),
-    store: BusinessStoreSchema.optional(),
+    unique_id: z.string().nullish(),
+    username: z.string().nullish(),
+    name: z.string().nullish(),
+    is_enabled: z.boolean().nullish(),
+    scopes: z.array(z.string()).nullish(),
   })
   .passthrough();
 
-// Top-level GET /v3/me response (merchant identity).
+// The authenticated user. Null for non-user auth contexts (e.g. app login).
+export const ScalevUserSchema = z
+  .object({
+    // ⚠️ id is a JSON number in docs (e.g. 123). If ids can exceed 2^53,
+    // precision is lost at JSON.parse before Zod — keep as union, stringify
+    // downstream. Confirm max id size with Scalev if it matters.
+    id: z.union([z.string(), z.number()]).nullish(),
+    unique_id: z.string().nullish(),
+    email: z.string().nullish(),
+    phone: z.string().nullish(),
+    fullname: z.string().nullish(),
+    avatar: z.string().nullish(),
+  })
+  .passthrough();
+
+// oauth_application — present when auth_method = "oauth". Not used by MVP token
+// connect, but kept so the shape validates instead of being stripped.
+export const OAuthApplicationSchema = z
+  .object({
+    id: z.union([z.string(), z.number()]).nullish(),
+    client_id: z.string().nullish(),
+    name: z.string().nullish(),
+    homepage_url: z.string().nullish(),
+  })
+  .passthrough();
+
+// Top-level GET /v3/me response (AuthenticatedIdentity, no envelope).
 export const MeResponseSchema = z
   .object({
-    // ⚠️ Large 64-bit integer ids lose precision at JSON.parse (>2^53) BEFORE
-    // Zod sees them. If Scalev ids can be big ints, confirm week 1 and tighten
-    // to z.string() (keep as string end-to-end).
-    id: z.union([z.string(), z.number()]),
-    email: z.string().optional(), // not .email() yet — avoid rejecting sandbox values
-    // Display name — hedged across likely key names; drop unused later.
-    name: z.string().optional(),
-    full_name: z.string().optional(),
-    username: z.string().optional(),
-    phone: z.string().nullish(),
-    avatar_url: z.string().nullish(),
-    status: z.string().optional(),
-    created_at: z.string().optional(),
-    updated_at: z.string().optional(),
-    // The field the guide names as the tenant basis.
-    // ⚠️ REQUIRED ON PURPOSE (not .optional().default([])): the KEY NAME is the
-    // prime suspect of the assumption. If Scalev calls it `businesses` /
-    // `business_accounts` / nests it, this throws a loud Zod error in scalevFetch
-    // (caught week 1) instead of silently defaulting to [] and telling the
-    // merchant "no business connected". A genuinely empty array still passes.
+    // "oauth" | "api_key" | "app_login" | null — kept as string (not enum) so
+    // an unknown method from sandbox doesn't reject a valid login.
+    auth_method: z.string().nullish(),
+    user: ScalevUserSchema.nullish(),
+    oauth_application: OAuthApplicationSchema.nullish(),
+    // Drives tenant creation. Kept REQUIRED (not defaulted) so a renamed key
+    // throws loud in scalevFetch instead of silently logging in with 0 stores.
+    // A genuinely empty array still passes.
     connected_businesses: z.array(ConnectedBusinessSchema),
   })
   .passthrough();
 
-// If Scalev wraps the body (e.g. { data: {...} }), validate `.data` against
-// MeResponseSchema instead. Delete whichever wrapper does not match reality.
-export const MeResponseEnvelopeSchema = z
-  .object({ data: MeResponseSchema })
-  .passthrough();
-
 export type MeResponse = z.infer<typeof MeResponseSchema>;
+export type ScalevUser = z.infer<typeof ScalevUserSchema>;
 export type ConnectedBusiness = z.infer<typeof ConnectedBusinessSchema>;
-export type BusinessStore = z.infer<typeof BusinessStoreSchema>;

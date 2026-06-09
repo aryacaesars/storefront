@@ -25,30 +25,30 @@ function slugify(input: string): string {
 }
 
 /**
- * Build a Tenant from a Scalev identity's first connected business.
- * Returns null if the merchant has no connected business.
- * ⚠️ Uses ASSUMPTION fields (connected_businesses[].id/name/slug) — confirm
- * the real shape week 1.
+ * Build a Tenant from a Scalev identity's first ENABLED connected business.
+ * Returns null if the merchant has no usable business.
+ * Real /v3/me shape: business keyed by `unique_id` (string) + `username`
+ * (url-safe handle). No numeric id / slug / store on this endpoint.
  */
 export function resolveTenantFromIdentity(identity: MeResponse): Tenant | null {
-  const biz = identity.connected_businesses[0];
-  if (!biz) return null;
+  const businesses = identity.connected_businesses;
+  // Prefer an enabled business; fall back to the first if none flagged.
+  const biz =
+    businesses.find((b) => b.is_enabled !== false) ?? businesses[0];
+  if (!biz || !biz.unique_id) return null;
 
-  const scalevBusinessId = String(biz.id);
-  // biz.slug may be null/undefined OR an empty string; slugify() yields "" for
-  // names with no ASCII alphanumerics (unicode/symbol-only, e.g. CJK store names).
-  // Always fall back to the business id so tenant.slug is never empty — it drives
-  // subdomain routing.
+  const scalevBusinessId = biz.unique_id;
+  // `username` is Scalev's url-safe handle → best subdomain key. Fall back to
+  // a slugified name, then the business unique_id, so slug is never empty.
   const slug =
-    (biz.slug && biz.slug.trim()) || slugify(biz.name ?? "") || scalevBusinessId;
+    (biz.username && biz.username.trim()) ||
+    slugify(biz.name ?? "") ||
+    scalevBusinessId;
 
   return {
     id: scalevBusinessId,
     scalevBusinessId,
     slug,
-    // ⚠️ If after a REAL login slug = <numeric id> and name = "Untitled Store",
-    // that's a SIGNAL the name/slug KEY assumption is wrong (id is the only
-    // required business field) — confirm week 1, not a normal state.
     name: biz.name ?? "Untitled Store",
   };
 }

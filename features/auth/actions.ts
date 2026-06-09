@@ -62,15 +62,18 @@ export async function loginAction(
     return { error: "Akun Scalev belum punya business/store yang terhubung." };
   }
 
+  // Identity fields are nested under `user` (may be null for non-user auth).
+  const user = identity.user;
   // Prefer the first non-empty display name; tolerate empty-string fields.
   const displayName =
-    [identity.name, identity.full_name, identity.username].find(
+    [user?.fullname, user?.email].find(
       (v): v is string => typeof v === "string" && v.trim().length > 0,
     ) ?? tenant.name;
 
   try {
     await setSessionCookie({
-      merchantId: String(identity.id),
+      // Fall back to the business id when there's no user (e.g. app login).
+      merchantId: user?.id != null ? String(user.id) : tenant.scalevBusinessId,
       displayName,
       tenantId: tenant.id,
       tenantSlug: tenant.slug,
