@@ -2,7 +2,6 @@ import Link from "next/link"
 import { Store } from "lucide-react"
 import { requireSession } from "@/features/auth/dal"
 import { TemplateCard, type TemplateCardProps } from "@/features/builder/components/TemplateCard"
-import { Button } from "@/components/ui/button"
 
 export const metadata = { title: "Storefront — Template Saya" }
 
@@ -51,9 +50,12 @@ export default async function TemplatesPage() {
             Jelajahi katalog template di halaman utama Etalase untuk menemukan
             desain yang cocok dengan toko Anda.
           </p>
-          <Button asChild>
-            <Link href="/#templates">Jelajahi Template</Link>
-          </Button>
+          <Link
+            href="/#templates"
+            className="inline-flex h-9 items-center justify-center rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+          >
+            Jelajahi Template
+          </Link>
         </div>
       )}
     </div>

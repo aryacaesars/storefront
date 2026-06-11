@@ -46,10 +46,28 @@ function baseDomain(): string {
  * - "<sub>.<base>"       -> storefront, tenant = <sub>
  * - "<base>" / localhost -> builder (default; root domain = landing/dashboard)
  */
+function resolveLocalhostSubdomain(hostname: string): {
+  context: "builder" | "storefront";
+  tenant: string | null;
+} | null {
+  // Dev: namatoko.localhost — works regardless of NEXT_PUBLIC_ROOT_DOMAIN.
+  if (!hostname.endsWith(".localhost")) return null;
+
+  const sub = hostname.slice(0, -".localhost".length);
+  if (!sub || sub === "app" || sub === "www") {
+    return { context: "builder", tenant: null };
+  }
+
+  return { context: "storefront", tenant: sub.split(".")[0] };
+}
+
 function resolve(hostname: string): {
   context: "builder" | "storefront";
   tenant: string | null;
 } {
+  const localhost = resolveLocalhostSubdomain(hostname);
+  if (localhost) return localhost;
+
   const base = baseDomain();
 
   // Akses langsung ke root domain atau localhost telanjang -> builder.
