@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Pencil } from "lucide-react"
 
 export function ActiveThemeCard() {
@@ -47,12 +48,13 @@ export function ActiveThemeCard() {
           <p className="text-sm font-semibold text-gray-900 leading-tight">Minimalist</p>
           <p className="text-xs text-gray-400 mt-0.5">Design Journal V2.4</p>
         </div>
-        <button
+        <Link
+          href="/customize"
           className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
           aria-label="Edit theme"
         >
           <Pencil className="w-3.5 h-3.5" />
-        </button>
+        </Link>
       </div>
     </div>
   )
