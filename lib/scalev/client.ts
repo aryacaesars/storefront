@@ -8,7 +8,8 @@ import type { z } from "zod";
  */
 
 // ⚠️ ASSUMPTION: base URL + Bearer scheme. Confirm against sandbox week 1.
-const BASE_URL = process.env.SCALEV_API_BASE ?? "https://api.scalev.com";
+const BASE_URL =
+  process.env.SCALEV_API_BASE?.trim() || "https://api.scalev.com";
 
 export type ScalevErrorKind = "http" | "network" | "validation";
 

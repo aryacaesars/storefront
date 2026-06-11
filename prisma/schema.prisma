@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Platform merchant / store (1:1 with Scalev connected business).
+model Tenant {
+  id               String   @id @default(cuid())
+  scalevBusinessId String   @unique @map("scalev_business_id")
+  slug             String   @unique
+  name             String
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  theme ThemeConfig?
+
+  @@map("tenants")
+}
+
+/// Branding + template config per tenant. Commerce data stays on Scalev.
+model ThemeConfig {
+  id          String   @id @default(cuid())
+  tenantId    String   @unique @map("tenant_id")
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  templateId  String   @map("template_id")
+  config      Json
+  isPublished Boolean  @default(false) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("theme_configs")
+}

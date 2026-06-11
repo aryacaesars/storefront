@@ -4,7 +4,10 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getAuthProvider, AuthError } from "./provider";
 import { setSessionCookie, clearSessionCookie } from "./session";
-import { resolveTenantFromIdentity } from "@/server/services/tenant.service";
+import {
+  resolveTenantFromIdentity,
+  upsertTenant,
+} from "@/server/services/tenant.service";
 import { ScalevError } from "@/lib/scalev/client";
 import type { LoginFormState } from "./types";
 
@@ -45,11 +48,18 @@ export async function loginAction(
             "Respons Scalev tidak sesuai dugaan — cek server log (validasi struktur Minggu 1).",
         };
       }
-      if (e.status === 401) {
-        // ⚠️ Could be a bad token OR our unconfirmed auth SCHEME (Bearer).
+      if (e.kind === "network" || e.status === 0) {
+        console.error("[auth] Scalev network error:", e.message);
         return {
           error:
-            "Token ditolak Scalev (401). Periksa token — atau skema auth (Bearer) yang belum dikonfirmasi.",
+            "Tidak bisa terhubung ke Scalev API. Periksa koneksi internet, pastikan SCALEV_API_BASE=https://api.scalev.com di .env, lalu restart npm run dev.",
+        };
+      }
+      if (e.status === 401) {
+        console.error("[auth] Scalev 401:", e.body);
+        return {
+          error:
+            "API Key ditolak Scalev (401). Buat/ salin ulang key di Scalev → Settings → Developers → API Keys (format sk_... atau rk_...). Pastikan key belum expired dan scope-nya mencakup akses business.",
         };
       }
       return { error: `Gagal menghubungi Scalev (HTTP ${e.status}).` };
@@ -57,9 +67,17 @@ export async function loginAction(
     return { error: "Login gagal. Coba lagi." };
   }
 
-  const tenant = resolveTenantFromIdentity(identity);
-  if (!tenant) {
+  const resolved = resolveTenantFromIdentity(identity);
+  if (!resolved) {
     return { error: "Akun Scalev belum punya business/store yang terhubung." };
+  }
+
+  let tenant;
+  try {
+    tenant = await upsertTenant(resolved);
+  } catch (e) {
+    console.error("[auth] Failed to upsert tenant:", e);
+    return { error: "Gagal menyimpan data tenant. Periksa koneksi database." };
   }
 
   // Identity fields are nested under `user` (may be null for non-user auth).

@@ -1,25 +1,25 @@
 import Link from "next/link"
 import { Store } from "lucide-react"
 import { requireSession } from "@/features/auth/dal"
-import { TemplateCard, type TemplateCardProps } from "@/features/builder/components/TemplateCard"
+import { TemplateCard } from "@/features/builder/components/TemplateCard"
 import { Button } from "@/components/ui/button"
+import { getActiveTemplateId, isTemplatePreviewReady } from "@/features/builder/theme-state"
+import { TEMPLATE_IDS, TEMPLATE_META } from "@/themes/engine/registry"
 
 export const metadata = { title: "Storefront — Template Saya" }
 
-// TODO: ganti dengan data dari API setelah endpoint template library tersedia
-const purchasedTemplates: TemplateCardProps[] = [
-  {
-    id: "minimalist",
-    name: "Minimalist",
-    description:
-      "Fokus pada tipografi bersih dan ruang putih yang luas untuk brand premium.",
-    active: true,
-    purchasedAt: "5 Mar 2026",
-  },
-]
-
 export default async function TemplatesPage() {
   await requireSession()
+  const activeTemplateId = await getActiveTemplateId()
+
+  const templates = TEMPLATE_IDS.map((id) => ({
+    id,
+    name: TEMPLATE_META[id].name,
+    description: TEMPLATE_META[id].description,
+    active: id === activeTemplateId,
+    previewReady: isTemplatePreviewReady(id),
+    purchasedAt: id === "minimalist" ? "5 Mar 2026" : undefined,
+  }))
 
   return (
     <div className="p-8 max-w-6xl">
@@ -33,9 +33,9 @@ export default async function TemplatesPage() {
         </p>
       </div>
 
-      {purchasedTemplates.length > 0 ? (
+      {templates.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {purchasedTemplates.map((template) => (
+          {templates.map((template) => (
             <TemplateCard key={template.id} {...template} />
           ))}
         </div>

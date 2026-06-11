@@ -1,18 +1,18 @@
-import "server-only";
-import type { MeResponse } from "@/lib/scalev/schemas";
+import "server-only"
+
+import { prisma } from "@/lib/db/prisma"
+import type { MeResponse } from "@/lib/scalev/schemas"
 
 /**
- * Platform tenant. MVP: derived in-memory from the Scalev identity (no DB).
- * Swap to a Prisma-backed upsert later (guide strict #3 — Tenant lives in
- * Prisma). Keep this interface stable so callers don't change.
+ * Platform tenant (1 Scalev connected business).
+ * Persisted in PostgreSQL via Prisma.
  */
 export interface Tenant {
-  /** Platform tenant id. For now = Scalev business id. */
-  id: string;
-  scalevBusinessId: string;
+  id: string
+  scalevBusinessId: string
   /** URL-safe subdomain key. */
-  slug: string;
-  name: string;
+  slug: string
+  name: string
 }
 
 function slugify(input: string): string {
@@ -21,37 +21,70 @@ function slugify(input: string): string {
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "")
-    .slice(0, 63);
+    .slice(0, 63)
 }
 
 /**
  * Build a Tenant from a Scalev identity's first ENABLED connected business.
- * Returns null if the merchant has no usable business.
- * Real /v3/me shape: business keyed by `unique_id` (string) + `username`
- * (url-safe handle). No numeric id / slug / store on this endpoint.
  */
 export function resolveTenantFromIdentity(identity: MeResponse): Tenant | null {
-  const businesses = identity.connected_businesses;
-  // Prefer an enabled business; fall back to the first if none flagged.
+  const businesses = identity.connected_businesses
   const biz =
-    businesses.find((b) => b.is_enabled !== false) ?? businesses[0];
-  if (!biz || !biz.unique_id) return null;
+    businesses.find((b) => b.is_enabled !== false) ?? businesses[0]
+  if (!biz || !biz.unique_id) return null
 
-  const scalevBusinessId = biz.unique_id;
-  // `username` is Scalev's url-safe handle → best subdomain key. Fall back to
-  // a slugified name, then the business unique_id, so slug is never empty.
+  const scalevBusinessId = biz.unique_id
   const slug =
     (biz.username && biz.username.trim()) ||
     slugify(biz.name ?? "") ||
-    scalevBusinessId;
+    scalevBusinessId
 
   return {
     id: scalevBusinessId,
     scalevBusinessId,
     slug,
     name: biz.name ?? "Untitled Store",
-  };
+  }
 }
 
-// TODO(Prisma): upsertTenant(tenant) -> persist to PostgreSQL; mint a stable
-// platform id instead of reusing the Scalev business id.
+function toTenant(record: {
+  id: string
+  scalevBusinessId: string
+  slug: string
+  name: string
+}): Tenant {
+  return {
+    id: record.id,
+    scalevBusinessId: record.scalevBusinessId,
+    slug: record.slug,
+    name: record.name,
+  }
+}
+
+/** Create or update tenant row on login / provisioning. */
+export async function upsertTenant(input: Tenant): Promise<Tenant> {
+  const record = await prisma.tenant.upsert({
+    where: { scalevBusinessId: input.scalevBusinessId },
+    create: {
+      scalevBusinessId: input.scalevBusinessId,
+      slug: input.slug,
+      name: input.name,
+    },
+    update: {
+      slug: input.slug,
+      name: input.name,
+    },
+  })
+
+  return toTenant(record)
+}
+
+export async function getTenantBySlug(slug: string): Promise<Tenant | null> {
+  const record = await prisma.tenant.findUnique({ where: { slug } })
+  return record ? toTenant(record) : null
+}
+
+export async function getTenantById(id: string): Promise<Tenant | null> {
+  const record = await prisma.tenant.findUnique({ where: { id } })
+  return record ? toTenant(record) : null
+}
