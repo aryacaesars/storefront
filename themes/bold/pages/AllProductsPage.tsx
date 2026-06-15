@@ -1,0 +1,22 @@
+import { PRODUCTS } from "@/themes/bold/data/mock"
+import { ProductsHeader } from "@/themes/bold/sections/products/ProductsHeader"
+import { FilterSidebar } from "@/themes/bold/sections/products/FilterSidebar"
+import { ProductGrid } from "@/themes/bold/sections/products/ProductGrid"
+import { Pagination } from "@/themes/bold/sections/products/Pagination"
+
+export function AllProductsPage() {
+  return (
+    <div className="min-h-screen bg-white">
+      <ProductsHeader totalCount={PRODUCTS.length} />
+      <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="flex items-start gap-8">
+          <FilterSidebar />
+          <div className="min-w-0 flex-1">
+            <ProductGrid products={PRODUCTS} />
+            <Pagination currentPage={1} totalPages={10} />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

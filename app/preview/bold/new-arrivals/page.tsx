@@ -1,6 +1,7 @@
 import { Barlow_Condensed } from "next/font/google"
 import { ThemeProvider } from "@/themes/engine/theme-provider"
-import { PerformancePage } from "@/themes/bold/pages/PerformancePage"
+import { Navbar } from "@/themes/bold"
+import { NewArrivalsPage } from "@/themes/bold/pages/NewArrivalsPage"
 import { DEFAULT_BOLD_CONFIG } from "@/themes/bold/theme.config"
 
 const barlow = Barlow_Condensed({
@@ -9,11 +10,12 @@ const barlow = Barlow_Condensed({
   weight: ["400", "700", "800", "900"],
 })
 
-export default function ProductsPage() {
+export default function BoldNewArrivalsPreview() {
   return (
-    <div className={barlow.variable}>
+    <div className={`${barlow.variable} min-h-full font-sans`}>
       <ThemeProvider config={DEFAULT_BOLD_CONFIG}>
-        <PerformancePage />
+        <Navbar config={DEFAULT_BOLD_CONFIG} basePath="/preview/bold" activeKey="new-arrivals" />
+        <NewArrivalsPage />
       </ThemeProvider>
     </div>
   )
