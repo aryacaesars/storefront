@@ -1,6 +1,10 @@
 import "server-only";
 import { getMe } from "@/lib/scalev/endpoints/identity";
 import type { MeResponse } from "@/lib/scalev/schemas";
+import {
+  looksLikeScalevApiKey,
+  normalizeScalevToken,
+} from "@/features/auth/normalize-token";
 
 /**
  * Provider-agnostic auth. Concrete impl now = token connect (merchant pastes a
@@ -30,8 +34,13 @@ class TokenAuthProvider implements AuthProvider {
   readonly id = "scalev-token";
 
   async authenticate(input: { token: string }): Promise<AuthResult> {
-    const token = input.token?.trim();
+    const token = normalizeScalevToken(input.token ?? "");
     if (!token) throw new AuthError("Token kosong.");
+    if (!looksLikeScalevApiKey(token)) {
+      throw new AuthError(
+        "Format token tidak dikenali. Paste API Key Scalev (awalan sk_ atau rk_) dari Settings → Developers → API Keys — bukan password akun atau storefront key (sfpk_).",
+      );
+    }
     const identity = await getMe(token); // throws ScalevError on invalid/expired
     return { token, identity };
   }

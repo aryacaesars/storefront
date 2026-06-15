@@ -7,15 +7,29 @@ interface FooterProps {
 }
 
 export function Footer({ config }: FooterProps) {
+  const logoDisplay = config.logoDisplay ?? "logo"
+  // Sama dengan Header: tanpa logoUrl selalu jatuh ke teks.
+  const showLogo = logoDisplay !== "text" && Boolean(config.logoUrl)
+  const showText = logoDisplay === "text" || logoDisplay === "both" || !config.logoUrl
+
   return (
     <footer className="border-t border-black/5 bg-white">
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-4">
+      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 @2xl:grid-cols-2 @3xl:grid-cols-4">
         <div>
           <p
-            className="text-base font-semibold text-[var(--theme-text)]"
+            className="flex items-center gap-2.5 text-base font-semibold text-[var(--theme-text)]"
             style={{ fontFamily: "var(--theme-heading-font)" }}
           >
-            {config.storeName}
+            {showLogo && (
+              // <img> biasa (bukan next/image) supaya logo SVG juga jalan.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={config.logoUrl}
+                alt={showText ? "" : config.storeName}
+                className="h-8 w-auto max-w-[160px] object-contain"
+              />
+            )}
+            {showText && config.storeName}
           </p>
           <p className="mt-3 text-sm leading-relaxed text-[var(--theme-muted)]">
             {config.tagline ??
@@ -94,7 +108,7 @@ export function Footer({ config }: FooterProps) {
       </div>
 
       <div className="border-t border-black/5">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-5 text-xs text-[var(--theme-muted)] sm:flex-row">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-5 text-xs text-[var(--theme-muted)] @2xl:flex-row">
           <p>© {new Date().getFullYear()} {config.storeName}. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <a href="#" className="transition-colors hover:text-[var(--theme-text)]" aria-label="Social">

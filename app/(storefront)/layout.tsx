@@ -1,9 +1,10 @@
+import type { ReactNode } from "react"
 import { StorefrontShell } from "@/features/storefront/StorefrontShell"
 
-export default function StorefrontLayout({
+export default async function StorefrontLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: ReactNode
 }) {
   return <StorefrontShell>{children}</StorefrontShell>
 }

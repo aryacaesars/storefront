@@ -3,17 +3,17 @@ import { Clock, Leaf } from "lucide-react"
 export function PhilosophySection() {
   return (
     <section className="mx-auto max-w-7xl px-6 py-16">
-      <div className="grid items-center gap-10 md:grid-cols-2">
+      <div className="grid items-center gap-8 @3xl:grid-cols-2 @3xl:gap-10">
         <div className="aspect-square overflow-hidden rounded-sm bg-gradient-to-br from-amber-100 via-stone-200 to-amber-50" />
 
         <div>
           <h2
-            className="text-2xl font-semibold text-[var(--theme-text)] sm:text-3xl"
+            className="text-2xl font-semibold text-[var(--theme-text)] @2xl:text-3xl"
             style={{ fontFamily: "var(--theme-heading-font)" }}
           >
             Less, but better
           </h2>
-          <p className="mt-4 text-sm leading-relaxed text-[var(--theme-muted)] sm:text-base">
+          <p className="mt-4 text-sm leading-relaxed text-[var(--theme-muted)] @2xl:text-base">
             We believe in fewer, more considered pieces — designed to outlast trends
             and integrate seamlessly into a life lived with purpose.
           </p>

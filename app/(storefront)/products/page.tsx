@@ -1,20 +1,11 @@
-import { ProductGrid } from "@/themes/minimalist/sections/ProductGrid"
-
 export default function ProductsPage() {
   return (
-    <div className="py-8">
-      <div className="mx-auto max-w-7xl px-6 pb-4">
-        <h1
-          className="text-3xl font-semibold text-[var(--theme-text)]"
-          style={{ fontFamily: "var(--theme-heading-font)" }}
-        >
-          The Complete Collection
-        </h1>
-        <p className="mt-2 text-sm text-[var(--theme-muted)]">
-          Curated essentials for the modern intentionalist.
-        </p>
-      </div>
-      <ProductGrid title="All Products" />
-    </div>
+    <main className="mx-auto max-w-3xl px-6 py-16 text-center">
+      <h1 className="text-2xl font-semibold text-gray-900">Halaman Produk</h1>
+      <p className="mt-3 text-sm text-gray-500">
+        Storefront masih dalam pengembangan. Gunakan builder untuk preview homepage
+        template aktif.
+      </p>
+    </main>
   )
 }

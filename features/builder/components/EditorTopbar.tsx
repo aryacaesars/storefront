@@ -34,7 +34,12 @@ export function EditorTopbar({
       <div className="flex items-center gap-3 shrink-0 min-w-0">
         <Link
           href="/dashboard"
-          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+          className={cn(
+            // Samakan dengan <Button size="sm"> (variant default/Publish).
+            "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl font-semibold transition-colors",
+            "h-8 px-3 text-xs bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1",
+          )}
         >
           <ArrowLeft className="w-4 h-4" />
           <span className="hidden sm:inline">Dashboard</span>

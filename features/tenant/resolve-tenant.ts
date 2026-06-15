@@ -1,14 +1,19 @@
+import "server-only"
+
+import { cache } from "react"
 import { headers } from "next/headers"
 
-const TENANT_HEADER = "x-tenant-subdomain"
 const CTX_HEADER = "x-app-context"
+const TENANT_HEADER = "x-tenant-subdomain"
 
-export async function getTenantSubdomain(): Promise<string | null> {
-  const h = await headers()
-  return h.get(TENANT_HEADER)
-}
+export const getAppContext = cache(
+  async (): Promise<"builder" | "storefront"> => {
+    const headerList = await headers()
+    return headerList.get(CTX_HEADER) === "storefront" ? "storefront" : "builder"
+  },
+)
 
-export async function getAppContext(): Promise<"builder" | "storefront"> {
-  const h = await headers()
-  return h.get(CTX_HEADER) === "storefront" ? "storefront" : "builder"
-}
+export const getTenantSubdomain = cache(async (): Promise<string | null> => {
+  const headerList = await headers()
+  return headerList.get(TENANT_HEADER)
+})

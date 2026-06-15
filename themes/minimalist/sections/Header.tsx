@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Search, User, ShoppingBag } from "lucide-react"
+import { MobileNav } from "./MobileNav"
 import type { ThemeConfig } from "@/themes/engine/schema"
 
 const NAV_LINKS = [
@@ -15,6 +16,11 @@ interface HeaderProps {
 }
 
 export function Header({ config, cartCount = 0 }: HeaderProps) {
+  const logoDisplay = config.logoDisplay ?? "logo"
+  // Tanpa logoUrl selalu jatuh ke teks, apa pun pilihannya.
+  const showLogo = logoDisplay !== "text" && Boolean(config.logoUrl)
+  const showText = logoDisplay === "text" || logoDisplay === "both" || !config.logoUrl
+
   return (
     <>
       {config.bannerText && (
@@ -27,16 +33,25 @@ export function Header({ config, cartCount = 0 }: HeaderProps) {
       )}
 
       <header className="sticky top-0 z-50 border-b border-black/5 bg-[var(--theme-bg)]/95 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-6">
+        <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 @2xl:gap-6 @2xl:px-6">
           <Link
             href="/"
-            className="shrink-0 text-lg font-semibold tracking-tight text-[var(--theme-text)]"
+            className="flex shrink-0 items-center gap-2.5 text-lg font-semibold tracking-tight text-[var(--theme-text)]"
             style={{ fontFamily: "var(--theme-heading-font)" }}
           >
-            {config.storeName}
+            {showLogo && (
+              // <img> biasa (bukan next/image) supaya logo SVG juga jalan.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={config.logoUrl}
+                alt={showText ? "" : config.storeName}
+                className="h-8 w-auto max-w-[160px] object-contain"
+              />
+            )}
+            {showText && config.storeName}
           </Link>
 
-          <nav className="hidden items-center gap-8 md:flex">
+          <nav className="hidden items-center gap-8 @3xl:flex">
             {NAV_LINKS.map(({ label, href }) => (
               <Link
                 key={label}
@@ -48,7 +63,7 @@ export function Header({ config, cartCount = 0 }: HeaderProps) {
             ))}
           </nav>
 
-          <div className="flex items-center gap-4 shrink-0">
+          <div className="flex items-center gap-3 shrink-0 @2xl:gap-4">
             <button
               type="button"
               className="text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
@@ -75,6 +90,8 @@ export function Header({ config, cartCount = 0 }: HeaderProps) {
                 </span>
               )}
             </Link>
+
+            <MobileNav links={NAV_LINKS} />
           </div>
         </div>
       </header>

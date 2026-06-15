@@ -3,13 +3,13 @@ import { ArrowRight } from "lucide-react"
 export function NewsletterSection() {
   return (
     <section
-      className="mx-6 mb-16 rounded-2xl px-6 py-14 sm:px-12"
+      className="mx-4 mb-16 rounded-2xl px-5 py-10 @2xl:mx-6 @2xl:px-12 @2xl:py-14"
       style={{ backgroundColor: "var(--theme-accent)" }}
     >
-      <div className="mx-auto grid max-w-7xl items-center gap-10 md:grid-cols-2">
+      <div className="mx-auto grid max-w-7xl items-center gap-8 @3xl:grid-cols-2 @3xl:gap-10">
         <div>
           <h2
-            className="text-2xl font-semibold text-[var(--theme-text)] sm:text-3xl"
+            className="text-2xl font-semibold text-[var(--theme-text)] @2xl:text-3xl"
             style={{ fontFamily: "var(--theme-heading-font)" }}
           >
             Join the Circle

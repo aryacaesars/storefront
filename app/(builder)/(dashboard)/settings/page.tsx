@@ -1,4 +1,5 @@
 import { Copy, Upload, ExternalLink, Crown, Check } from "lucide-react"
+import { requireSession } from "@/features/auth/dal"
 import {
   SettingsSection,
   SettingsField,
@@ -8,10 +9,12 @@ import {
 } from "@/features/builder/components/SettingsSection"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { getStorefrontHost, getStorefrontUrl } from "@/lib/tenant/storefront-url"
 
-const SUBDOMAIN = "namatoko.etalase.com"
-
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const session = await requireSession()
+  const storefrontHost = getStorefrontHost(session.tenantSlug)
+  const storefrontUrl = getStorefrontUrl(session.tenantSlug)
   return (
     <div className="p-8 max-w-4xl">
       {/* Page header */}
@@ -63,15 +66,18 @@ export default function SettingsPage() {
         {/* ── 2. Domain & URL ───────────────────────────────── */}
         <SettingsSection
           title="Domain & URL"
-          description="Alamat publik storefront Anda. Subdomain disediakan otomatis, custom domain tersedia di plan Pro."
+          description="Subdomain otomatis dari username bisnis Scalev saat login. Belum bisa diubah manual di MVP ini."
         >
-          <SettingsField label="Subdomain Etalase" hint="Subdomain tidak dapat diubah setelah ditetapkan.">
+          <SettingsField
+            label="Subdomain Etalase"
+            hint={`Diambil dari akun Scalev: ${session.tenantSlug || "—"}. Custom slug butuh integrasi tenant DB (coming soon).`}
+          >
             <div className="flex items-center h-9 rounded-lg border border-gray-200 bg-gray-50 overflow-hidden">
               <span className="px-3 text-sm text-gray-400 border-r border-gray-200 bg-gray-100 h-full flex items-center shrink-0">
                 https://
               </span>
               <span className="px-3 text-sm text-indigo-600 font-medium flex-1">
-                {SUBDOMAIN}
+                {storefrontHost}
               </span>
               <button className="px-3 h-full border-l border-gray-200 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
                 <Copy className="w-3.5 h-3.5" />
@@ -107,7 +113,7 @@ export default function SettingsPage() {
               <p className="text-[11px] text-green-600">Sertifikat HTTPS valid · Diperbarui otomatis</p>
             </div>
             <a
-              href={`https://${SUBDOMAIN}`}
+              href={storefrontUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-xs text-green-700 font-medium hover:underline shrink-0"

@@ -1,26 +1,23 @@
-import { Playfair_Display } from "next/font/google"
+import type { ReactNode } from "react"
 import { ThemeProvider } from "@/themes/engine/theme-provider"
-import { Header, Footer } from "@/themes/minimalist"
+import { Header } from "@/themes/minimalist/sections/Header"
+import { Footer } from "@/themes/minimalist/sections/Footer"
 import { getTenantSubdomain } from "@/features/tenant/resolve-tenant"
-import { getThemeConfig } from "@/server/services/theme.service"
+import { getStorefrontThemeConfig } from "@/features/storefront/theme-config"
 
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-})
+interface StorefrontShellProps {
+  children: ReactNode
+}
 
-export async function StorefrontShell({ children }: { children: React.ReactNode }) {
+export async function StorefrontShell({ children }: StorefrontShellProps) {
   const tenantSlug = await getTenantSubdomain()
-  const config = await getThemeConfig(tenantSlug)
+  const config = await getStorefrontThemeConfig(tenantSlug)
 
   return (
-    <div className={`${playfair.variable} min-h-full font-sans`}>
-      <ThemeProvider config={config}>
-        <Header config={config} />
-        <main>{children}</main>
-        <Footer config={config} />
-      </ThemeProvider>
-    </div>
+    <ThemeProvider config={config}>
+      <Header config={config} />
+      {children}
+      <Footer config={config} />
+    </ThemeProvider>
   )
 }

@@ -9,12 +9,12 @@ export function ProductGrid({ title = "Trending Now" }: ProductGridProps) {
   return (
     <section className="mx-auto max-w-7xl px-6 py-16">
       <h2
-        className="mb-10 text-center text-2xl font-semibold text-[var(--theme-text)] sm:text-3xl"
+        className="mb-10 text-center text-2xl font-semibold text-[var(--theme-text)] @2xl:text-3xl"
         style={{ fontFamily: "var(--theme-heading-font)" }}
       >
         {title}
       </h2>
-      <div className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-8 @3xl:grid-cols-4 @3xl:gap-x-6 @3xl:gap-y-10">
         {TRENDING_PRODUCTS.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}

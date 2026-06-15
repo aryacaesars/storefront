@@ -8,7 +8,9 @@ interface ThemeProviderProps {
 export function ThemeProvider({ config, children }: ThemeProviderProps) {
   return (
     <div
-      className="min-h-full bg-[var(--theme-bg)] text-[var(--theme-text)]"
+      // `@container`: section theme pakai container query (@2xl:/@3xl:/@5xl:),
+      // bukan media query, supaya preview builder (frame 375px) ikut responsif.
+      className="@container min-h-full bg-[var(--theme-bg)] text-[var(--theme-text)]"
       style={
         {
           "--theme-primary": config.primaryColor,
