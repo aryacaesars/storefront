@@ -4,8 +4,11 @@ import { DirectChannels } from "@/themes/bold/sections/about/DirectChannels"
 import { FAQAccordionClient } from "@/themes/bold/sections/about/FAQAccordionClient"
 import { AboutFooter } from "@/themes/bold/sections/about/AboutFooter"
 import { DEFAULT_BOLD_CONFIG } from "@/themes/bold/theme.config"
+import type { ThemeConfig } from "@/themes/engine/schema"
 
-export function AboutPage() {
+interface AboutPageProps { config?: ThemeConfig }
+
+export function AboutPage({ config }: AboutPageProps) {
   return (
     <div className="min-h-screen bg-white">
       <ContactHeader />
@@ -23,7 +26,7 @@ export function AboutPage() {
         <FAQAccordionClient />
       </section>
 
-      <AboutFooter config={DEFAULT_BOLD_CONFIG} />
+      <AboutFooter config={config ?? DEFAULT_BOLD_CONFIG} />
     </div>
   )
 }

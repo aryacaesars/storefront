@@ -1,5 +1,6 @@
 import "server-only"
 
+import type { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/db/prisma"
 import {
   themeConfigSchema,
@@ -11,6 +12,10 @@ import {
 function parseThemeConfig(json: unknown): ThemeConfig | null {
   const result = themeConfigSchema.safeParse(json)
   return result.success ? result.data : null
+}
+
+function toJsonConfig(config: ThemeConfig): Prisma.InputJsonValue {
+  return JSON.parse(JSON.stringify(config)) as Prisma.InputJsonValue
 }
 
 export async function getPublishedThemeBySlug(
@@ -69,12 +74,12 @@ export async function saveThemeDraft(
     create: {
       tenantId,
       templateId: parsed.templateId,
-      config: parsed,
+      config: toJsonConfig(parsed),
       isPublished: false,
     },
     update: {
       templateId: parsed.templateId,
-      config: parsed,
+      config: toJsonConfig(parsed),
       isPublished: false,
     },
   })
@@ -91,12 +96,12 @@ export async function publishTheme(
     create: {
       tenantId,
       templateId: parsed.templateId,
-      config: parsed,
+      config: toJsonConfig(parsed),
       isPublished: true,
     },
     update: {
       templateId: parsed.templateId,
-      config: parsed,
+      config: toJsonConfig(parsed),
       isPublished: true,
     },
   })

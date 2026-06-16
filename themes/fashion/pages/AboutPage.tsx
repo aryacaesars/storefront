@@ -5,8 +5,11 @@ import { ValuesSection } from "@/themes/fashion/sections/about/ValuesSection"
 import { TeamSection } from "@/themes/fashion/sections/about/TeamSection"
 import { NewsletterDark } from "@/themes/fashion/sections/about/NewsletterDark"
 import { AboutFooter } from "@/themes/fashion/sections/about/AboutFooter"
+import type { ThemeConfig } from "@/themes/engine/schema"
 
-export function AboutPage() {
+interface AboutPageProps { config?: ThemeConfig }
+
+export function AboutPage({ config: _config }: AboutPageProps) {
   return (
     <div style={{ backgroundColor: "var(--theme-bg)" }}>
       <PhilosophyHeader />

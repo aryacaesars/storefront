@@ -5,8 +5,13 @@ import { LoadMoreSection } from "@/themes/bold/sections/new-arrivals/LoadMoreSec
 import { EliteNewsletter } from "@/themes/bold/sections/new-arrivals/EliteNewsletter"
 import { NewArrivalsFooter } from "@/themes/bold/sections/new-arrivals/NewArrivalsFooter"
 import { DEFAULT_BOLD_CONFIG } from "@/themes/bold/theme.config"
+import type { ThemeConfig } from "@/themes/engine/schema"
 
-export function NewArrivalsPage() {
+interface NewArrivalsPageProps {
+  config?: ThemeConfig
+}
+
+export function NewArrivalsPage({ config = DEFAULT_BOLD_CONFIG }: NewArrivalsPageProps) {
   return (
     <div className="min-h-screen bg-zinc-50">
       <HeroNewArrivals />
@@ -16,7 +21,7 @@ export function NewArrivalsPage() {
         <LoadMoreSection />
       </div>
       <EliteNewsletter />
-      <NewArrivalsFooter config={DEFAULT_BOLD_CONFIG} />
+      <NewArrivalsFooter config={config} />
     </div>
   )
 }

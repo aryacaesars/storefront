@@ -1,21 +1,19 @@
-import { HeroSection } from "@/themes/bold/sections/HeroSection"
-import { OriginSection } from "@/themes/bold/sections/OriginSection"
-import { ManifestoSection } from "@/themes/bold/sections/ManifestoSection"
-import { PillarsSection } from "@/themes/bold/sections/PillarsSection"
-import { ImpactSection } from "@/themes/bold/sections/ImpactSection"
-import { ArchitectsSection } from "@/themes/bold/sections/ArchitectsSection"
-import { CallToActionSection } from "@/themes/bold/sections/CallToActionSection"
+import { SectionRenderer } from "@/themes/engine/SectionRenderer"
+import type { SectionEditorState } from "@/themes/engine/section-editor"
+import { DEFAULT_BOLD_CONFIG } from "@/themes/bold/theme.config"
+import type { ThemeConfig } from "@/themes/engine/schema"
 
-export function HomePage() {
+interface HomePageProps {
+  config?: ThemeConfig
+  sectionEditor?: SectionEditorState
+}
+
+export function HomePage({ config = DEFAULT_BOLD_CONFIG, sectionEditor }: HomePageProps) {
   return (
-    <>
-      <HeroSection />
-      <OriginSection />
-      <ManifestoSection />
-      <PillarsSection />
-      <ImpactSection />
-      <ArchitectsSection />
-      <CallToActionSection />
-    </>
+    <SectionRenderer
+      config={config}
+      pageType="home"
+      editor={sectionEditor}
+    />
   )
 }

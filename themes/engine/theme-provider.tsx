@@ -1,11 +1,18 @@
 import type { ThemeConfig } from "./schema"
+import { getThemePalette } from "./theme-palette"
+import { DeviceProvider } from "./device-context"
+import type { DeviceMode } from "./device-settings"
 
 interface ThemeProviderProps {
   config: ThemeConfig
   children: React.ReactNode
+  /** Editor preview forces desktop/mobile; live storefront omits this and uses the viewport. */
+  forcedDevice?: DeviceMode
 }
 
-export function ThemeProvider({ config, children }: ThemeProviderProps) {
+export function ThemeProvider({ config, children, forcedDevice }: ThemeProviderProps) {
+  const palette = getThemePalette(config.templateId)
+
   return (
     <div
       // `@container`: section theme pakai container query (@2xl:/@3xl:/@5xl:),
@@ -15,15 +22,15 @@ export function ThemeProvider({ config, children }: ThemeProviderProps) {
         {
           "--theme-primary": config.primaryColor,
           "--theme-accent": config.accentColor ?? "#EDEAF5",
-          "--theme-bg": "#F9F9FB",
-          "--theme-text": "#1A2B3C",
-          "--theme-muted": "#64748B",
+          "--theme-bg": palette.bg,
+          "--theme-text": palette.text,
+          "--theme-muted": palette.muted,
           "--theme-heading-font": config.headingFont,
           "--theme-body-font": config.bodyFont,
         } as React.CSSProperties
       }
     >
-      {children}
+      <DeviceProvider forcedDevice={forcedDevice}>{children}</DeviceProvider>
     </div>
   )
 }

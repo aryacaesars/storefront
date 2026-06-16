@@ -1,4 +1,11 @@
-export function CollectionsFooter() {
+import type { ThemeConfig } from "@/themes/engine/schema"
+import { DEFAULT_FASHION_CONFIG } from "@/themes/fashion/theme.config"
+
+interface CollectionsFooterProps {
+  config?: ThemeConfig
+}
+
+export function CollectionsFooter({ config = DEFAULT_FASHION_CONFIG }: CollectionsFooterProps) {
   return (
     <footer className="bg-[var(--theme-text)]">
       <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-4">
@@ -7,11 +14,10 @@ export function CollectionsFooter() {
             className="mb-4 text-2xl font-medium text-white"
             style={{ fontFamily: "var(--theme-heading-font)" }}
           >
-            Luna Soft
+            {config.storeName}
           </p>
           <p className="max-w-[200px] text-xs leading-relaxed text-white/40">
-            Crafting timeless elegance through ethical jewelry and conscious design for the
-            discerning modern individual.
+            {config.tagline ?? "Crafting timeless elegance through conscious design."}
           </p>
         </div>
 

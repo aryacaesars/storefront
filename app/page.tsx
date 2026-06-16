@@ -2,7 +2,7 @@ import { getAppContext, getTenantSubdomain } from "@/features/tenant/resolve-ten
 import BuilderLandingPage from "@/features/builder/landing/BuilderLandingPage"
 import { StorefrontShell } from "@/features/storefront/StorefrontShell"
 import { getStorefrontThemeConfig } from "@/features/storefront/theme-config"
-import { HomePage } from "@/themes/minimalist/pages/HomePage"
+import { ThemeHomeView } from "@/themes/engine/ThemeHomeView"
 
 export default async function Home() {
   const context = await getAppContext()
@@ -12,8 +12,8 @@ export default async function Home() {
     const config = await getStorefrontThemeConfig(tenantSlug)
 
     return (
-      <StorefrontShell>
-        <HomePage config={config} />
+      <StorefrontShell fullPage>
+        <ThemeHomeView config={config} />
       </StorefrontShell>
     )
   }

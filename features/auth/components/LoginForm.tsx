@@ -16,7 +16,7 @@ export function LoginForm() {
         name="token"
         type="password"
         autoComplete="off"
-        placeholder="sk_... atau rk_... (API Key dari Scalev)"
+        placeholder="Masukkan Token Scalev"
         required
         className="rounded-xl border border-black/10 bg-white px-4 py-3 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
       />

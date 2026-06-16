@@ -3,8 +3,14 @@ import { FilterSidebarClient } from "@/themes/fashion/sections/shop/FilterSideba
 import { ProductGrid } from "@/themes/fashion/sections/shop/ProductGrid"
 import { Pagination } from "@/themes/fashion/sections/shop/Pagination"
 import { ShopFooter } from "@/themes/fashion/sections/shop/ShopFooter"
+import { DEFAULT_FASHION_CONFIG } from "@/themes/fashion/theme.config"
+import type { ThemeConfig } from "@/themes/engine/schema"
 
-export function ShopAllPage() {
+interface ShopAllPageProps {
+  config?: ThemeConfig
+}
+
+export function ShopAllPage({ config = DEFAULT_FASHION_CONFIG }: ShopAllPageProps) {
   return (
     <div style={{ backgroundColor: "var(--theme-bg)" }}>
       <ShopHeader />
@@ -17,7 +23,7 @@ export function ShopAllPage() {
           </div>
         </div>
       </div>
-      <ShopFooter />
+      <ShopFooter config={config} />
     </div>
   )
 }

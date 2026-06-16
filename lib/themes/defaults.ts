@@ -1,5 +1,6 @@
 import type { TemplateId, ThemeConfig } from "@/themes/engine/schema"
 import { DEFAULT_MINIMALIST_CONFIG } from "@/themes/minimalist/theme.config"
+import { DEFAULT_BENTO_CONFIG } from "@/themes/bento/theme.config"
 
 const DEFAULT_BOLD_CONFIG: ThemeConfig = {
   templateId: "bold",
@@ -27,6 +28,7 @@ export const DEFAULT_THEME_CONFIGS: Record<TemplateId, ThemeConfig> = {
   minimalist: DEFAULT_MINIMALIST_CONFIG,
   bold: DEFAULT_BOLD_CONFIG,
   fashion: DEFAULT_FASHION_CONFIG,
+  bento: DEFAULT_BENTO_CONFIG,
 }
 
 export function getDefaultThemeConfig(templateId: TemplateId): ThemeConfig {

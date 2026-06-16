@@ -1,8 +1,31 @@
 import Link from "next/link"
+import type { BlockInstance } from "@/themes/engine/schema"
 import { CATEGORIES } from "@/themes/minimalist/data/mock"
 
-export function CategoryGrid() {
-  const [featured, ...rest] = CATEGORIES
+type CategoryItem = {
+  slug: string
+  label: string
+  imageClass: string
+}
+
+function blockToCategory(block: BlockInstance, index: number): CategoryItem {
+  const s = block.settings as Record<string, unknown> | undefined
+  return {
+    slug: typeof s?.slug === "string" ? s.slug : `category-${index}`,
+    label: typeof s?.label === "string" ? s.label : "Category",
+    imageClass:
+      typeof s?.imageClass === "string"
+        ? s.imageClass
+        : "bg-gradient-to-br from-stone-400 to-stone-600",
+  }
+}
+
+export function CategoryGrid({ blocks }: { blocks?: BlockInstance[] }) {
+  const items: CategoryItem[] = blocks?.length
+    ? blocks.map(blockToCategory)
+    : [...CATEGORIES]
+
+  const [featured, ...rest] = items
 
   return (
     <section className="mx-auto max-w-7xl px-6 py-16">
@@ -27,32 +50,36 @@ export function CategoryGrid() {
         </Link>
       </div>
 
-      <div className="grid gap-4 @3xl:grid-cols-2 @3xl:grid-rows-2">
-        <Link
-          href={`/categories/${featured.slug}`}
-          className="group relative overflow-hidden rounded-sm @3xl:row-span-2"
-        >
-          <div className={`aspect-[3/4] @3xl:aspect-auto @3xl:h-full min-h-[320px] ${featured.imageClass}`} />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-          <span className="absolute bottom-6 left-6 text-lg font-medium text-white">
-            {featured.label}
-          </span>
-        </Link>
-
-        {rest.map((cat) => (
+      {featured && (
+        <div className="grid gap-4 @3xl:grid-cols-2 @3xl:grid-rows-2">
           <Link
-            key={cat.slug}
-            href={`/categories/${cat.slug}`}
-            className="group relative overflow-hidden rounded-sm"
+            href={`/categories/${featured.slug}`}
+            className="group relative overflow-hidden rounded-sm @3xl:row-span-2"
           >
-            <div className={`aspect-[16/9] ${cat.imageClass}`} />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-            <span className="absolute bottom-4 left-4 text-base font-medium text-white">
-              {cat.label}
+            <div
+              className={`aspect-[3/4] @3xl:aspect-auto @3xl:h-full min-h-[320px] ${featured.imageClass}`}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+            <span className="absolute bottom-6 left-6 text-lg font-medium text-white">
+              {featured.label}
             </span>
           </Link>
-        ))}
-      </div>
+
+          {rest.map((cat) => (
+            <Link
+              key={cat.slug}
+              href={`/categories/${cat.slug}`}
+              className="group relative overflow-hidden rounded-sm"
+            >
+              <div className={`aspect-[16/9] ${cat.imageClass}`} />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+              <span className="absolute bottom-4 left-4 text-base font-medium text-white">
+                {cat.label}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
     </section>
   )
 }

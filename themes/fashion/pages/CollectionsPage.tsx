@@ -4,8 +4,14 @@ import { JewelryFilterClient } from "@/themes/fashion/sections/collections/Jewel
 import { JewelryGrid } from "@/themes/fashion/sections/collections/JewelryGrid"
 import { JournalSection } from "@/themes/fashion/sections/collections/JournalSection"
 import { CollectionsFooter } from "@/themes/fashion/sections/collections/CollectionsFooter"
+import { DEFAULT_FASHION_CONFIG } from "@/themes/fashion/theme.config"
+import type { ThemeConfig } from "@/themes/engine/schema"
 
-export function CollectionsPage() {
+interface CollectionsPageProps {
+  config?: ThemeConfig
+}
+
+export function CollectionsPage({ config = DEFAULT_FASHION_CONFIG }: CollectionsPageProps) {
   return (
     <div style={{ backgroundColor: "var(--theme-bg)" }}>
       <CollectionsHero />
@@ -17,7 +23,7 @@ export function CollectionsPage() {
         </div>
       </div>
       <JournalSection />
-      <CollectionsFooter />
+      <CollectionsFooter config={config} />
     </div>
   )
 }

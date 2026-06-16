@@ -1,22 +1,19 @@
-import { HeroSection } from "@/themes/minimalist/sections/HeroSection"
-import { CategoryGrid } from "@/themes/minimalist/sections/CategoryGrid"
-import { ProductGrid } from "@/themes/minimalist/sections/ProductGrid"
-import { PhilosophySection } from "@/themes/minimalist/sections/PhilosophySection"
-import { NewsletterSection } from "@/themes/minimalist/sections/NewsletterSection"
+import { SectionRenderer } from "@/themes/engine/SectionRenderer"
+import type { SectionEditorState } from "@/themes/engine/section-editor"
+import { DEFAULT_MINIMALIST_CONFIG } from "@/themes/minimalist/theme.config"
 import type { ThemeConfig } from "@/themes/engine/schema"
 
 interface HomePageProps {
   config?: ThemeConfig
+  sectionEditor?: SectionEditorState
 }
 
-export function HomePage({ config }: HomePageProps) {
+export function HomePage({ config = DEFAULT_MINIMALIST_CONFIG, sectionEditor }: HomePageProps) {
   return (
-    <>
-      <HeroSection config={config} />
-      <CategoryGrid />
-      <ProductGrid />
-      <PhilosophySection />
-      <NewsletterSection />
-    </>
+    <SectionRenderer
+      config={config}
+      pageType="home"
+      editor={sectionEditor}
+    />
   )
 }

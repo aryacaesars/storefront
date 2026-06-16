@@ -69,10 +69,26 @@ function FashionThumbnail() {
   )
 }
 
+function BentoThumbnail() {
+  return (
+    <div className="relative w-full h-full overflow-hidden rounded-[8px] bg-gradient-to-b from-[#cfcfcf] to-[#999] flex items-center justify-center">
+      <div className="absolute left-3 top-3 z-10">
+        <div className="h-4 w-16 bg-red-500/80 rounded-sm" />
+        <div className="h-4 w-20 bg-white/90 rounded-sm mt-0.5" />
+      </div>
+      <div className="rotate-[20deg] w-20 h-20 bg-gradient-to-br from-gray-700 to-gray-900 rounded-full shadow-lg opacity-80" />
+      <div className="absolute bottom-3 right-3 rounded-full bg-white/50 px-3 py-1">
+        <div className="h-2 w-12 bg-red-500/70 rounded-full" />
+      </div>
+    </div>
+  )
+}
+
 const thumbnails: Record<TemplateId, React.ComponentType<{ className?: string }>> = {
   minimalist: MinimalistThumbnail,
   bold: BoldThumbnail,
   fashion: FashionThumbnail,
+  bento: BentoThumbnail,
 }
 
 interface TemplateThumbnailProps {

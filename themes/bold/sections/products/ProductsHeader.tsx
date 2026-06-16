@@ -2,9 +2,10 @@ import Link from "next/link"
 
 interface ProductsHeaderProps {
   totalCount: number
+  title?: string
 }
 
-export function ProductsHeader({ totalCount }: ProductsHeaderProps) {
+export function ProductsHeader({ totalCount, title = "All Products" }: ProductsHeaderProps) {
   return (
     <div className="border-b border-gray-100 bg-white px-6 py-5">
       {/* Breadcrumb */}
@@ -13,7 +14,7 @@ export function ProductsHeader({ totalCount }: ProductsHeaderProps) {
           Home
         </Link>
         <span className="text-gray-300">›</span>
-        <span className="text-gray-500">All Products</span>
+        <span className="text-gray-500">{title}</span>
       </div>
 
       {/* Title row */}
@@ -23,7 +24,7 @@ export function ProductsHeader({ totalCount }: ProductsHeaderProps) {
             className="text-4xl font-black uppercase tracking-tight text-zinc-900"
             style={{ fontFamily: "var(--theme-heading-font)" }}
           >
-            PERFORMANCE GEAR
+            {title.toUpperCase()}
           </h1>
           <p className="mt-1 text-sm text-zinc-500">
             Precision engineered for the high-endurance athlete.

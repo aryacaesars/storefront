@@ -87,6 +87,34 @@ interface ToggleRowProps {
   defaultChecked?: boolean
 }
 
+interface SegmentedControlProps {
+  value: string
+  options: { value: string; label: string }[]
+  onChange: (value: string) => void
+}
+
+export function SegmentedControl({ value, options, onChange }: SegmentedControlProps) {
+  return (
+    <div className="flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={() => onChange(opt.value)}
+          className={cn(
+            "h-8 flex-1 rounded-md text-xs font-medium transition-colors",
+            value === opt.value
+              ? "border border-gray-200 bg-white text-gray-900 shadow-sm"
+              : "text-gray-500 hover:text-gray-700",
+          )}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 export function ToggleRow({ label, description, defaultChecked = false }: ToggleRowProps) {
   return (
     <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">

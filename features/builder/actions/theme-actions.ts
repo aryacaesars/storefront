@@ -47,7 +47,8 @@ export async function saveThemeDraft(config: ThemeConfig) {
   await saveThemeDraftToDb(session.tenantId, parsed)
 
   cookieStore.set(ACTIVE_TEMPLATE_COOKIE, parsed.templateId, cookieOptions)
-  cookieStore.set(THEME_DRAFT_COOKIE, JSON.stringify(parsed), cookieOptions)
+  // Full config + image URLs exceed browser cookie limits (~4KB) — rely on DB only.
+  cookieStore.delete(THEME_DRAFT_COOKIE)
 
   revalidatePath("/dashboard")
   revalidatePath("/customize")

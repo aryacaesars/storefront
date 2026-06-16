@@ -4,8 +4,13 @@ import { FeaturesBento } from "@/themes/bold/sections/tech-series/FeaturesBento"
 import { RelatedProducts } from "@/themes/bold/sections/tech-series/RelatedProducts"
 import { TechSeriesFooter } from "@/themes/bold/sections/tech-series/TechSeriesFooter"
 import { DEFAULT_BOLD_CONFIG } from "@/themes/bold/theme.config"
+import type { ThemeConfig } from "@/themes/engine/schema"
 
-export function TechSeriesPage() {
+interface TechSeriesPageProps {
+  config?: ThemeConfig
+}
+
+export function TechSeriesPage({ config = DEFAULT_BOLD_CONFIG }: TechSeriesPageProps) {
   return (
     <div className="min-h-screen bg-white">
       {/* Product Hero */}
@@ -23,7 +28,7 @@ export function TechSeriesPage() {
         <RelatedProducts />
       </section>
 
-      <TechSeriesFooter config={DEFAULT_BOLD_CONFIG} />
+      <TechSeriesFooter config={config} />
     </div>
   )
 }

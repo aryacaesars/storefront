@@ -1,4 +1,14 @@
-export function NewsletterCTA() {
+import { getStringSetting } from "@/themes/engine/section-settings-schema"
+import type { SectionProps } from "@/themes/engine/section-registry"
+
+export function NewsletterCTA({ settings }: SectionProps) {
+  const title = getStringSetting(settings, "title", "Join Our World")
+  const subtitle = getStringSetting(
+    settings,
+    "subtitle",
+    "Sign up for early access to new collections and curated brand stories.",
+  )
+
   return (
     <section className="bg-[var(--theme-text)] py-20">
       <div className="mx-auto max-w-md px-6 text-center">
@@ -6,11 +16,9 @@ export function NewsletterCTA() {
           className="text-3xl font-medium text-white"
           style={{ fontFamily: "var(--theme-heading-font)" }}
         >
-          Join Our World
+          {title}
         </h2>
-        <p className="mt-3 text-sm text-white/50">
-          Sign up for early access to new collections and curated brand stories.
-        </p>
+        <p className="mt-3 text-sm text-white/50">{subtitle}</p>
         <form className="mx-auto mt-7 flex max-w-sm">
           <input
             type="email"

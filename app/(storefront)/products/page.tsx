@@ -1,20 +1,5 @@
-import { Barlow_Condensed } from "next/font/google"
-import { ThemeProvider } from "@/themes/engine/theme-provider"
-import { PerformancePage } from "@/themes/bold/pages/PerformancePage"
-import { DEFAULT_BOLD_CONFIG } from "@/themes/bold/theme.config"
-
-const barlow = Barlow_Condensed({
-  variable: "--font-barlow",
-  subsets: ["latin"],
-  weight: ["400", "700", "800", "900"],
-})
+import { ThemePageContent } from "@/features/storefront/ThemePageContent"
 
 export default function ProductsPage() {
-  return (
-    <div className={barlow.variable}>
-      <ThemeProvider config={DEFAULT_BOLD_CONFIG}>
-        <PerformancePage />
-      </ThemeProvider>
-    </div>
-  )
+  return ThemePageContent({ pageType: "productList", fallbackTitle: "Products" })
 }

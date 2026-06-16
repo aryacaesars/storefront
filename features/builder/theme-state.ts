@@ -8,7 +8,7 @@ import {
   type TemplateId,
   type ThemeConfig,
 } from "@/themes/engine/schema"
-import { templatePages } from "@/themes/engine/registry"
+import { isTemplateRegistered } from "@/themes/engine/registry"
 import { getDefaultThemeConfig } from "@/lib/themes/defaults"
 import { getSession } from "@/features/auth/dal"
 import {
@@ -36,9 +36,18 @@ export const getActiveTemplateId = cache(async (): Promise<TemplateId> => {
 
 export const getThemeConfig = cache(async (): Promise<ThemeConfig> => {
   const templateId = await getActiveTemplateId()
+  const session = await getSession()
+
+  // DB is source of truth — cookie draft can be stale or exceed 4KB (drops image URLs).
+  if (session) {
+    const fromDb = await getThemeForTenant(session.tenantId)
+    if (fromDb?.config.templateId === templateId) {
+      return fromDb.config
+    }
+  }
+
   const cookieStore = await cookies()
   const draftRaw = cookieStore.get(THEME_DRAFT_COOKIE)?.value
-
   if (draftRaw) {
     try {
       const parsed = themeConfigSchema.safeParse(JSON.parse(draftRaw))
@@ -50,17 +59,9 @@ export const getThemeConfig = cache(async (): Promise<ThemeConfig> => {
     }
   }
 
-  const session = await getSession()
-  if (session) {
-    const fromDb = await getThemeForTenant(session.tenantId)
-    if (fromDb?.config.templateId === templateId) {
-      return fromDb.config
-    }
-  }
-
   return getDefaultThemeConfig(templateId)
 })
 
 export function isTemplatePreviewReady(templateId: TemplateId): boolean {
-  return templateId in templatePages
+  return isTemplateRegistered(templateId)
 }

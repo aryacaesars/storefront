@@ -1,6 +1,7 @@
 import Link from "next/link"
-import { Search, ShoppingBag, Menu } from "lucide-react"
+import { Search, ShoppingBag, Menu, User } from "lucide-react"
 import type { ThemeConfig } from "@/themes/engine/schema"
+import { isNavHrefAvailable } from "@/themes/engine/nav-utils"
 import { NavLinksClient } from "@/themes/bold/sections/NavLinksClient"
 import type { ResolvedNavLink } from "@/themes/bold/sections/NavLinksClient"
 
@@ -13,19 +14,16 @@ const NAV_LINKS: Array<{
   { label: "Performance", href: "/products", key: "performance", sectionId: "section-performance" },
   { label: "New Arrivals", href: "/new-arrivals", key: "new-arrivals" },
   { label: "Tech Series", href: "/tech-series", key: "tech-series" },
-  { label: "Elite Gear", href: "/products", key: "elite-gear" },
-  { label: "Collections", href: "/products", key: "collections" },
+  { label: "All Products", href: "/all-products", key: "all-products" },
   { label: "About", href: "/about", key: "about" },
 ]
 
 const PREVIEW_MAP: Record<string, string> = {
-  "/products": "/performance",
+  "/products": "",
   "/all-products": "/all-products",
   "/new-arrivals": "/new-arrivals",
   "/tech-series": "/tech-series",
   "/about": "/about",
-  "/cart": "",
-  "/contact": "",
 }
 
 function resolveHref(href: string, basePath?: string): string {
@@ -42,7 +40,11 @@ interface NavbarProps {
 }
 
 export function Navbar({ config, cartCount = 0, basePath, activeKey }: NavbarProps) {
-  const resolvedLinks: ResolvedNavLink[] = NAV_LINKS.map((link) => ({
+  const visibleLinks = NAV_LINKS.filter((link) =>
+    isNavHrefAvailable(config.templateId, link.href),
+  )
+
+  const resolvedLinks: ResolvedNavLink[] = visibleLinks.map((link) => ({
     label: link.label,
     resolvedHref: resolveHref(link.href, basePath),
     key: link.key,
@@ -73,6 +75,13 @@ export function Navbar({ config, cartCount = 0, basePath, activeKey }: NavbarPro
           >
             <Search className="h-4 w-4" strokeWidth={1.5} />
           </button>
+          <Link
+            href="/account"
+            className="text-white/80 transition-colors hover:text-white"
+            aria-label="Account"
+          >
+            <User className="h-4 w-4" strokeWidth={1.5} />
+          </Link>
           <Link
             href={resolveHref("/cart", basePath)}
             className="flex items-center gap-1.5 text-white/80 transition-colors hover:text-white"

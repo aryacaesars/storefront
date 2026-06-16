@@ -38,4 +38,7 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# dev upload fallback (MinIO down)
+/public/uploads/
 next-env.d.ts

@@ -1,4 +1,11 @@
-export function ShopFooter() {
+import type { ThemeConfig } from "@/themes/engine/schema"
+import { DEFAULT_FASHION_CONFIG } from "@/themes/fashion/theme.config"
+
+interface ShopFooterProps {
+  config?: ThemeConfig
+}
+
+export function ShopFooter({ config = DEFAULT_FASHION_CONFIG }: ShopFooterProps) {
   return (
     <footer style={{ backgroundColor: "var(--theme-text)" }}>
       <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-4">
@@ -7,10 +14,10 @@ export function ShopFooter() {
             className="mb-4 text-2xl font-medium text-white"
             style={{ fontFamily: "var(--theme-heading-font)" }}
           >
-            Luna Soft
+            {config.storeName}
           </p>
           <p className="max-w-[200px] text-xs leading-relaxed text-white/40">
-            Redefining modern luxury through sustainable materials and timeless design philosophy.
+            {config.tagline ?? "Redefining modern luxury through sustainable materials."}
           </p>
         </div>
 

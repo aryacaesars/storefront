@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { randomUUID } from "crypto"
 import { PutObjectCommand } from "@aws-sdk/client-s3"
 import { getSession } from "@/features/auth/dal"
+import { saveLocalUpload } from "@/lib/storage/local-upload"
 import { s3, S3_BUCKET, publicUrl } from "@/lib/storage/s3"
 
 const MAX_SIZE = 2 * 1024 * 1024 // 2MB (sesuai hint UI builder)
@@ -36,17 +37,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Ukuran file maks. 2MB" }, { status: 400 })
   }
 
-  // Scope per-tenant supaya asset antar merchant tidak bertabrakan.
+  const body = Buffer.from(await file.arrayBuffer())
   const key = `tenants/${session.tenantId}/branding/${randomUUID()}.${ext}`
 
-  await s3.send(
-    new PutObjectCommand({
-      Bucket: S3_BUCKET,
-      Key: key,
-      Body: Buffer.from(await file.arrayBuffer()),
-      ContentType: file.type,
-    }),
-  )
+  // Dev: simpan ke public/uploads — langsung bisa di-load <img> tanpa bucket policy MinIO.
+  if (process.env.NODE_ENV === "development") {
+    const local = await saveLocalUpload(session.tenantId, ext, body)
+    return NextResponse.json({ url: local.url, key: local.key })
+  }
 
-  return NextResponse.json({ url: publicUrl(key), key })
+  try {
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: S3_BUCKET,
+        Key: key,
+        Body: body,
+        ContentType: file.type,
+      }),
+    )
+
+    return NextResponse.json({ url: publicUrl(key), key })
+  } catch (err) {
+    console.error("[upload] S3 error:", err)
+    return NextResponse.json({ error: "Storage tidak tersedia." }, { status: 503 })
+  }
 }

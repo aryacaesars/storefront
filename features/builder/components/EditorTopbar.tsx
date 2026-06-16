@@ -4,6 +4,8 @@ import Link from "next/link"
 import { ArrowLeft, Monitor, Smartphone } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import type { PageType } from "@/themes/engine/resolve-page"
+import { PAGE_LABELS } from "@/themes/engine/manifest"
 
 export type EditorMode = "edit" | "preview"
 export type PreviewDevice = "desktop" | "mobile"
@@ -17,6 +19,9 @@ interface EditorTopbarProps {
   onSaveDraft: () => void
   onPublish: () => void
   isSaving?: boolean
+  availablePages: PageType[]
+  selectedPage: PageType
+  onPageChange: (page: PageType) => void
 }
 
 export function EditorTopbar({
@@ -28,6 +33,9 @@ export function EditorTopbar({
   onSaveDraft,
   onPublish,
   isSaving = false,
+  availablePages,
+  selectedPage,
+  onPageChange,
 }: EditorTopbarProps) {
   return (
     <header className="h-14 flex items-center shrink-0 bg-white border-b border-gray-200 px-4 gap-4 z-10">
@@ -47,6 +55,22 @@ export function EditorTopbar({
         <div className="w-px h-5 bg-gray-200" />
         <p className="text-sm font-semibold text-gray-900 truncate">{templateName}</p>
       </div>
+
+      {availablePages.length > 1 && (
+        <div className="flex items-center gap-2 shrink-0">
+          <select
+            value={selectedPage}
+            onChange={(e) => onPageChange(e.target.value as PageType)}
+            className="h-8 rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 outline-none focus:ring-2 focus:ring-indigo-500/30 transition"
+          >
+            {availablePages.map((page) => (
+              <option key={page} value={page}>
+                {PAGE_LABELS[page]}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="flex-1 flex justify-center">
         <div className="flex items-center gap-1 rounded-lg bg-gray-100 p-1">
@@ -97,6 +121,12 @@ export function EditorTopbar({
             <Smartphone className="w-4 h-4" />
           </button>
         </div>
+
+        {mode === "edit" && device === "mobile" && (
+          <span className="hidden sm:inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+            Layer Mobile
+          </span>
+        )}
 
         <div className="w-px h-5 bg-gray-200 hidden sm:block" />
 

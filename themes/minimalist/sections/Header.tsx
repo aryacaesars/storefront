@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Search, User, ShoppingBag } from "lucide-react"
 import { MobileNav } from "./MobileNav"
 import type { ThemeConfig } from "@/themes/engine/schema"
+import { isNavHrefAvailable } from "@/themes/engine/nav-utils"
 
 const NAV_LINKS = [
   { label: "Collections", href: "/products" },
@@ -17,9 +18,11 @@ interface HeaderProps {
 
 export function Header({ config, cartCount = 0 }: HeaderProps) {
   const logoDisplay = config.logoDisplay ?? "logo"
-  // Tanpa logoUrl selalu jatuh ke teks, apa pun pilihannya.
   const showLogo = logoDisplay !== "text" && Boolean(config.logoUrl)
   const showText = logoDisplay === "text" || logoDisplay === "both" || !config.logoUrl
+  const visibleLinks = NAV_LINKS.filter((link) =>
+    isNavHrefAvailable(config.templateId, link.href),
+  )
 
   return (
     <>
@@ -52,7 +55,7 @@ export function Header({ config, cartCount = 0 }: HeaderProps) {
           </Link>
 
           <nav className="hidden items-center gap-8 @3xl:flex">
-            {NAV_LINKS.map(({ label, href }) => (
+            {visibleLinks.map(({ label, href }) => (
               <Link
                 key={label}
                 href={href}
@@ -71,13 +74,13 @@ export function Header({ config, cartCount = 0 }: HeaderProps) {
             >
               <Search className="h-[18px] w-[18px]" strokeWidth={1.5} />
             </button>
-            <button
-              type="button"
+            <Link
+              href="/account"
               className="text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
               aria-label="Account"
             >
               <User className="h-[18px] w-[18px]" strokeWidth={1.5} />
-            </button>
+            </Link>
             <Link
               href="/cart"
               className="relative text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
@@ -91,7 +94,7 @@ export function Header({ config, cartCount = 0 }: HeaderProps) {
               )}
             </Link>
 
-            <MobileNav links={NAV_LINKS} />
+            <MobileNav links={visibleLinks} />
           </div>
         </div>
       </header>

@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Search, ShoppingBag, User } from "lucide-react"
 import type { ThemeConfig } from "@/themes/engine/schema"
+import { isNavHrefAvailable } from "@/themes/engine/nav-utils"
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
@@ -28,6 +29,10 @@ interface NavbarProps {
 }
 
 export function Navbar({ config, basePath }: NavbarProps) {
+  const visibleLinks = NAV_LINKS.filter((link) =>
+    isNavHrefAvailable(config.templateId, link.href),
+  )
+
   return (
     <nav className="sticky top-0 z-50 border-b border-stone-100 bg-white/95 backdrop-blur-sm">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
@@ -40,7 +45,7 @@ export function Navbar({ config, basePath }: NavbarProps) {
         </Link>
 
         <div className="hidden items-center gap-8 md:flex">
-          {NAV_LINKS.map(({ label, href }) => (
+          {visibleLinks.map(({ label, href }) => (
             <Link
               key={label}
               href={resolveHref(href, basePath)}
@@ -66,13 +71,13 @@ export function Navbar({ config, basePath }: NavbarProps) {
           >
             <ShoppingBag className="h-4 w-4" strokeWidth={1.5} />
           </button>
-          <button
-            type="button"
+          <Link
+            href="/account"
             aria-label="Account"
             className="text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
           >
             <User className="h-4 w-4" strokeWidth={1.5} />
-          </button>
+          </Link>
         </div>
       </div>
     </nav>
