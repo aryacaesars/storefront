@@ -53,7 +53,8 @@ export function BlockSettingsFields({
   return (
     <div className="space-y-3 border-t border-gray-100 pt-3">
       {visibleFields.map((field) => {
-        const value = typeof current[field.key] === "string" ? current[field.key] : ""
+        const raw = current[field.key]
+        const value = typeof raw === "string" ? raw : ""
 
         if (field.type === "image") {
           return (

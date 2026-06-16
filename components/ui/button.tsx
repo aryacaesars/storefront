@@ -27,18 +27,30 @@ const sizes: Record<Size, string> = {
   icon: "h-9 w-9",
 }
 
+export function buttonClassName({
+  variant = "default",
+  size = "default",
+  className,
+}: {
+  variant?: Variant
+  size?: Size
+  className?: string
+} = {}) {
+  return cn(
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-semibold transition-colors",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1",
+    "disabled:pointer-events-none disabled:opacity-50",
+    variants[variant],
+    sizes[size],
+    className,
+  )
+}
+
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = "default", size = "default", className, children, ...props }, ref) => (
     <button
       ref={ref}
-      className={cn(
-        "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-semibold transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1",
-        "disabled:pointer-events-none disabled:opacity-50",
-        variants[variant],
-        sizes[size],
-        className,
-      )}
+      className={buttonClassName({ variant, size, className })}
       {...props}
     >
       {children}

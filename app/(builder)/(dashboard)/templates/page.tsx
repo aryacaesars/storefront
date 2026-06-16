@@ -2,7 +2,7 @@ import Link from "next/link"
 import { Store } from "lucide-react"
 import { requireSession } from "@/features/auth/dal"
 import { TemplateCard } from "@/features/builder/components/TemplateCard"
-import { Button } from "@/components/ui/button"
+import { buttonClassName } from "@/components/ui/button"
 import { getActiveTemplateId, isTemplatePreviewReady } from "@/features/builder/theme-state"
 import { TEMPLATE_IDS, TEMPLATE_META } from "@/themes/engine/registry"
 
@@ -51,9 +51,9 @@ export default async function TemplatesPage() {
             Jelajahi katalog template di halaman utama Etalase untuk menemukan
             desain yang cocok dengan toko Anda.
           </p>
-          <Button asChild>
-            <Link href="/#templates">Jelajahi Template</Link>
-          </Button>
+          <Link href="/#templates" className={buttonClassName()}>
+            Jelajahi Template
+          </Link>
         </div>
       )}
     </div>
