@@ -12,13 +12,13 @@ const DEFAULT_HERO_TITLE_LAYOUTS = heroTitleLayoutsToPatch(
 )
 
 const DEFAULT_CATEGORY_BLOCKS = [
-  { slug: "tablets", label: "Fill It With NEO", imageClass: "bg-[#ffc300]" },
-  { slug: "speakers", label: "Great Experience", imageClass: "bg-[#007be0]" },
-  { slug: "earphones", label: "Sound Directly In Your EAR!", imageClass: "bg-[#ff4040]" },
+  { slug: "tablets", label: "Fill It With NEO", cardBgColor: "#ffc300" },
+  { slug: "speakers", label: "Great Experience", cardBgColor: "#007be0" },
+  { slug: "earphones", label: "Sound Directly In Your EAR!", cardBgColor: "#ff4040" },
   {
     slug: "gaming",
     label: "Play With Your Friends",
-    imageClass: "bg-gradient-to-b from-[#f5f4f4] to-[#d0cbcb]",
+    cardBgColor: "#d0cbcb",
   },
 ] as const
 
@@ -64,7 +64,7 @@ export const DEFAULT_BENTO_HOME: PageTemplate = {
         settings: {
           label: cat.label,
           slug: cat.slug,
-          imageClass: cat.imageClass,
+          cardBgColor: cat.cardBgColor,
           imageUrl: "",
           ...DEFAULT_IMAGE_TRANSFORM,
           ...DEFAULT_CARD_LAYOUTS[index],

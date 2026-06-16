@@ -253,7 +253,8 @@ export type CategoryCardData = {
   id: string
   slug: string
   label: string
-  imageClass: string
+  /** Solid fill behind uploaded image (PNG transparency). */
+  bgColor: string
   image: CategoryImage
   layout: CategoryCardLayout
   labelLayer: LabelLayer
@@ -287,15 +288,41 @@ export const DEFAULT_CARD_LAYOUTS: CategoryCardLayout[] = [
 ]
 
 const DEFAULT_META = [
-  { slug: "tablets", label: "Fill It With NEO", imageClass: "bg-[#ffc300]" },
-  { slug: "speakers", label: "Great Experience", imageClass: "bg-[#007be0]" },
-  { slug: "earphones", label: "Sound Directly In Your EAR!", imageClass: "bg-[#ff4040]" },
+  { slug: "tablets", label: "Fill It With NEO", bgColor: "#ffc300" },
+  { slug: "speakers", label: "Great Experience", bgColor: "#007be0" },
+  { slug: "earphones", label: "Sound Directly In Your EAR!", bgColor: "#ff4040" },
   {
     slug: "gaming",
     label: "Play With Your Friends",
-    imageClass: "bg-gradient-to-b from-[#f5f4f4] to-[#d0cbcb]",
+    bgColor: "#d0cbcb",
   },
 ] as const
+
+const HEX_COLOR = /^#[0-9a-fA-F]{6}$/
+
+function hexFromImageClass(imageClass: string): string | undefined {
+  const match = imageClass.match(/#([0-9a-fA-F]{6})/)
+  return match ? `#${match[1]}` : undefined
+}
+
+export function parseCardBgColor(
+  settings: Record<string, unknown> | undefined,
+  index: number,
+): string {
+  const direct = settings?.cardBgColor
+  if (typeof direct === "string" && HEX_COLOR.test(direct.trim())) {
+    return direct.trim()
+  }
+
+  const legacyClass =
+    typeof settings?.imageClass === "string" ? settings.imageClass.trim() : ""
+  if (legacyClass) {
+    const fromClass = hexFromImageClass(legacyClass)
+    if (fromClass) return fromClass
+  }
+
+  return DEFAULT_META[index]?.bgColor ?? "#9ca3af"
+}
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
@@ -351,10 +378,7 @@ export function blockToCategoryCard(block: BlockInstance, index: number): Catego
     id: block.id,
     slug: typeof s?.slug === "string" ? s.slug : fallback?.slug ?? `category-${index}`,
     label: typeof s?.label === "string" ? s.label : fallback?.label ?? "Category",
-    imageClass:
-      typeof s?.imageClass === "string"
-        ? s.imageClass
-        : fallback?.imageClass ?? "bg-gray-400",
+    bgColor: parseCardBgColor(s, index),
     image: parseImageTransform(s),
     layout: parseLayout(s, index),
     labelLayer: parseLabelLayer(s?.labelLayer),

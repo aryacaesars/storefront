@@ -24,7 +24,7 @@ const BENTO_CATEGORY_BLOCK: BlockDefinition = {
   defaultSettings: {
     label: "Category",
     slug: "category",
-    imageClass: "bg-gray-400",
+    cardBgColor: "#9ca3af",
     imageUrl: "",
     imgScale: 100,
     imgX: 0,
@@ -35,6 +35,12 @@ const BENTO_CATEGORY_BLOCK: BlockDefinition = {
   fields: [
     { key: "label", label: "Judul", type: "text", placeholder: "Fill It With NEO" },
     { key: "slug", label: "Slug", type: "text", placeholder: "tablets" },
+    {
+      key: "cardBgColor",
+      label: "Warna Kartu",
+      type: "color",
+      hint: "Latar belakang kartu — tampil di balik gambar PNG transparan.",
+    },
     {
       key: "imageUrl",
       label: "Gambar",

@@ -36,6 +36,11 @@ import {
 const STACK_BELOW = 640
 const LABEL_DRAG_THRESHOLD = 4
 
+const Z_BG = 1
+const Z_LABEL_BEHIND = 5
+const Z_IMAGE = 10
+const Z_LABEL_FRONT = 15
+
 function getLabelMetrics(element: HTMLElement): LabelContainerMetrics {
   const rect = element.getBoundingClientRect()
   return { width: rect.width, height: rect.height, left: rect.left, top: rect.top }
@@ -45,20 +50,6 @@ function isLabelHandleTarget(target: EventTarget | null): boolean {
   return (
     target instanceof HTMLElement &&
     Boolean(target.closest('button[aria-label^="Tarik"]'))
-  )
-}
-
-function CardBackground({
-  card,
-  interactive,
-  onChange,
-}: {
-  card: CategoryCardData
-  interactive: boolean
-  onChange: (patch: Record<string, unknown>) => void
-}) {
-  return (
-    <CanvasImageFrame image={card.image} interactive={interactive} onChange={onChange} />
   )
 }
 
@@ -98,11 +89,11 @@ function CategoryCard({
     : {
         position: "relative",
         width: "100%",
-        minHeight: card.layout.hPx,
+        height: card.layout.hPx,
       }
 
   const className = cn(
-    "overflow-visible rounded-[12px]",
+    "block overflow-visible rounded-[12px]",
     editable && !selected && "ring-2 ring-transparent",
   )
 
@@ -181,28 +172,52 @@ function CategoryCard({
   const cardInner = (
     <div ref={cardBoundsRef} className="absolute inset-0 rounded-[12px]">
       <div className="absolute inset-0 overflow-hidden rounded-[12px]">
-        <div className="absolute inset-0 z-[1]">
-          <div className={`absolute inset-0 ${card.imageClass}`} />
-        </div>
+        <div
+          className="absolute inset-0"
+          style={{ zIndex: Z_BG, backgroundColor: card.bgColor }}
+          aria-hidden
+        />
+
         {labelLayer === "behind" && (
           <div
             className={cn(
-            "absolute z-[2] flex items-start p-0",
+              "absolute flex items-start p-0",
               labelMovable && "cursor-move",
             )}
-            style={labelBoxStyle}
+            style={{ ...labelBoxStyle, zIndex: Z_LABEL_BEHIND }}
             onPointerDown={labelMovable ? startLabelMove : undefined}
           >
             {labelContent}
           </div>
         )}
-        <div className="absolute inset-0 z-[5]">
-          <CardBackground
-            card={card}
+
+        <div
+          className={cn(
+            "absolute inset-0",
+            !selected && "pointer-events-none",
+          )}
+          style={{ zIndex: Z_IMAGE }}
+        >
+          <CanvasImageFrame
+            image={card.image}
             interactive={selected}
             onChange={onChange}
           />
         </div>
+
+        {labelLayer === "front" && (
+          <div
+            className={cn(
+              "absolute flex items-start overflow-visible",
+              labelMovable && "cursor-move",
+            )}
+            style={{ ...labelBoxStyle, zIndex: Z_LABEL_FRONT }}
+            onPointerDown={labelMovable ? startLabelMove : undefined}
+            onClick={(event) => event.stopPropagation()}
+          >
+            {labelContent}
+          </div>
+        )}
       </div>
 
       {labelMovable && labelLayer === "behind" && (
@@ -212,20 +227,6 @@ function CategoryCard({
           style={labelBoxStyle}
           onPointerDown={startLabelMove}
         />
-      )}
-
-      {labelLayer === "front" && (
-        <div
-          className={cn(
-            "absolute z-[10] flex items-start overflow-visible",
-            labelMovable && "cursor-move",
-          )}
-          style={labelBoxStyle}
-          onPointerDown={labelMovable ? startLabelMove : undefined}
-          onClick={(event) => event.stopPropagation()}
-        >
-          {labelContent}
-        </div>
       )}
 
       {labelResizable && (
