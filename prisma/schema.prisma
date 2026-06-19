@@ -16,6 +16,14 @@ model Tenant {
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
+  /// Scalev store binding for storefront catalog (per-tenant, not global env).
+  scalevStoreNumericId    Int?      @map("scalev_store_numeric_id")
+  scalevStoreUniqueId     String?   @map("scalev_store_unique_id")
+  scalevStoreName         String?   @map("scalev_store_name")
+  scalevStorefrontApiKey  String?   @map("scalev_storefront_api_key")
+  catalogConnectedAt      DateTime? @map("catalog_connected_at")
+  catalogProductCount     Int?      @map("catalog_product_count")
+
   theme ThemeConfig?
 
   @@map("tenants")

@@ -1,12 +1,47 @@
 import Link from "next/link"
-import { TRENDING_PRODUCTS } from "@/themes/minimalist/data/mock"
+import { mockProductToCatalog, TRENDING_PRODUCTS } from "@/themes/minimalist/data/mock"
 import { ProductCard } from "@/themes/minimalist/sections/ProductCard"
 import type { ThemePageProps } from "@/themes/engine/page-props"
+import { formatIdr } from "@/features/storefront/catalog-types"
 
-export function ProductDetailPage({ slug = "1" }: ThemePageProps) {
-  const product =
-    TRENDING_PRODUCTS.find((item) => item.id === slug) ?? TRENDING_PRODUCTS[0]
-  const displayPrice = product.salePrice ?? product.price
+export function ProductDetailPage({
+  slug = "1",
+  product,
+  products = [],
+}: ThemePageProps) {
+  const mockFallback = TRENDING_PRODUCTS.find((item) => item.id === slug) ??
+    TRENDING_PRODUCTS[0]
+
+  const resolved =
+    product ??
+    (products.length === 0
+      ? {
+          ...mockProductToCatalog(mockFallback),
+          description:
+            "Cut from premium materials with a focus on longevity and quiet luxury.",
+        }
+      : null)
+
+  if (!resolved) {
+    return (
+      <section className="mx-auto max-w-3xl px-6 py-20 text-center">
+        <h1 className="text-2xl font-semibold text-[var(--theme-text)]">
+          Produk tidak ditemukan
+        </h1>
+        <Link
+          href="/products"
+          className="mt-4 inline-block text-sm text-[var(--theme-primary)] hover:underline"
+        >
+          Kembali ke daftar produk
+        </Link>
+      </section>
+    )
+  }
+
+  const displayPrice = resolved.salePrice ?? resolved.price
+  const related = (products.length > 0 ? products : []).filter(
+    (item) => item.slug !== resolved.slug,
+  )
 
   return (
     <section className="mx-auto max-w-7xl px-6 py-12">
@@ -15,21 +50,30 @@ export function ProductDetailPage({ slug = "1" }: ThemePageProps) {
           Products
         </Link>
         {" / "}
-        {product.name}
+        {resolved.name}
       </p>
 
       <div className="mt-8 grid gap-10 @3xl:grid-cols-2">
         <div className="relative aspect-[3/4] overflow-hidden rounded-sm bg-gray-100">
-          <div className={`h-full w-full ${product.imageClass}`} />
-          {product.badge && (
+          {resolved.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={resolved.imageUrl}
+              alt={resolved.name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className={`h-full w-full ${resolved.imageClass}`} />
+          )}
+          {resolved.badge && (
             <span
               className="absolute left-4 top-4 px-2 py-0.5 text-[9px] font-bold tracking-widest text-white uppercase"
               style={{
                 backgroundColor:
-                  product.badge === "SALE" ? "#B45309" : "var(--theme-primary)",
+                  resolved.badge === "SALE" ? "#B45309" : "var(--theme-primary)",
               }}
             >
-              {product.badge}
+              {resolved.badge}
             </span>
           )}
         </div>
@@ -39,22 +83,24 @@ export function ProductDetailPage({ slug = "1" }: ThemePageProps) {
             className="text-3xl font-semibold text-[var(--theme-text)] @2xl:text-4xl"
             style={{ fontFamily: "var(--theme-heading-font)" }}
           >
-            {product.name}
+            {resolved.name}
           </h1>
-          <p className="mt-2 text-sm text-[var(--theme-muted)]">{product.subtitle}</p>
+          <p className="mt-2 text-sm text-[var(--theme-muted)]">
+            {resolved.subtitle}
+          </p>
           <div className="mt-6 flex items-center gap-3">
             <span className="text-2xl font-semibold text-[var(--theme-text)]">
-              ${displayPrice.toFixed(0)}
+              {formatIdr(displayPrice)}
             </span>
-            {product.salePrice && (
+            {resolved.salePrice != null && (
               <span className="text-sm text-[var(--theme-muted)] line-through">
-                ${product.price.toFixed(0)}
+                {formatIdr(resolved.price)}
               </span>
             )}
           </div>
           <p className="mt-6 text-sm leading-relaxed text-[var(--theme-muted)]">
-            Cut from premium materials with a focus on longevity and quiet luxury.
-            Each piece is designed to integrate seamlessly into an intentional wardrobe.
+            {resolved.description ??
+              "Cut from premium materials with a focus on longevity and quiet luxury."}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <button
@@ -74,21 +120,21 @@ export function ProductDetailPage({ slug = "1" }: ThemePageProps) {
         </div>
       </div>
 
-      <div className="mt-20 border-t border-black/5 pt-12">
-        <h2
-          className="mb-8 text-center text-xl font-semibold text-[var(--theme-text)]"
-          style={{ fontFamily: "var(--theme-heading-font)" }}
-        >
-          You May Also Like
-        </h2>
-        <div className="grid grid-cols-2 gap-6 @3xl:grid-cols-4">
-          {TRENDING_PRODUCTS.filter((item) => item.id !== product.id)
-            .slice(0, 4)
-            .map((item) => (
-              <ProductCard key={item.id} product={item} />
+      {related.length > 0 && (
+        <div className="mt-20 border-t border-black/5 pt-12">
+          <h2
+            className="mb-8 text-center text-xl font-semibold text-[var(--theme-text)]"
+            style={{ fontFamily: "var(--theme-heading-font)" }}
+          >
+            You May Also Like
+          </h2>
+          <div className="grid grid-cols-2 gap-6 @3xl:grid-cols-4">
+            {related.slice(0, 4).map((item) => (
+              <ProductCard key={item.slug} product={item} />
             ))}
+          </div>
         </div>
-      </div>
+      )}
     </section>
   )
 }

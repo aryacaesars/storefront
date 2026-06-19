@@ -1,3 +1,5 @@
+import type { CatalogProduct } from "@/features/storefront/catalog-types"
+
 export interface MockProduct {
   id: string
   name: string
@@ -6,6 +8,14 @@ export interface MockProduct {
   salePrice?: number
   badge?: "NEW" | "SALE"
   imageClass: string
+}
+
+export function mockProductToCatalog(mock: MockProduct): CatalogProduct {
+  return {
+    ...mock,
+    slug: mock.id,
+    inStock: true,
+  }
 }
 
 export const TRENDING_PRODUCTS: MockProduct[] = [

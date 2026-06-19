@@ -1,5 +1,5 @@
-import { ThemePageContent } from "@/features/storefront/ThemePageContent"
+import { AccountPageContent } from "@/features/storefront/AccountPageContent"
 
 export default function AccountPage() {
-  return ThemePageContent({ pageType: "account", fallbackTitle: "Akun Saya" })
+  return <AccountPageContent />
 }

@@ -1,6 +1,6 @@
 import Link from "next/link"
-import { Search, User, ShoppingBag } from "lucide-react"
 import { MobileNav } from "./MobileNav"
+import { HeaderSearch } from "./HeaderSearch"
 import type { ThemeConfig } from "@/themes/engine/schema"
 import { isNavHrefAvailable } from "@/themes/engine/nav-utils"
 
@@ -74,38 +74,10 @@ export function Header({ config, cartCount = 0, basePath }: HeaderProps) {
           </nav>
 
           <div className="flex shrink-0 items-center gap-2">
-            <div
-              className="hidden items-center gap-0.5 rounded-full px-2 py-1 @2xl:flex"
-              style={{ backgroundColor: "var(--theme-primary)" }}
-            >
-                  <button
-              type="button"
-              className="hidden h-9 w-9 items-center justify-center rounded-full text-white transition-opacity hover:opacity-80 @2xl:flex"
-              aria-label="Search"
-            >
-              <Search className="h-[18px] w-[18px]" strokeWidth={1.5} />
-            </button>
-              <Link
-                href={resolveHref("/account", basePath)}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-white transition-opacity hover:opacity-80"
-                aria-label="Account"
-              >
-                <User className="h-[18px] w-[18px]" strokeWidth={1.5} />
-              </Link>
-
-              <Link
-                href={resolveHref("/cart", basePath)}
-                className="relative flex h-8 w-8 items-center justify-center rounded-full text-white transition-opacity hover:opacity-80"
-                aria-label="Cart"
-              >
-                <ShoppingBag className="h-[18px] w-[18px]" strokeWidth={1.5} />
-                {cartCount > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[9px] font-bold text-[var(--theme-primary)]">
-                    {cartCount}
-                  </span>
-                )}
-              </Link>
-            </div>
+            <HeaderSearch
+              basePath={basePath}
+              cartCount={cartCount}
+            />
             <MobileNav links={visibleLinks} basePath={basePath} />
           </div>
         </div>
