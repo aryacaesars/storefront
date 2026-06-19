@@ -1,16 +1,61 @@
-import BrowserMock from "./BrowserMock";
+import Link from "next/link";
+import { TemplateThumbnail } from "@/features/builder/components/TemplateThumbnail";
 
-function TemplateCard({ name, price }: { name: string; price: string }) {
+const TEMPLATES = [
+  {
+    id: "minimalist" as const,
+    name: "Aurora Minimal",
+    label: "Minimalist",
+    price: "Rp. 300.000",
+    previewHref: "/preview",
+  },
+  {
+    id: "bold" as const,
+    name: "Momentum",
+    label: "Bold",
+    price: "Rp. 300.000",
+    previewHref: "/preview/bold",
+  },
+  {
+    id: "fashion" as const,
+    name: "Luna Soft",
+    label: "Fashion",
+    price: "Rp. 300.000",
+    previewHref: "/preview/fashion",
+  },
+];
+
+function TemplateCard({
+  id,
+  name,
+  label,
+  price,
+  previewHref,
+}: (typeof TEMPLATES)[number]) {
   return (
-    <div>
-      <div className="overflow-hidden rounded-xl border border-black/5 bg-white shadow-xl shadow-slate-900/10">
-        <div className="aspect-[16/11]">
-          <BrowserMock chrome />
+    <Link href={previewHref} target="_blank" className="group block">
+      <div className="overflow-hidden rounded-xl border border-black/5 bg-white shadow-xl shadow-slate-900/10 transition-shadow group-hover:shadow-2xl group-hover:shadow-slate-900/15">
+        {/* Browser chrome dots */}
+        <div className="flex items-center gap-1.5 border-b border-black/5 bg-slate-100 px-3 py-2">
+          <span className="h-2 w-2 rounded-full bg-red-400" />
+          <span className="h-2 w-2 rounded-full bg-amber-400" />
+          <span className="h-2 w-2 rounded-full bg-emerald-400" />
+          <div className="mx-auto flex h-4 w-32 items-center rounded bg-white/80 px-2">
+            <span className="truncate text-[9px] text-slate-400">
+              etalase.id/preview
+            </span>
+          </div>
         </div>
+
+        <TemplateThumbnail id={id} className="aspect-[16/10]" />
       </div>
-      <h3 className="mt-4 font-display text-lg font-bold text-ink">{name}</h3>
-      <p className="text-sm text-slate-500">{price}</p>
-    </div>
+
+      <p className="mt-3 text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+        {label}
+      </p>
+      <h3 className="mt-0.5 font-display text-lg font-bold text-ink">{name}</h3>
+      <p className="text-sm font-medium text-brand">{price}</p>
+    </Link>
   );
 }
 
@@ -49,9 +94,9 @@ export default function TemplateShowcase() {
         </h2>
 
         <div className="mt-16 grid gap-x-10 gap-y-12 sm:grid-cols-2">
-          <TemplateCard name="Template 1" price="Rp. 300.000" />
-          <TemplateCard name="Template 1" price="Rp. 300.000" />
-          <TemplateCard name="Template 1" price="Rp. 300.000" />
+          {TEMPLATES.map((t) => (
+            <TemplateCard key={t.id} {...t} />
+          ))}
           <ExploreCard />
         </div>
       </div>

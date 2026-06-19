@@ -50,26 +50,7 @@ const BENTO_CATEGORY_BLOCK: BlockDefinition = {
   ],
 }
 
-const MINIMALIST_BLOCK_DEFS: Record<string, Record<string, BlockDefinition>> = {
-  "category-grid": {
-    "category-card": {
-      type: "category-card",
-      label: "Category Card",
-      defaultSettings: {
-        label: "Category",
-        slug: "new-category",
-        imageClass: "bg-gradient-to-br from-stone-400 to-stone-600",
-        large: false,
-      },
-      fields: [
-        { key: "label", label: "Label", type: "text", placeholder: "Ready to Wear" },
-        { key: "slug", label: "Slug", type: "text", placeholder: "ready-to-wear" },
-      ],
-    },
-  },
-}
-
-const BENTO_CTA_IMAGE_BLOCK: BlockDefinition = {
+const CTA_IMAGE_BLOCK: BlockDefinition = {
   type: "cta-image",
   label: "Gambar CTA",
   defaultSettings: {
@@ -86,6 +67,81 @@ const BENTO_CTA_IMAGE_BLOCK: BlockDefinition = {
       placeholder: "Upload Gambar CTA",
     },
   ],
+}
+
+const MINIMALIST_HERO_MEDIA_BLOCK: BlockDefinition = {
+  type: "hero-media",
+  label: "Gambar Hero",
+  defaultSettings: {
+    imageUrl: "",
+    imgScale: 100,
+    imgX: 0,
+    imgY: 0,
+  },
+  fields: [
+    {
+      key: "imageUrl",
+      label: "Gambar Hero",
+      type: "image",
+      placeholder: "Upload Gambar Hero",
+    },
+  ],
+}
+
+const MINIMALIST_HERO_CTA_BLOCK: BlockDefinition = {
+  type: "hero-cta",
+  label: "Tombol CTA",
+  defaultSettings: {
+    label: "Shop Collection",
+    ctaBgColor: "",
+    ctaTextColor: "#ffffff",
+  },
+  fields: [
+    { key: "label", label: "Teks Tombol", type: "text", placeholder: "Shop Collection" },
+    { key: "ctaBgColor", label: "Warna Latar", type: "color" },
+    { key: "ctaTextColor", label: "Warna Teks", type: "color" },
+  ],
+}
+
+const MINIMALIST_BLOCK_DEFS: Record<string, Record<string, BlockDefinition>> = {
+  hero: {
+    "hero-media": MINIMALIST_HERO_MEDIA_BLOCK,
+    "hero-cta": MINIMALIST_HERO_CTA_BLOCK,
+  },
+  "category-grid": {
+    "category-card": {
+      type: "category-card",
+      label: "Kartu Kategori",
+      defaultSettings: {
+        label: "Category",
+        slug: "new-category",
+        cardBgColor: "#d6d3d1",
+        imageUrl: "",
+        imgScale: 100,
+        imgX: 0,
+        imgY: 0,
+      },
+      fields: [
+        { key: "label", label: "Judul", type: "text", placeholder: "Ready to Wear" },
+        { key: "slug", label: "Slug", type: "text", placeholder: "ready-to-wear" },
+        {
+          key: "cardBgColor",
+          label: "Warna Kartu",
+          type: "color",
+          hint: "Latar belakang kartu — tampil di balik gambar PNG transparan.",
+        },
+        {
+          key: "imageUrl",
+          label: "Gambar",
+          type: "image",
+          placeholder: "Upload Gambar Kategori",
+        },
+      ],
+    },
+  },
+  "call-to-action": {
+    "cta-image": CTA_IMAGE_BLOCK,
+  },
 }
 
 const BENTO_HERO_CTA_BLOCK: BlockDefinition = {
@@ -138,7 +194,90 @@ const BENTO_BLOCK_DEFS: Record<string, Record<string, BlockDefinition>> = {
     "category-card": BENTO_CATEGORY_BLOCK,
   },
   "call-to-action": {
-    "cta-image": BENTO_CTA_IMAGE_BLOCK,
+    "cta-image": CTA_IMAGE_BLOCK,
+  },
+}
+
+const FASHION_HERO_MEDIA_BLOCK: BlockDefinition = {
+  type: "hero-media",
+  label: "Gambar Hero",
+  defaultSettings: { imageUrl: "", imgScale: 100, imgX: 0, imgY: 0 },
+  fields: [
+    {
+      key: "imageUrl",
+      label: "Gambar Hero",
+      type: "image",
+      placeholder: "Upload Gambar Hero",
+    },
+  ],
+}
+
+const FASHION_HERO_CTA_BLOCK: BlockDefinition = {
+  type: "hero-cta",
+  label: "Tombol CTA",
+  defaultSettings: { label: "EXPLORE COLLECTION", ctaBgColor: "", ctaTextColor: "#ffffff" },
+  fields: [
+    { key: "label", label: "Teks Tombol", type: "text", placeholder: "EXPLORE COLLECTION" },
+    { key: "ctaBgColor", label: "Warna Latar", type: "color" },
+    { key: "ctaTextColor", label: "Warna Teks", type: "color" },
+  ],
+}
+
+const FASHION_BLOCK_DEFS: Record<string, Record<string, BlockDefinition>> = {
+  hero: {
+    "hero-media": FASHION_HERO_MEDIA_BLOCK,
+    "hero-cta": FASHION_HERO_CTA_BLOCK,
+  },
+  "category-cards": {
+    "category-card": {
+      type: "category-card",
+      label: "Kartu Kategori",
+      defaultSettings: {
+        label: "New Category",
+        slug: "category",
+        cta: "SHOP NOW",
+        cardBgColor: "#d6d1c9",
+        imageUrl: "",
+        imgScale: 100,
+        imgX: 0,
+        imgY: 0,
+      },
+      fields: [
+        { key: "label", label: "Judul", type: "text", placeholder: "New Collection" },
+        { key: "slug", label: "Slug", type: "text", placeholder: "new-collection" },
+        { key: "cta", label: "Teks CTA", type: "text", placeholder: "SHOP NOW" },
+        {
+          key: "cardBgColor",
+          label: "Warna Kartu",
+          type: "color",
+          hint: "Latar belakang kartu — tampil di balik gambar PNG transparan.",
+        },
+        {
+          key: "imageUrl",
+          label: "Gambar",
+          type: "image",
+          placeholder: "Upload Gambar Kategori",
+        },
+      ],
+    },
+  },
+}
+
+const BOLD_BLOCK_DEFS: Record<string, Record<string, BlockDefinition>> = {
+  hero: {
+    "hero-media": {
+      type: "hero-media",
+      label: "Gambar Hero",
+      defaultSettings: { imageUrl: "", imgScale: 100, imgX: 0, imgY: 0 },
+      fields: [
+        {
+          key: "imageUrl",
+          label: "Gambar Hero",
+          type: "image",
+          placeholder: "Upload Gambar Hero",
+        },
+      ],
+    },
   },
 }
 
@@ -147,6 +286,8 @@ const BLOCK_DEFS_BY_TEMPLATE: Partial<
 > = {
   minimalist: MINIMALIST_BLOCK_DEFS,
   bento: BENTO_BLOCK_DEFS,
+  fashion: FASHION_BLOCK_DEFS,
+  bold: BOLD_BLOCK_DEFS,
 }
 
 export function getBlockDefinitions(

@@ -92,7 +92,8 @@ export function SectionInspector({
   const [expandedBlockId, setExpandedBlockId] = useState<string | null>(null)
 
   const maxBlocks =
-    instance.type === "category-grid" && config.templateId === "bento"
+    instance.type === "category-grid" &&
+    (config.templateId === "bento" || config.templateId === "minimalist")
       ? MAX_CATEGORY_CARDS
       : undefined
   const atBlockLimit = maxBlocks != null && currentBlocks.length >= maxBlocks
@@ -138,6 +139,163 @@ export function SectionInspector({
         : block,
     )
     onSectionBlocksChange(sectionId, next)
+  }
+
+  if (instance.type === "hero" && config.templateId === "minimalist") {
+    const heroMediaDef = blockDefs["hero-media"]
+    const heroCtaDef = blockDefs["hero-cta"]
+    const selectedBlock = selectedBlockId
+      ? currentBlocks.find((block) => block.id === selectedBlockId)
+      : null
+    const selectedIdx = selectedBlock
+      ? currentBlocks.findIndex((block) => block.id === selectedBlock.id)
+      : -1
+    const selectedDef =
+      selectedBlock?.type === "hero-cta"
+        ? heroCtaDef
+        : selectedBlock?.type === "hero-media"
+          ? heroMediaDef
+          : null
+    const resolvedSettings = selectedBlock
+      ? resolveDeviceSettings(selectedBlock.settings, device === "mobile")
+      : undefined
+
+    return (
+      <div className="border-t border-gray-200 p-4">
+        <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-indigo-600">
+          {label}
+        </h4>
+
+        {!selectedBlock ? (
+          <>
+            <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
+              Klik area hero untuk edit gambar · klik tombol CTA untuk edit warna & teks.
+            </p>
+            <div className="space-y-3">
+              <SettingsField label="Judul">
+                <SettingsInput
+                  value={config.hero?.title ?? ""}
+                  placeholder="Quiet Luxury for the Modern Individual"
+                  onChange={(e) => onHeroChange("title", e.target.value)}
+                />
+              </SettingsField>
+              <SettingsField label="Subjudul">
+                <SettingsInput
+                  value={config.hero?.subtitle ?? ""}
+                  placeholder="Curated essentials designed with intention"
+                  onChange={(e) => onHeroChange("subtitle", e.target.value)}
+                />
+              </SettingsField>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
+                {device === "mobile" ? "Mobile" : "Desktop"}
+              </span>
+              <span className="text-xs font-medium text-gray-700">
+                {selectedDef?.label ?? selectedBlock.type}
+              </span>
+            </div>
+            {selectedDef && selectedIdx >= 0 && (
+              <div className="space-y-3">
+                <BlockSettingsFields
+                  fields={selectedDef.fields}
+                  settings={resolvedSettings}
+                  onChange={(settings) => updateBlockSettings(selectedIdx, settings)}
+                />
+                {selectedBlock.type === "hero-media" && (
+                  <p className="text-[11px] text-gray-500">
+                    Drag gambar di canvas untuk geser · tarik handle ⊙ untuk zoom.
+                  </p>
+                )}
+                {selectedBlock.type === "hero-cta" && (
+                  <p className="text-[11px] text-gray-500">
+                    Edit teks dan warna tombol di atas. Posisi tombol mengikuti layout hero.
+                  </p>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    )
+  }
+
+  if (instance.type === "hero" && config.templateId === "fashion") {
+    const heroMediaDef = blockDefs["hero-media"]
+    const heroCtaDef = blockDefs["hero-cta"]
+    const selectedBlock = selectedBlockId
+      ? currentBlocks.find((block) => block.id === selectedBlockId)
+      : null
+    const selectedIdx = selectedBlock
+      ? currentBlocks.findIndex((block) => block.id === selectedBlock.id)
+      : -1
+    const selectedDef =
+      selectedBlock?.type === "hero-cta"
+        ? heroCtaDef
+        : selectedBlock?.type === "hero-media"
+          ? heroMediaDef
+          : null
+    const resolvedSettings = selectedBlock
+      ? resolveDeviceSettings(selectedBlock.settings, device === "mobile")
+      : undefined
+
+    return (
+      <div className="border-t border-gray-200 p-4">
+        <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-indigo-600">
+          {label}
+        </h4>
+
+        {!selectedBlock ? (
+          <>
+            <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
+              Klik area hero untuk edit gambar · klik tombol CTA untuk edit warna & teks.
+            </p>
+            <div className="space-y-3">
+              <SettingsField label="Judul">
+                <SettingsInput
+                  value={config.hero?.title ?? ""}
+                  placeholder="Curated For Everyday Beauty"
+                  onChange={(e) => onHeroChange("title", e.target.value)}
+                />
+              </SettingsField>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
+                {device === "mobile" ? "Mobile" : "Desktop"}
+              </span>
+              <span className="text-xs font-medium text-gray-700">
+                {selectedDef?.label ?? selectedBlock.type}
+              </span>
+            </div>
+            {selectedDef && selectedIdx >= 0 && (
+              <div className="space-y-3">
+                <BlockSettingsFields
+                  fields={selectedDef.fields}
+                  settings={resolvedSettings}
+                  onChange={(settings) => updateBlockSettings(selectedIdx, settings)}
+                />
+                {selectedBlock.type === "hero-media" && (
+                  <p className="text-[11px] text-gray-500">
+                    Drag gambar di canvas untuk geser · tarik handle ⊙ untuk zoom.
+                  </p>
+                )}
+                {selectedBlock.type === "hero-cta" && (
+                  <p className="text-[11px] text-gray-500">
+                    Edit teks dan warna tombol di atas. Klik area lain di canvas untuk batal pilih.
+                  </p>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    )
   }
 
   if (instance.type === "hero" && config.templateId === "bento") {
@@ -312,6 +470,64 @@ export function SectionInspector({
     )
   }
 
+  if (instance.type === "hero" && config.templateId === "bold") {
+    const heroMediaDef = blockDefs["hero-media"]
+    const selectedBlock = selectedBlockId
+      ? currentBlocks.find((block) => block.id === selectedBlockId)
+      : null
+    const selectedIdx = selectedBlock
+      ? currentBlocks.findIndex((block) => block.id === selectedBlock.id)
+      : -1
+    const resolvedSettings = selectedBlock
+      ? resolveDeviceSettings(selectedBlock.settings, device === "mobile")
+      : undefined
+
+    return (
+      <div className="border-t border-gray-200 p-4">
+        <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-indigo-600">
+          {label}
+        </h4>
+
+        {!selectedBlock ? (
+          <>
+            <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
+              Klik area hero untuk edit gambar · teks & tombol diatur di panel ini.
+            </p>
+            <SettingsGroupsForm
+              groups={HERO_SECTION_SETTINGS_GROUPS}
+              config={config}
+              onConfigChange={(key, value) => onConfigChange({ ...config, [key]: value })}
+              onHeroChange={onHeroChange}
+            />
+          </>
+        ) : (
+          <>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
+                {device === "mobile" ? "Mobile" : "Desktop"}
+              </span>
+              <span className="text-xs font-medium text-gray-700">
+                {heroMediaDef?.label ?? selectedBlock.type}
+              </span>
+            </div>
+            {heroMediaDef && selectedIdx >= 0 && (
+              <div className="space-y-3">
+                <BlockSettingsFields
+                  fields={heroMediaDef.fields}
+                  settings={resolvedSettings}
+                  onChange={(settings) => updateBlockSettings(selectedIdx, settings)}
+                />
+                <p className="text-[11px] text-gray-500">
+                  Drag gambar di canvas untuk geser · tarik handle ⊙ untuk zoom.
+                </p>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    )
+  }
+
   if (instance.type === "hero") {
     return (
       <div className="border-t border-gray-200 p-4">
@@ -330,7 +546,11 @@ export function SectionInspector({
     )
   }
 
-  if (instance.type === "category-grid" && config.templateId === "bento" && selectedBlockId) {
+  if (
+    instance.type === "category-grid" &&
+    (config.templateId === "bento" || config.templateId === "minimalist") &&
+    selectedBlockId
+  ) {
     const selectedBlock = currentBlocks.find((block) => block.id === selectedBlockId)
     const selectedIdx = selectedBlock
       ? currentBlocks.findIndex((block) => block.id === selectedBlock.id)
@@ -366,33 +586,90 @@ export function SectionInspector({
               onChange={(settings) => updateBlockSettings(selectedIdx, settings)}
               blockIndex={selectedIdx}
             />
-            <SettingsField label="Layer judul" hint="Urutan tampilan relatif ke gambar kartu">
-              <SegmentedControl
-                value={resolvedSettings?.labelLayer === "behind" ? "behind" : "front"}
-                options={[...LABEL_LAYER_OPTIONS]}
-                onChange={(value) => updateBlockSettings(selectedIdx, { labelLayer: value })}
-              />
-            </SettingsField>
-            <SettingsField
-              label={`Ukuran font judul (${Number.isFinite(labelHPct) ? Math.round(labelHPct * 10) / 10 : 20}% tinggi kartu)`}
-              hint="Atur lewat slider atau tarik handle ungu di canvas"
-            >
-              <input
-                type="range"
-                min={4}
-                max={50}
-                step={0.5}
-                value={Number.isFinite(labelHPct) ? labelHPct : 20}
-                onChange={(event) =>
-                  updateBlockSettings(selectedIdx, {
-                    labelHPct: Number(event.target.value),
-                  })
-                }
-                className="h-1.5 w-full cursor-pointer accent-indigo-600"
-              />
-            </SettingsField>
+            {config.templateId === "bento" && (
+              <>
+                <SettingsField label="Layer judul" hint="Urutan tampilan relatif ke gambar kartu">
+                  <SegmentedControl
+                    value={resolvedSettings?.labelLayer === "behind" ? "behind" : "front"}
+                    options={[...LABEL_LAYER_OPTIONS]}
+                    onChange={(value) => updateBlockSettings(selectedIdx, { labelLayer: value })}
+                  />
+                </SettingsField>
+                <SettingsField
+                  label={`Ukuran font judul (${Number.isFinite(labelHPct) ? Math.round(labelHPct * 10) / 10 : 20}% tinggi kartu)`}
+                  hint="Atur lewat slider atau tarik handle ungu di canvas"
+                >
+                  <input
+                    type="range"
+                    min={4}
+                    max={50}
+                    step={0.5}
+                    value={Number.isFinite(labelHPct) ? labelHPct : 20}
+                    onChange={(event) =>
+                      updateBlockSettings(selectedIdx, {
+                        labelHPct: Number(event.target.value),
+                      })
+                    }
+                    className="h-1.5 w-full cursor-pointer accent-indigo-600"
+                  />
+                </SettingsField>
+                <p className="text-[11px] text-gray-500">
+                  Posisi & lebar teks: drag box judul di canvas atau tarik handle ungu.
+                </p>
+              </>
+            )}
+            {config.templateId === "minimalist" && (
+              <p className="text-[11px] text-gray-500">
+                Drag gambar di canvas untuk geser · tarik handle ⊙ untuk zoom.
+              </p>
+            )}
+          </div>
+        </div>
+      )
+    }
+  }
+
+  if (
+    instance.type === "category-cards" &&
+    config.templateId === "fashion" &&
+    selectedBlockId
+  ) {
+    const selectedBlock = currentBlocks.find((block) => block.id === selectedBlockId)
+    const selectedIdx = selectedBlock
+      ? currentBlocks.findIndex((block) => block.id === selectedBlock.id)
+      : -1
+
+    if (selectedBlock && selectedIdx >= 0) {
+      const resolvedSettings = resolveDeviceSettings(
+        selectedBlock.settings as Record<string, unknown> | undefined,
+        device === "mobile",
+      )
+
+      return (
+        <div className="border-t border-gray-200 p-4">
+          <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-indigo-600">
+            {label}
+          </h4>
+          <div className="mb-3 flex items-center gap-2">
+            <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
+              {device === "mobile" ? "Mobile" : "Desktop"}
+            </span>
+            <span className="text-xs font-medium text-gray-700">
+              {getBlockDisplayName(selectedBlock)}
+            </span>
+          </div>
+          <div className="space-y-3">
+            <BlockSettingsFields
+              fields={
+                getBlockDefinition(config.templateId, instance.type, selectedBlock.type)?.fields ??
+                []
+              }
+              settings={resolvedSettings}
+              onChange={(settings) => updateBlockSettings(selectedIdx, settings)}
+              blockIndex={selectedIdx}
+            />
             <p className="text-[11px] text-gray-500">
-              Posisi & lebar teks: drag box judul di canvas atau tarik handle ungu.
+              Drag gambar di canvas untuk geser · tarik handle ⊙ untuk zoom.
             </p>
           </div>
         </div>
@@ -430,10 +707,17 @@ export function SectionInspector({
 
       {hasBlocks && firstBlockDef && (
         <div className={hasTextSettings ? "mt-4 border-t border-gray-100 pt-4" : ""}>
-          {instance.type === "category-grid" && config.templateId === "bento" && (
+          {instance.type === "category-grid" &&
+            (config.templateId === "bento" || config.templateId === "minimalist") && (
+              <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
+                {config.templateId === "bento"
+                  ? `Maks. ${MAX_CATEGORY_CARDS} kartu. Edit di canvas — ukuran kartu & zoom gambar pakai handle resize.`
+                  : `Maks. ${MAX_CATEGORY_CARDS} kartu. Klik kartu di canvas untuk edit gambar & warna.`}
+              </p>
+            )}
+          {instance.type === "category-cards" && config.templateId === "fashion" && (
             <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
-              Maks. {MAX_CATEGORY_CARDS} kartu. Edit di canvas — ukuran kartu & zoom gambar pakai
-              handle resize.
+              Klik kartu di canvas untuk edit gambar & warna.
             </p>
           )}
           <div className="mb-2 flex items-center justify-between">

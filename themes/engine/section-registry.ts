@@ -93,7 +93,7 @@ const BOLD_SECTIONS: Record<string, SectionDefinition> = {
 }
 
 const FASHION_SECTIONS: Record<string, SectionDefinition> = {
-  hero: { type: "hero", label: "Hero", component: section(FashionHeroSection as ComponentType<SectionProps>) },
+  hero: { type: "hero", label: "Hero", component: FashionHeroSection },
   "category-cards": {
     type: "category-cards",
     label: "Category Cards",
