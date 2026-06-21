@@ -5,9 +5,15 @@ import { cn } from "@/lib/utils"
 import { CanvasGridOverlay } from "@/features/builder/components/canvas/CanvasGridOverlay"
 import { CanvasHeroCta } from "@/features/builder/components/canvas/CanvasHeroCta"
 import { CanvasImageFrame } from "@/features/builder/components/canvas/CanvasImageFrame"
+import { CanvasMultiImageItem } from "@/features/builder/components/canvas/CanvasMultiImageItem"
 import { CanvasInlineText } from "@/features/builder/components/canvas/CanvasInlineText"
 import { CanvasLabelResizeHandles } from "@/features/builder/components/canvas/CanvasLabelResizeHandles"
 import type { SectionProps } from "@/themes/engine/section-registry"
+import {
+  parseCanvasImages,
+  updateImageInArray,
+  type CanvasImageItem,
+} from "@/themes/engine/canvas-image"
 import {
   hasMobileOverride,
   MOBILE_OVERRIDE_FLAG,
@@ -230,6 +236,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const [measuredWidth, setMeasuredWidth] = useState(
     isMobile ? HERO_MOBILE_DESIGN_WIDTH : HERO_DESIGN_WIDTH,
   )
+  const [activeImageId, setActiveImageId] = useState<string | null>(null)
 
   useEffect(() => {
     const element = frameRef.current
@@ -253,6 +260,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const mediaSettings = mediaBlock?.settings as Record<string, unknown> | undefined
   const parsed = parseImageTransform(mediaSettings)
   const image = { ...parsed, url: parsed.url ?? config?.heroImageUrl }
+  const canvasImages = parseCanvasImages(mediaSettings)
 
   const title1Layout = parseHeroTitleLayout(mediaSettings, "title1", isMobile)
   const title2Layout = parseHeroTitleLayout(mediaSettings, "title2", isMobile)
@@ -316,6 +324,14 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
         }
       : patch
     editor.onBlockChange?.(canvas!.sectionId, ctaBlock.id, full)
+  }
+
+  const onMultiImageChange = (imageId: string, patch: Partial<CanvasImageItem>) => {
+    if (!mediaBlock || !editor) return
+    const current = parseCanvasImages(mediaBlock.settings as Record<string, unknown> | undefined)
+    editor.onBlockChange?.(canvas!.sectionId, mediaBlock.id, {
+      images: updateImageInArray(current, imageId, patch),
+    })
   }
 
   const title1StyleOverride = parseHeroTitleStyle(mediaSettings, "title1")
@@ -382,7 +398,49 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
             />
           ))}
 
-          {(image.url || editable) && mediaBlock && (
+          {/* Multi-image layer */}
+          {canvasImages.length > 0 && mediaBlock && (
+            <div
+              className={cn("absolute inset-0", !editable && "pointer-events-none")}
+              onClick={
+                editable
+                  ? (event) => {
+                      event.stopPropagation()
+                      editor?.onSelectBlock?.(canvas!.sectionId, mediaBlock.id)
+                      setActiveImageId(null)
+                    }
+                  : undefined
+              }
+            >
+              {canvasImages.map((img) => (
+                <CanvasMultiImageItem
+                  key={img.id}
+                  item={img}
+                  selected={mediaInteractive && activeImageId === img.id}
+                  editable={mediaInteractive}
+                  onSelect={() => {
+                    setActiveImageId(img.id)
+                    editor?.onSelectBlock?.(canvas!.sectionId, mediaBlock.id)
+                  }}
+                  onChange={(patch) => onMultiImageChange(img.id, patch)}
+                />
+              ))}
+              {/* Gradient overlays rendered above all images */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-transparent"
+                style={{ zIndex: 25 }}
+              />
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"
+                style={{ zIndex: 25 }}
+              />
+            </div>
+          )}
+
+          {/* Fallback: single legacy image when images array is empty */}
+          {canvasImages.length === 0 && (image.url || editable) && mediaBlock && (
             <div
               className={cn("absolute inset-0", !editable && "pointer-events-none")}
               style={{ zIndex: Z_IMAGE }}

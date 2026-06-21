@@ -103,10 +103,38 @@ const MINIMALIST_HERO_CTA_BLOCK: BlockDefinition = {
   ],
 }
 
+const MINIMALIST_IMAGE_LAYER_BLOCK: BlockDefinition = {
+  type: "image-layer",
+  label: "Gambar",
+  defaultSettings: {
+    imageUrl: "",
+    xPct: 5,
+    yPx: 20,
+    wPct: 42,
+    hPx: 380,
+    imgScale: 100,
+    imgX: 0,
+    imgY: 0,
+    imgRotation: 0,
+    imgSliderScale: 1,
+  },
+  fields: [
+    {
+      key: "imageUrl",
+      label: "Gambar",
+      type: "image",
+      placeholder: "Upload Gambar",
+    },
+  ],
+}
+
 const MINIMALIST_BLOCK_DEFS: Record<string, Record<string, BlockDefinition>> = {
   hero: {
     "hero-media": MINIMALIST_HERO_MEDIA_BLOCK,
     "hero-cta": MINIMALIST_HERO_CTA_BLOCK,
+  },
+  "image-layers": {
+    "image-layer": MINIMALIST_IMAGE_LAYER_BLOCK,
   },
   "category-grid": {
     "category-card": {

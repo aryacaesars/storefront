@@ -38,6 +38,8 @@ export const DEFAULT_IMAGE_TRANSFORM = {
   imgScale: DEFAULT_IMG_SCALE,
   imgX: 0,
   imgY: 0,
+  imgRotation: 0,
+  imgSliderScale: 1,
 } as const
 
 export type CategoryImage = {
@@ -47,6 +49,10 @@ export type CategoryImage = {
   /** Pan offset from centre, % of frame. */
   x: number
   y: number
+  /** Rotation in degrees (−180–180). */
+  rotation: number
+  /** Precision scale multiplier (0.1–5, default 1). */
+  sliderScale: number
 }
 
 export type CategoryCardLayout = {
@@ -344,6 +350,8 @@ export function parseImageTransform(settings: Record<string, unknown> | undefine
     scale: clamp(num(settings?.imgScale, DEFAULT_IMG_SCALE), MIN_IMG_SCALE, MAX_IMG_SCALE),
     x: Math.round(num(settings?.imgX, 0)),
     y: Math.round(num(settings?.imgY, 0)),
+    rotation: clamp(Math.round(num(settings?.imgRotation, 0)), -180, 180),
+    sliderScale: clamp(num(settings?.imgSliderScale, 1), 0.1, 5),
   }
 }
 
@@ -390,7 +398,7 @@ export function defaultCategoryCards(): CategoryCardData[] {
   return DEFAULT_META.slice(0, MAX_CATEGORY_CARDS).map((meta, index) => ({
     id: `bento-cat-${index}`,
     ...meta,
-    image: { url: undefined, scale: DEFAULT_IMG_SCALE, x: 0, y: 0 },
+    image: { url: undefined, scale: DEFAULT_IMG_SCALE, x: 0, y: 0, rotation: 0, sliderScale: 1 },
     layout: DEFAULT_CARD_LAYOUTS[index],
     labelLayer: "front",
     labelLayout: DEFAULT_LABEL_LAYOUTS[inferLabelSize(DEFAULT_CARD_LAYOUTS[index])],

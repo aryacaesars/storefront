@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react"
+import { ChevronDown, ChevronUp, ImagePlus, Pencil, Plus, Trash2 } from "lucide-react"
 import { BlockSettingsFields } from "@/features/builder/components/BlockSettingsFields"
 import { SettingsGroupsForm } from "@/features/builder/components/SettingsGroupsForm"
 import {
@@ -24,10 +24,205 @@ import { HERO_SECTION_SETTINGS_GROUPS } from "@/themes/engine/settings-schema"
 import {
   MAX_CATEGORY_CARDS,
 } from "@/themes/bento/sections/category-grid-layout"
+import {
+  MAX_IMAGE_LAYERS,
+} from "@/themes/engine/image-layer-layout"
 import { applyDevicePatch, resolveDeviceSettings } from "@/themes/engine/device-settings"
 import { parseHeroTitleLayout } from "@/themes/bento/sections/hero-title-layout"
+import {
+  addImageToArray,
+  deleteImageFromArray,
+  parseCanvasImages,
+  updateImageInArray,
+  type CanvasImageItem,
+} from "@/themes/engine/canvas-image"
 import type { PreviewDevice } from "@/features/builder/components/EditorTopbar"
 import type { BlockInstance, HeroConfig, SectionPageType, ThemeConfig } from "@/themes/engine/schema"
+
+// ---------------------------------------------------------------------------
+// HeroImageListPanel — multi-image management panel inside sidebar
+// ---------------------------------------------------------------------------
+
+interface HeroImageListPanelProps {
+  images: CanvasImageItem[]
+  onChange: (images: CanvasImageItem[]) => void
+}
+
+function HeroImageListPanel({ images, onChange }: HeroImageListPanelProps) {
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  function openFilePicker(onUrl: (url: string) => void) {
+    const input = document.createElement("input")
+    input.type = "file"
+    input.accept = "image/png,image/jpeg,image/webp,image/svg+xml"
+    input.onchange = async () => {
+      const file = input.files?.[0]
+      if (!file) return
+      const form = new FormData()
+      form.append("file", file)
+      try {
+        const res = await fetch("/api/upload", { method: "POST", body: form })
+        const data = await res.json()
+        if (res.ok && typeof data.url === "string") onUrl(data.url)
+      } catch {
+        // silent — no error UI for now
+      }
+    }
+    input.click()
+  }
+
+  function handleAdd() {
+    openFilePicker((url) => onChange(addImageToArray(images, url)))
+  }
+
+  function handleUpdate(id: string) {
+    openFilePicker((url) => onChange(updateImageInArray(images, id, { src: url })))
+  }
+
+  function handleDelete(id: string) {
+    onChange(deleteImageFromArray(images, id))
+    if (expandedId === id) setExpandedId(null)
+  }
+
+  function handlePatch(id: string, patch: Partial<CanvasImageItem>) {
+    onChange(updateImageInArray(images, id, patch))
+  }
+
+  return (
+    <div className="space-y-2">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+        Gambar ({images.length})
+      </p>
+
+      {images.length === 0 && (
+        <p className="text-[11px] text-gray-400">
+          Belum ada gambar. Klik tombol di bawah untuk menambah.
+        </p>
+      )}
+
+      <ul className="space-y-1.5">
+        {images.map((img, idx) => {
+          const isExpanded = expandedId === img.id
+          return (
+            <li key={img.id} className="rounded-md border border-gray-100 bg-gray-50">
+              <div className="flex items-center gap-2 px-2 py-1.5">
+                <div className="h-9 w-12 shrink-0 overflow-hidden rounded border border-gray-200 bg-gray-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={img.src} alt="" className="h-full w-full object-cover" />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(isExpanded ? null : img.id)}
+                  className="flex-1 truncate text-left"
+                >
+                  <span className="block text-[11px] font-medium text-gray-700">
+                    Gambar {idx + 1}
+                  </span>
+                  <span className="block text-[10px] text-gray-400">
+                    {Math.round(img.width)}%×{Math.round(img.height)}% · {img.rotation}°
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleUpdate(img.id)}
+                  className="rounded p-1 text-gray-400 hover:bg-indigo-50 hover:text-indigo-600"
+                  title="Ganti gambar"
+                >
+                  <Pencil className="h-3 w-3" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDelete(img.id)}
+                  className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                  title="Hapus gambar"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </div>
+
+              {isExpanded && (
+                <div className="space-y-3 border-t border-gray-100 px-2 pb-3 pt-2">
+                  <SettingsField label={`Lebar (${Math.round(img.width)}% kanvas)`}>
+                    <input
+                      type="range"
+                      min={5}
+                      max={100}
+                      step={0.5}
+                      value={img.width}
+                      onChange={(e) => handlePatch(img.id, { width: Number(e.target.value) })}
+                      className="h-1.5 w-full cursor-pointer accent-indigo-600"
+                    />
+                  </SettingsField>
+
+                  <SettingsField label={`Tinggi (${Math.round(img.height)}% kanvas)`}>
+                    <input
+                      type="range"
+                      min={5}
+                      max={100}
+                      step={0.5}
+                      value={img.height}
+                      onChange={(e) => handlePatch(img.id, { height: Number(e.target.value) })}
+                      className="h-1.5 w-full cursor-pointer accent-indigo-600"
+                    />
+                  </SettingsField>
+
+                  <SettingsField label={`Rotasi (${img.rotation}°)`}>
+                    <input
+                      type="range"
+                      min={-180}
+                      max={180}
+                      step={1}
+                      value={img.rotation}
+                      onChange={(e) => handlePatch(img.id, { rotation: Number(e.target.value) })}
+                      className="h-1.5 w-full cursor-pointer accent-indigo-600"
+                    />
+                  </SettingsField>
+
+                  <SettingsField label={`Skala zoom (${Math.round(img.scale * 100)}%)`}>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="range"
+                        min={0.1}
+                        max={5}
+                        step={0.05}
+                        value={img.scale}
+                        onChange={(e) => handlePatch(img.id, { scale: Number(e.target.value) })}
+                        className="h-1.5 flex-1 cursor-pointer accent-indigo-600"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handlePatch(img.id, { scale: 1 })}
+                        className="shrink-0 rounded border border-gray-200 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </SettingsField>
+
+                  <p className="text-[10px] text-gray-400">
+                    Drag gambar di canvas untuk geser · ⊙ zoom · □ resize bingkai
+                  </p>
+                </div>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+
+      <button
+        type="button"
+        onClick={handleAdd}
+        className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-indigo-300 bg-indigo-50 px-3 py-2.5 text-[11px] font-semibold text-indigo-600 transition-colors hover:border-indigo-400 hover:bg-indigo-100"
+      >
+        <ImagePlus className="h-3.5 w-3.5" />
+        Tambah Gambar Baru
+      </button>
+    </div>
+  )
+}
 
 const HERO_TITLE_LAYER_OPTIONS = [
   { value: "front", label: "Di depan" },
@@ -211,7 +406,9 @@ export function SectionInspector({
     instance.type === "category-grid" &&
     (config.templateId === "bento" || config.templateId === "minimalist")
       ? MAX_CATEGORY_CARDS
-      : undefined
+      : instance.type === "image-layers" && config.templateId === "minimalist"
+        ? MAX_IMAGE_LAYERS
+        : undefined
   const atBlockLimit = maxBlocks != null && currentBlocks.length >= maxBlocks
 
   function addBlock() {
@@ -321,13 +518,12 @@ export function SectionInspector({
             </div>
             {selectedDef && selectedIdx >= 0 && (
               <div className="space-y-3">
-                <BlockSettingsFields
-                  fields={selectedDef.fields}
-                  settings={resolvedSettings}
-                  onChange={(settings) => updateBlockSettings(selectedIdx, settings)}
-                />
                 {selectedBlock.type === "hero-media" && (
                   <>
+                    <HeroImageListPanel
+                      images={parseCanvasImages(resolvedSettings)}
+                      onChange={(imgs) => updateBlockSettings(selectedIdx, { images: imgs })}
+                    />
                     <div className="space-y-3 border-t border-gray-100 pt-3">
                       <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                         Judul
@@ -506,13 +702,12 @@ export function SectionInspector({
             </div>
             {selectedDef && selectedIdx >= 0 && (
               <div className="space-y-3">
-                <BlockSettingsFields
-                  fields={selectedDef.fields}
-                  settings={resolvedSettings}
-                  onChange={(settings) => updateBlockSettings(selectedIdx, settings)}
-                />
                 {selectedBlock.type === "hero-media" && (
                   <>
+                    <HeroImageListPanel
+                      images={parseCanvasImages(resolvedSettings)}
+                      onChange={(imgs) => updateBlockSettings(selectedIdx, { images: imgs })}
+                    />
                     <div className="space-y-3 border-t border-gray-100 pt-3">
                       <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                         Judul
@@ -691,13 +886,12 @@ export function SectionInspector({
             </div>
             {selectedDef && selectedIdx >= 0 && (
               <div className="space-y-3">
-                <BlockSettingsFields
-                  fields={selectedDef.fields}
-                  settings={resolvedSettings}
-                  onChange={(settings) => updateBlockSettings(selectedIdx, settings)}
-                />
                 {selectedBlock.type === "hero-media" && (
                   <>
+                    <HeroImageListPanel
+                      images={parseCanvasImages(resolvedSettings)}
+                      onChange={(imgs) => updateBlockSettings(selectedIdx, { images: imgs })}
+                    />
                     <div className="space-y-3 border-t border-gray-100 pt-3">
                       <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                         Judul
@@ -879,10 +1073,9 @@ export function SectionInspector({
             </div>
             {heroMediaDef && selectedIdx >= 0 && (
               <div className="space-y-3">
-                <BlockSettingsFields
-                  fields={heroMediaDef.fields}
-                  settings={resolvedSettings}
-                  onChange={(settings) => updateBlockSettings(selectedIdx, settings)}
+                <HeroImageListPanel
+                  images={parseCanvasImages(resolvedSettings)}
+                  onChange={(imgs) => updateBlockSettings(selectedIdx, { images: imgs })}
                 />
                 <div className="space-y-3 border-t border-gray-100 pt-3">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
@@ -1045,6 +1238,49 @@ export function SectionInspector({
             />
             {config.templateId === "bento" && (
               <>
+                <SettingsField
+                  label={`Rotasi gambar (${Math.round(Number(resolvedSettings?.imgRotation ?? 0))}°)`}
+                >
+                  <input
+                    type="range"
+                    min={-180}
+                    max={180}
+                    step={1}
+                    value={Math.round(Number(resolvedSettings?.imgRotation ?? 0))}
+                    onChange={(event) =>
+                      updateBlockSettings(selectedIdx, {
+                        imgRotation: Number(event.target.value),
+                      })
+                    }
+                    className="h-1.5 w-full cursor-pointer accent-indigo-600"
+                  />
+                </SettingsField>
+                <SettingsField
+                  label={`Skala gambar (${Math.round(Number(resolvedSettings?.imgSliderScale ?? 1) * 100)}%)`}
+                >
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="range"
+                      min={0.1}
+                      max={5}
+                      step={0.05}
+                      value={Number(resolvedSettings?.imgSliderScale ?? 1)}
+                      onChange={(event) =>
+                        updateBlockSettings(selectedIdx, {
+                          imgSliderScale: Number(event.target.value),
+                        })
+                      }
+                      className="h-1.5 flex-1 cursor-pointer accent-indigo-600"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => updateBlockSettings(selectedIdx, { imgSliderScale: 1 })}
+                      className="shrink-0 rounded border border-gray-200 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                    >
+                      Reset
+                    </button>
+                  </div>
+                </SettingsField>
                 <SettingsField label="Layer judul" hint="Urutan tampilan relatif ke gambar kartu">
                   <SegmentedControl
                     value={resolvedSettings?.labelLayer === "behind" ? "behind" : "front"}
@@ -1077,6 +1313,49 @@ export function SectionInspector({
             )}
             {config.templateId === "minimalist" && (
               <>
+                <SettingsField
+                  label={`Rotasi gambar (${Math.round(Number(resolvedSettings?.imgRotation ?? 0))}°)`}
+                >
+                  <input
+                    type="range"
+                    min={-180}
+                    max={180}
+                    step={1}
+                    value={Math.round(Number(resolvedSettings?.imgRotation ?? 0))}
+                    onChange={(event) =>
+                      updateBlockSettings(selectedIdx, {
+                        imgRotation: Number(event.target.value),
+                      })
+                    }
+                    className="h-1.5 w-full cursor-pointer accent-indigo-600"
+                  />
+                </SettingsField>
+                <SettingsField
+                  label={`Skala gambar (${Math.round(Number(resolvedSettings?.imgSliderScale ?? 1) * 100)}%)`}
+                >
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="range"
+                      min={0.1}
+                      max={5}
+                      step={0.05}
+                      value={Number(resolvedSettings?.imgSliderScale ?? 1)}
+                      onChange={(event) =>
+                        updateBlockSettings(selectedIdx, {
+                          imgSliderScale: Number(event.target.value),
+                        })
+                      }
+                      className="h-1.5 flex-1 cursor-pointer accent-indigo-600"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => updateBlockSettings(selectedIdx, { imgSliderScale: 1 })}
+                      className="shrink-0 rounded border border-gray-200 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                    >
+                      Reset
+                    </button>
+                  </div>
+                </SettingsField>
                 <SettingsField label="Layer judul" hint="Urutan tampilan relatif ke gambar kartu">
                   <SegmentedControl
                     value={resolvedSettings?.labelLayer === "behind" ? "behind" : "front"}
@@ -1152,6 +1431,49 @@ export function SectionInspector({
               onChange={(settings) => updateBlockSettings(selectedIdx, settings)}
               blockIndex={selectedIdx}
             />
+            <SettingsField
+              label={`Rotasi gambar (${Math.round(Number(resolvedSettings?.imgRotation ?? 0))}°)`}
+            >
+              <input
+                type="range"
+                min={-180}
+                max={180}
+                step={1}
+                value={Math.round(Number(resolvedSettings?.imgRotation ?? 0))}
+                onChange={(event) =>
+                  updateBlockSettings(selectedIdx, {
+                    imgRotation: Number(event.target.value),
+                  })
+                }
+                className="h-1.5 w-full cursor-pointer accent-indigo-600"
+              />
+            </SettingsField>
+            <SettingsField
+              label={`Skala gambar (${Math.round(Number(resolvedSettings?.imgSliderScale ?? 1) * 100)}%)`}
+            >
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min={0.1}
+                  max={5}
+                  step={0.05}
+                  value={Number(resolvedSettings?.imgSliderScale ?? 1)}
+                  onChange={(event) =>
+                    updateBlockSettings(selectedIdx, {
+                      imgSliderScale: Number(event.target.value),
+                    })
+                  }
+                  className="h-1.5 flex-1 cursor-pointer accent-indigo-600"
+                />
+                <button
+                  type="button"
+                  onClick={() => updateBlockSettings(selectedIdx, { imgSliderScale: 1 })}
+                  className="shrink-0 rounded border border-gray-200 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                >
+                  Reset
+                </button>
+              </div>
+            </SettingsField>
             <p className="text-[11px] text-gray-500">
               Drag gambar di canvas untuk geser · tarik handle ⊙ untuk zoom.
             </p>
@@ -1159,6 +1481,161 @@ export function SectionInspector({
         </div>
       )
     }
+  }
+
+  if (instance.type === "image-layers" && config.templateId === "minimalist") {
+    const selectedBlock = selectedBlockId
+      ? currentBlocks.find((block) => block.id === selectedBlockId)
+      : null
+    const selectedIdx = selectedBlock
+      ? currentBlocks.findIndex((block) => block.id === selectedBlock.id)
+      : -1
+    const resolvedSettings = selectedBlock
+      ? resolveDeviceSettings(selectedBlock.settings, device === "mobile")
+      : undefined
+    const imageLayerDef = blockDefs["image-layer"]
+
+    return (
+      <div className="border-t border-gray-200 p-4">
+        <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-indigo-600">
+          {label}
+        </h4>
+
+        {!selectedBlock ? (
+          <>
+            <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
+              Tambah beberapa gambar ke kanvas. Setiap gambar bisa digeser, di-resize, dirotasi, dan di-zoom secara independen.
+            </p>
+
+            {currentBlocks.length > 0 ? (
+              <ul className="mb-3 space-y-2">
+                {currentBlocks.map((block, idx) => {
+                  const imgUrl = (block.settings as Record<string, unknown> | undefined)?.imageUrl
+                  return (
+                    <li
+                      key={block.id}
+                      className="flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50 p-2"
+                    >
+                      <div className="h-10 w-10 shrink-0 overflow-hidden rounded-md bg-gray-200">
+                        {typeof imgUrl === "string" && imgUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={imgUrl} alt="" className="h-full w-full object-cover" />
+                        )}
+                      </div>
+                      <span className="flex-1 truncate text-[11px] font-medium text-gray-700">
+                        Gambar {idx + 1}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeBlock(idx)}
+                        className="rounded p-0.5 text-gray-400 hover:bg-red-100 hover:text-red-600"
+                        aria-label="Hapus gambar"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            ) : (
+              <p className="mb-3 text-center text-[11px] text-gray-400">
+                Belum ada gambar. Klik tombol di bawah untuk menambah.
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={addBlock}
+              disabled={atBlockLimit}
+              className="inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-indigo-600 px-3 py-2 text-[11px] font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Tambah Gambar Baru
+            </button>
+            {atBlockLimit && (
+              <p className="mt-1.5 text-center text-[10px] text-gray-400">
+                Maks. {maxBlocks} gambar
+              </p>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="mb-3 flex items-center gap-2">
+              <div className="h-8 w-8 shrink-0 overflow-hidden rounded-md bg-gray-200">
+                {typeof resolvedSettings?.imageUrl === "string" && resolvedSettings.imageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={resolvedSettings.imageUrl as string}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                )}
+              </div>
+              <span className="text-xs font-medium text-gray-700">Gambar {selectedIdx + 1}</span>
+              <span className="ml-auto rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
+                {device === "mobile" ? "Mobile" : "Desktop"}
+              </span>
+            </div>
+            <div className="space-y-3">
+              {imageLayerDef && (
+                <BlockSettingsFields
+                  fields={imageLayerDef.fields}
+                  settings={resolvedSettings}
+                  onChange={(settings) => updateBlockSettings(selectedIdx, settings)}
+                  blockIndex={selectedIdx}
+                />
+              )}
+              <SettingsField
+                label={`Rotasi (${Math.round(Number(resolvedSettings?.imgRotation ?? 0))}°)`}
+              >
+                <input
+                  type="range"
+                  min={-180}
+                  max={180}
+                  step={1}
+                  value={Math.round(Number(resolvedSettings?.imgRotation ?? 0))}
+                  onChange={(event) =>
+                    updateBlockSettings(selectedIdx, {
+                      imgRotation: Number(event.target.value),
+                    })
+                  }
+                  className="h-1.5 w-full cursor-pointer accent-indigo-600"
+                />
+              </SettingsField>
+              <SettingsField
+                label={`Skala (${Math.round(Number(resolvedSettings?.imgSliderScale ?? 1) * 100)}%)`}
+              >
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min={0.1}
+                    max={5}
+                    step={0.05}
+                    value={Number(resolvedSettings?.imgSliderScale ?? 1)}
+                    onChange={(event) =>
+                      updateBlockSettings(selectedIdx, {
+                        imgSliderScale: Number(event.target.value),
+                      })
+                    }
+                    className="h-1.5 flex-1 cursor-pointer accent-indigo-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => updateBlockSettings(selectedIdx, { imgSliderScale: 1 })}
+                    className="shrink-0 rounded border border-gray-200 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </SettingsField>
+              <p className="text-[11px] text-gray-500">
+                Drag badge "pindah" di canvas untuk geser · handle biru untuk resize.
+              </p>
+            </div>
+          </>
+        )}
+      </div>
+    )
   }
 
   const hasTextSettings = sectionHasSettings(config.templateId, instance.type)
@@ -1275,7 +1752,46 @@ export function SectionInspector({
                       blockIndex={idx}
                     />
                     {(config.templateId === "bento" || config.templateId === "minimalist") && instance.type === "category-grid" && (
-                      <div className="mt-3 border-t border-gray-100 pt-3">
+                      <div className="mt-3 space-y-3 border-t border-gray-100 pt-3">
+                        <SettingsField
+                          label={`Rotasi gambar (${Math.round(Number(resolveDeviceSettings(block.settings as Record<string, unknown> | undefined, device === "mobile")?.imgRotation ?? 0))}°)`}
+                        >
+                          <input
+                            type="range"
+                            min={-180}
+                            max={180}
+                            step={1}
+                            value={Math.round(Number(resolveDeviceSettings(block.settings as Record<string, unknown> | undefined, device === "mobile")?.imgRotation ?? 0))}
+                            onChange={(event) =>
+                              updateBlockSettings(idx, { imgRotation: Number(event.target.value) })
+                            }
+                            className="h-1.5 w-full cursor-pointer accent-indigo-600"
+                          />
+                        </SettingsField>
+                        <SettingsField
+                          label={`Skala gambar (${Math.round(Number(resolveDeviceSettings(block.settings as Record<string, unknown> | undefined, device === "mobile")?.imgSliderScale ?? 1) * 100)}%)`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="range"
+                              min={0.1}
+                              max={5}
+                              step={0.05}
+                              value={Number(resolveDeviceSettings(block.settings as Record<string, unknown> | undefined, device === "mobile")?.imgSliderScale ?? 1)}
+                              onChange={(event) =>
+                                updateBlockSettings(idx, { imgSliderScale: Number(event.target.value) })
+                              }
+                              className="h-1.5 flex-1 cursor-pointer accent-indigo-600"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => updateBlockSettings(idx, { imgSliderScale: 1 })}
+                              className="shrink-0 rounded border border-gray-200 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                            >
+                              Reset
+                            </button>
+                          </div>
+                        </SettingsField>
                         <SettingsField
                           label="Layer judul"
                           hint="Urutan tampilan relatif ke gambar kartu"

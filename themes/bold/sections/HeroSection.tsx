@@ -5,9 +5,15 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { CanvasGridOverlay } from "@/features/builder/components/canvas/CanvasGridOverlay"
 import { CanvasImageFrame } from "@/features/builder/components/canvas/CanvasImageFrame"
+import { CanvasMultiImageItem } from "@/features/builder/components/canvas/CanvasMultiImageItem"
 import { CanvasInlineText } from "@/features/builder/components/canvas/CanvasInlineText"
 import { CanvasLabelResizeHandles } from "@/features/builder/components/canvas/CanvasLabelResizeHandles"
 import type { SectionProps } from "@/themes/engine/section-registry"
+import {
+  parseCanvasImages,
+  updateImageInArray,
+  type CanvasImageItem,
+} from "@/themes/engine/canvas-image"
 import {
   hasMobileOverride,
   MOBILE_OVERRIDE_FLAG,
@@ -228,6 +234,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const [measuredWidth, setMeasuredWidth] = useState(
     isMobile ? HERO_MOBILE_DESIGN_WIDTH : HERO_DESIGN_WIDTH,
   )
+  const [activeImageId, setActiveImageId] = useState<string | null>(null)
 
   useEffect(() => {
     const element = frameRef.current
@@ -253,6 +260,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const mediaSettings = mediaBlock?.settings as Record<string, unknown> | undefined
   const parsedImage = parseImageTransform(mediaSettings)
   const image = { ...parsedImage, url: parsedImage.url ?? config?.heroImageUrl }
+  const canvasImages = parseCanvasImages(mediaSettings)
 
   const title1Layout = parseHeroTitleLayout(mediaSettings, "title1", isMobile)
   const title2Layout = parseHeroTitleLayout(mediaSettings, "title2", isMobile)
@@ -274,7 +282,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const editable = Boolean(editor && isSectionSelected)
   const mediaInteractive = editable && editor?.selectedBlockId === mediaBlock?.id
 
-  const hasImage = Boolean(image.url)
+  const hasImage = Boolean(image.url) || canvasImages.length > 0
 
   const onMediaChange = (patch: Record<string, unknown>) => {
     if (!mediaBlock || !editor) return
@@ -290,6 +298,14 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
         }
       : patch
     editor.onBlockChange?.(canvas!.sectionId, mediaBlock.id, full)
+  }
+
+  const onMultiImageChange = (imageId: string, patch: Partial<CanvasImageItem>) => {
+    if (!mediaBlock || !editor) return
+    const current = parseCanvasImages(mediaBlock.settings as Record<string, unknown> | undefined)
+    editor.onBlockChange?.(canvas!.sectionId, mediaBlock.id, {
+      images: updateImageInArray(current, imageId, patch),
+    })
   }
 
   const title1StyleOverride = parseHeroTitleStyle(mediaSettings, "title1")
@@ -347,8 +363,38 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
           />
         ))}
 
-        {/* Background image */}
-        {mediaBlock && (
+        {/* Multi-image layer */}
+        {canvasImages.length > 0 && mediaBlock && (
+          <div
+            className={cn("absolute inset-0", !editable && "pointer-events-none")}
+            onClick={
+              editable
+                ? (event) => {
+                    event.stopPropagation()
+                    editor?.onSelectBlock?.(canvas!.sectionId, mediaBlock.id)
+                    setActiveImageId(null)
+                  }
+                : undefined
+            }
+          >
+            {canvasImages.map((img) => (
+              <CanvasMultiImageItem
+                key={img.id}
+                item={img}
+                selected={mediaInteractive && activeImageId === img.id}
+                editable={mediaInteractive}
+                onSelect={() => {
+                  setActiveImageId(img.id)
+                  editor?.onSelectBlock?.(canvas!.sectionId, mediaBlock.id)
+                }}
+                onChange={(patch) => onMultiImageChange(img.id, patch)}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Fallback: single legacy image when images array is empty */}
+        {canvasImages.length === 0 && mediaBlock && (
           <div
             className={cn("absolute inset-0", !editable && "pointer-events-none")}
             style={{ zIndex: Z_IMAGE }}
@@ -361,7 +407,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
                 : undefined
             }
           >
-            {(hasImage || editable) && (
+            {(Boolean(image.url) || editable) && (
               <CanvasImageFrame
                 image={image}
                 interactive={mediaInteractive}

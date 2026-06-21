@@ -19,6 +19,7 @@ import type { TemplateId } from "@/themes/engine/schema"
 import { CallToActionSection as MinimalistCallToActionSection } from "@/themes/minimalist/sections/CallToActionSection"
 import { CategoryGrid } from "@/themes/minimalist/sections/CategoryGrid"
 import { HeroSection as MinimalistHeroSection } from "@/themes/minimalist/sections/HeroSection"
+import { ImageLayers } from "@/themes/minimalist/sections/ImageLayers"
 import { ProductGrid } from "@/themes/minimalist/sections/ProductGrid"
 import { CallToActionSection as BentoCallToActionSection } from "@/themes/bento/sections/CallToActionSection"
 import { CategoryGrid as BentoCategoryGrid } from "@/themes/bento/sections/CategoryGrid"
@@ -53,6 +54,11 @@ function section(component: ComponentType<SectionProps>): ComponentType<SectionP
 
 const MINIMALIST_SECTIONS: Record<string, SectionDefinition> = {
   hero: { type: "hero", label: "Hero", component: MinimalistHeroSection },
+  "image-layers": {
+    type: "image-layers",
+    label: "Galeri Gambar",
+    component: ImageLayers,
+  },
   "category-grid": {
     type: "category-grid",
     label: "Category Grid",

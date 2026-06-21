@@ -95,7 +95,7 @@ export function CanvasImageFrame({ image, interactive, onChange }: CanvasImageFr
             interactive ? "cursor-move touch-none" : "pointer-events-none",
           )}
           style={{
-            transform: `scale(${image.scale / 100})`,
+            transform: `scale(${(image.scale / 100) * image.sliderScale}) rotate(${image.rotation}deg)`,
             transformOrigin: "center center",
           }}
         />
@@ -110,7 +110,7 @@ export function CanvasImageFrame({ image, interactive, onChange }: CanvasImageFr
             className="absolute bottom-3 right-3 z-30 flex h-4 w-4 cursor-nwse-resize items-center justify-center rounded-sm border-2 border-white bg-violet-500 shadow-md transition-transform hover:scale-110"
           />
           <div className="pointer-events-none absolute left-2 top-2 z-20 rounded-full bg-black/55 px-2 py-0.5 text-[9px] font-semibold text-white/90">
-            {image.scale}% · tarik ⊙ zoom · drag geser
+            {Math.round(image.scale * image.sliderScale)}% · {image.rotation > 0 ? `+${image.rotation}` : image.rotation}° · tarik ⊙ zoom · drag geser
           </div>
         </>
       )}
