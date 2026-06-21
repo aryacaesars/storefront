@@ -113,3 +113,76 @@ export async function scalevFetch<T>(
 }
 
 export { BASE_URL as SCALEV_BASE_URL };
+
+interface ScalevStorefrontFetchOptions<T> {
+  storeUniqueId: string;
+  storefrontApiKey: string;
+  method?: "GET" | "POST" | "PATCH" | "DELETE" | "PUT";
+  body?: unknown;
+  schema: z.ZodType<T>;
+  init?: RequestInit;
+}
+
+/** Public storefront routes — `X-Scalev-Storefront-Api-Key`, store `unique_id` in path. */
+export async function scalevStorefrontFetch<T>(
+  path: string,
+  opts: ScalevStorefrontFetchOptions<T>,
+): Promise<T> {
+  const { storeUniqueId, storefrontApiKey, method = "GET", body, schema, init } =
+    opts;
+  const url = `${BASE_URL}/v3/stores/${encodeURIComponent(storeUniqueId)}${path}`;
+
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    "X-Scalev-Storefront-Api-Key": storefrontApiKey,
+  };
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      cache: "no-store",
+      ...init,
+    });
+  } catch (e) {
+    throw new ScalevError(
+      `Network error calling Scalev storefront ${method} ${path}: ${(e as Error).message}`,
+      0,
+      "network",
+    );
+  }
+
+  const rawText = await res.text();
+  let json: unknown;
+  if (rawText) {
+    try {
+      json = JSON.parse(rawText);
+    } catch {
+      json = undefined;
+    }
+  }
+
+  if (!res.ok) {
+    throw new ScalevError(
+      `Scalev storefront ${method} ${path} failed (HTTP ${res.status})`,
+      res.status,
+      "http",
+      json ?? rawText,
+    );
+  }
+
+  const parsed = schema.safeParse(json);
+  if (!parsed.success) {
+    throw new ScalevError(
+      `Scalev storefront ${path} response did not match schema. Zod: ${parsed.error.message}`,
+      502,
+      "validation",
+      json,
+    );
+  }
+
+  return parsed.data;
+}

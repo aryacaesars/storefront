@@ -1,10 +1,14 @@
 import type { ThemeConfig } from "./schema"
+import type { CatalogProduct } from "@/features/storefront/catalog-types"
 
 /** Props passed to every theme page component from the storefront / builder. */
 export type ThemePageProps = {
   config: ThemeConfig
   /** Route param for product detail, collection, order, etc. */
   slug?: string
+  /** Live Scalev catalog (empty when tenant not connected). */
+  products?: CatalogProduct[]
+  product?: CatalogProduct | null
 }
 
 /** Default slug used in builder preview for parametric pages. */
