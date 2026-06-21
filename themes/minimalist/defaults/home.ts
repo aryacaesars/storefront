@@ -1,5 +1,17 @@
 import type { PageTemplate } from "@/themes/engine/schema"
-import { DEFAULT_IMAGE_TRANSFORM } from "@/themes/bento/sections/category-grid-layout"
+import { DEFAULT_CARD_LAYOUTS, DEFAULT_IMAGE_TRANSFORM } from "@/themes/bento/sections/category-grid-layout"
+import {
+  defaultHeroTitle1Layout,
+  defaultHeroTitle2Layout,
+  heroTitleLayoutsToPatch,
+} from "@/themes/bento/sections/hero-title-layout"
+
+const DEFAULT_HERO_TITLE_LAYOUTS = heroTitleLayoutsToPatch(
+  defaultHeroTitle1Layout(false),
+  defaultHeroTitle2Layout(false),
+)
+
+const MINIMALIST_CARD_LABEL = { xPct: 6, yPct: 78, wPct: 82, hPct: 16 } as const
 
 const DEFAULT_CATEGORY_BLOCKS = [
   { slug: "ready-to-wear", label: "Ready to Wear", cardBgColor: "#a8a29e" },
@@ -22,6 +34,9 @@ export const DEFAULT_MINIMALIST_HOME: PageTemplate = {
             imgScale: 100,
             imgX: 0,
             imgY: 0,
+            title1Layer: "front",
+            title2Layer: "front",
+            ...DEFAULT_HERO_TITLE_LAYOUTS,
           },
         },
         {
@@ -29,7 +44,11 @@ export const DEFAULT_MINIMALIST_HOME: PageTemplate = {
           type: "hero-cta",
           settings: {
             label: "Shop Collection",
-            ctaBgColor: "",
+            xPct: 5,
+            wPct: 22,
+            yPx: 460,
+            hPx: 44,
+            ctaBgColor: "#3D4F6F",
             ctaTextColor: "#ffffff",
           },
         },
@@ -46,6 +65,12 @@ export const DEFAULT_MINIMALIST_HOME: PageTemplate = {
           cardBgColor: cat.cardBgColor,
           imageUrl: "",
           ...DEFAULT_IMAGE_TRANSFORM,
+          ...DEFAULT_CARD_LAYOUTS[index],
+          labelLayer: "front",
+          labelXPct: MINIMALIST_CARD_LABEL.xPct,
+          labelYPct: MINIMALIST_CARD_LABEL.yPct,
+          labelWPct: MINIMALIST_CARD_LABEL.wPct,
+          labelHPct: MINIMALIST_CARD_LABEL.hPct,
         },
       })),
     },

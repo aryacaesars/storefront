@@ -31,6 +31,10 @@ import {
   parseHeroTitleLayout,
   type HeroTitleLine,
 } from "@/themes/bento/sections/hero-title-layout"
+import {
+  parseHeroTitleStyle,
+  type HeroTitleStyleOverride,
+} from "@/themes/bento/sections/hero-title-style"
 
 type HeroTitleLayer = "front" | "behind"
 
@@ -60,6 +64,7 @@ interface HeroTitleLineProps {
   value: string
   layer: HeroTitleLayer
   colorClass: string
+  styleOverride: HeroTitleStyleOverride
   labelLayout: CategoryLabelLayout
   frameHeightPx: number
   frameRef: React.RefObject<HTMLDivElement | null>
@@ -76,6 +81,7 @@ function HeroTitleLine({
   value,
   layer,
   colorClass,
+  styleOverride,
   labelLayout,
   frameHeightPx,
   frameRef,
@@ -92,9 +98,12 @@ function HeroTitleLine({
 
   const labelBoxHeightPx = frameHeightPx * (labelLayout.hPct / 100)
   const labelStyle: React.CSSProperties = {
-    fontFamily: "var(--theme-heading-font)",
+    fontFamily: styleOverride.fontFamily ?? "var(--theme-heading-font)",
     fontSize: `${Math.max(14, labelBoxHeightPx * 0.72)}px`,
     lineHeight: 1.05,
+    fontWeight: styleOverride.fontWeight ?? 700,
+    fontStyle: styleOverride.fontStyle ?? "normal",
+    ...(styleOverride.color && { color: styleOverride.color }),
   }
 
   const labelBoxStyle: React.CSSProperties = {
@@ -298,12 +307,16 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
     editor.onBlockChange?.(canvas!.sectionId, ctaBlock.id, full)
   }
 
+  const title1StyleOverride = parseHeroTitleStyle(mediaSettings, "title1")
+  const title2StyleOverride = parseHeroTitleStyle(mediaSettings, "title2")
+
   const titleLines = [
     {
       line: "title1" as const,
       value: titleLine1,
       layer: title1Layer,
       colorClass: "text-[var(--theme-primary)]",
+      styleOverride: title1StyleOverride,
       labelLayout: title1Layout,
       onHeroKey: "title" as const,
     },
@@ -312,6 +325,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
       value: titleLine2,
       layer: title2Layer,
       colorClass: "text-white",
+      styleOverride: title2StyleOverride,
       labelLayout: title2Layout,
       onHeroKey: "subtitle" as const,
     },
@@ -339,6 +353,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
               value={item.value}
               layer={item.layer}
               colorClass={item.colorClass}
+              styleOverride={item.styleOverride}
               labelLayout={item.labelLayout}
               frameHeightPx={frameHeight}
               frameRef={frameRef}
@@ -381,6 +396,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
               value={item.value}
               layer={item.layer}
               colorClass={item.colorClass}
+              styleOverride={item.styleOverride}
               labelLayout={item.labelLayout}
               frameHeightPx={frameHeight}
               frameRef={frameRef}

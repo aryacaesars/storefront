@@ -1,161 +1,477 @@
 "use client"
 
-import Link from "next/link"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
+import { CanvasGridOverlay } from "@/features/builder/components/canvas/CanvasGridOverlay"
+import { CanvasHeroCta } from "@/features/builder/components/canvas/CanvasHeroCta"
 import { CanvasImageFrame } from "@/features/builder/components/canvas/CanvasImageFrame"
+import { CanvasInlineText } from "@/features/builder/components/canvas/CanvasInlineText"
+import { CanvasLabelResizeHandles } from "@/features/builder/components/canvas/CanvasLabelResizeHandles"
 import type { SectionProps } from "@/themes/engine/section-registry"
-import { parseImageTransform } from "@/themes/bento/sections/category-grid-layout"
+import {
+  hasMobileOverride,
+  MOBILE_OVERRIDE_FLAG,
+} from "@/themes/engine/device-settings"
+import {
+  labelMoveFromDelta,
+  parseImageTransform,
+  type CategoryLabelLayout,
+  type LabelContainerMetrics,
+} from "@/themes/bento/sections/category-grid-layout"
+import {
+  DEFAULT_CTA_LAYOUT_MOBILE,
+  HERO_DESIGN_HEIGHT,
+  HERO_DESIGN_WIDTH,
+  HERO_MOBILE_DESIGN_WIDTH,
+  parseHeroCta,
+} from "@/themes/bento/sections/hero-cta-layout"
+import {
+  heroTitleLayoutToPatch,
+  heroTitleLayoutsToPatch,
+  parseHeroTitleLayout,
+  type HeroTitleLine,
+} from "@/themes/bento/sections/hero-title-layout"
+import {
+  parseHeroTitleStyle,
+  type HeroTitleStyleOverride,
+} from "@/themes/bento/sections/hero-title-style"
 
-const TITLE_SIZE_CLASSES = {
-  sm: "text-2xl @2xl:text-4xl @5xl:text-[2.75rem]",
-  md: "text-3xl @2xl:text-5xl @5xl:text-[3.5rem]",
-  lg: "text-4xl @2xl:text-6xl @5xl:text-[4.25rem]",
-} as const
+type HeroTitleLayer = "front" | "behind"
 
-export function HeroSection({ config, blocks, canvas }: SectionProps) {
+const Z_TITLE_BEHIND = 5
+const Z_IMAGE = 10
+const Z_OVERLAY = 12
+const Z_TITLE_FRONT = 15
+const LABEL_DRAG_THRESHOLD = 4
+
+function parseTitleLayer(value: unknown): HeroTitleLayer {
+  return value === "behind" ? "behind" : "front"
+}
+
+function getLabelMetrics(element: HTMLElement): LabelContainerMetrics {
+  const rect = element.getBoundingClientRect()
+  return { width: rect.width, height: rect.height, left: rect.left, top: rect.top }
+}
+
+function isLabelHandleTarget(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLElement &&
+    Boolean(target.closest('button[aria-label^="Tarik"]'))
+  )
+}
+
+interface MinimalistTitleLineProps {
+  line: HeroTitleLine
+  value: string
+  layer: HeroTitleLayer
+  isSubtitle: boolean
+  isLight: boolean
+  styleOverride: HeroTitleStyleOverride
+  labelLayout: CategoryLabelLayout
+  frameHeightPx: number
+  frameRef: React.RefObject<HTMLDivElement | null>
+  mediaInteractive: boolean
+  editable: boolean
+  onHeroKey: "title" | "subtitle"
+  onHeroChange?: (key: "title" | "subtitle", value: string) => void
+  onLayoutChange: (patch: Record<string, unknown>) => void
+  onSelectMedia: () => void
+}
+
+function MinimalistTitleLine({
+  line,
+  value,
+  layer,
+  isSubtitle,
+  isLight,
+  styleOverride,
+  labelLayout,
+  frameHeightPx,
+  frameRef,
+  mediaInteractive,
+  editable,
+  onHeroKey,
+  onHeroChange,
+  onLayoutChange,
+  onSelectMedia,
+}: MinimalistTitleLineProps) {
+  const labelResizable = editable && mediaInteractive
+  const labelEditable = labelResizable && layer === "front"
+  const labelMovable = labelResizable
+
+  const labelBoxHeightPx = frameHeightPx * (labelLayout.hPct / 100)
+
+  const labelStyle: React.CSSProperties = isSubtitle
+    ? {
+        fontFamily: styleOverride.fontFamily ?? "var(--theme-body-font)",
+        fontSize: `${Math.max(11, labelBoxHeightPx * 0.38)}px`,
+        lineHeight: 1.45,
+        fontWeight: styleOverride.fontWeight ?? 400,
+        fontStyle: styleOverride.fontStyle ?? "normal",
+        ...(styleOverride.color && { color: styleOverride.color }),
+      }
+    : {
+        fontFamily: styleOverride.fontFamily ?? "var(--theme-heading-font)",
+        fontSize: `${Math.max(18, labelBoxHeightPx * 0.72)}px`,
+        lineHeight: 1.1,
+        fontWeight: styleOverride.fontWeight ?? 600,
+        letterSpacing: "-0.02em",
+        fontStyle: styleOverride.fontStyle ?? "normal",
+        ...(styleOverride.color && { color: styleOverride.color }),
+      }
+
+  const colorClass = isLight
+    ? isSubtitle
+      ? "text-white/80"
+      : "text-white"
+    : isSubtitle
+      ? "text-[var(--theme-muted)]"
+      : "text-[var(--theme-text)]"
+
+  const labelBoxStyle: React.CSSProperties = {
+    position: "absolute",
+    left: `${labelLayout.xPct}%`,
+    top: `${labelLayout.yPct}%`,
+    width: `${labelLayout.wPct}%`,
+    height: `${labelLayout.hPct}%`,
+  }
+
+  const startLabelMove = useCallback(
+    (event: React.PointerEvent<HTMLElement>) => {
+      if (!labelMovable || !frameRef.current || isLabelHandleTarget(event.target)) return
+
+      event.stopPropagation()
+      const startX = event.clientX
+      const startY = event.clientY
+      const origin: CategoryLabelLayout = { ...labelLayout }
+      let dragging = false
+
+      function onMove(moveEvent: PointerEvent) {
+        if (!frameRef.current) return
+        const dx = moveEvent.clientX - startX
+        const dy = moveEvent.clientY - startY
+        if (!dragging && Math.abs(dx) + Math.abs(dy) < LABEL_DRAG_THRESHOLD) return
+        dragging = true
+        moveEvent.preventDefault()
+        const metrics = getLabelMetrics(frameRef.current)
+        onLayoutChange(heroTitleLayoutToPatch(line, labelMoveFromDelta(dx, dy, metrics, origin)))
+      }
+
+      function onUp() {
+        window.removeEventListener("pointermove", onMove)
+        window.removeEventListener("pointerup", onUp)
+      }
+
+      window.addEventListener("pointermove", onMove)
+      window.addEventListener("pointerup", onUp)
+    },
+    [frameRef, labelLayout, labelMovable, line, onLayoutChange],
+  )
+
+  const labelContent = labelEditable ? (
+    <CanvasInlineText
+      value={value}
+      onChange={(next) => onHeroChange?.(onHeroKey, next)}
+      className={cn("block w-full", colorClass)}
+      style={labelStyle}
+    />
+  ) : (
+    <p className={cn("block w-full", colorClass)} style={labelStyle}>
+      {value}
+    </p>
+  )
+
+  const zIndex = layer === "behind" ? Z_TITLE_BEHIND : Z_TITLE_FRONT
+
+  return (
+    <>
+      {layer === "behind" && (
+        <div
+          className={cn(
+            "absolute flex items-start overflow-hidden",
+            labelMovable && "cursor-move",
+          )}
+          style={{ ...labelBoxStyle, zIndex }}
+          onPointerDown={labelMovable ? startLabelMove : undefined}
+        >
+          {labelContent}
+        </div>
+      )}
+
+      {labelMovable && layer === "behind" && (
+        <div
+          aria-hidden
+          className="absolute z-[15] cursor-move rounded-sm ring-2 ring-violet-500/40 ring-offset-1 ring-offset-transparent"
+          style={labelBoxStyle}
+          onPointerDown={startLabelMove}
+        />
+      )}
+
+      {layer === "front" && (
+        <div
+          className={cn(
+            "absolute flex items-start overflow-visible",
+            labelMovable && "cursor-move",
+            mediaInteractive && "rounded-sm ring-2 ring-indigo-400 ring-offset-2 ring-offset-transparent",
+          )}
+          style={{ ...labelBoxStyle, zIndex }}
+          onPointerDown={labelMovable ? startLabelMove : undefined}
+          onClick={
+            editable
+              ? (event) => {
+                  event.stopPropagation()
+                  onSelectMedia()
+                }
+              : undefined
+          }
+        >
+          {labelContent}
+        </div>
+      )}
+    </>
+  )
+}
+
+export function HeroSection({ config, blocks, canvas, isMobile = false }: SectionProps) {
+  const frameRef = useRef<HTMLDivElement>(null)
+  const [measuredWidth, setMeasuredWidth] = useState(
+    isMobile ? HERO_MOBILE_DESIGN_WIDTH : HERO_DESIGN_WIDTH,
+  )
+
+  useEffect(() => {
+    const element = frameRef.current
+    if (!element) return
+
+    const observer = new ResizeObserver(([entry]) => {
+      setMeasuredWidth(entry.contentRect.width)
+    })
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+
   const hero = config?.hero
-
-  const title = hero?.title || "Quiet Luxury for the Modern Individual"
-  const subtitle =
-    hero?.subtitle ||
-    "Curated essentials designed with intention — timeless silhouettes, conscious materials, and enduring craft."
-  const ctaHref = hero?.ctaHref || "/products"
-  const align = hero?.align ?? "center"
-  const tone = hero?.textTone ?? "dark"
-  const titleSize = hero?.titleSize ?? "md"
+  const titleLine1 = hero?.title ?? "Quiet Luxury"
+  const titleLine2 =
+    hero?.subtitle ??
+    "Curated essentials designed with intention — timeless silhouettes and enduring craft."
+  const ctaHref = hero?.ctaHref ?? "/products"
+  const isLight = hero?.textTone === "light"
 
   const mediaBlock = blocks?.find((b) => b.type === "hero-media") ?? blocks?.[0]
   const ctaBlock = blocks?.find((b) => b.type === "hero-cta") ?? blocks?.[1]
 
   const mediaSettings = mediaBlock?.settings as Record<string, unknown> | undefined
-  const ctaSettings = ctaBlock?.settings as Record<string, unknown> | undefined
+  const parsed = parseImageTransform(mediaSettings)
+  const image = { ...parsed, url: parsed.url ?? config?.heroImageUrl }
 
-  const parsedImage = parseImageTransform(mediaSettings)
-  const image = { ...parsedImage, url: parsedImage.url ?? config?.heroImageUrl }
+  const title1Layout = parseHeroTitleLayout(mediaSettings, "title1", isMobile)
+  const title2Layout = parseHeroTitleLayout(mediaSettings, "title2", isMobile)
+  const title1Layer = parseTitleLayer(mediaSettings?.title1Layer)
+  const title2Layer = parseTitleLayer(mediaSettings?.title2Layer)
 
-  const ctaLabel =
-    typeof ctaSettings?.label === "string" && ctaSettings.label
-      ? ctaSettings.label
-      : hero?.ctaLabel || "Shop Collection"
-  const ctaBgColor =
-    typeof ctaSettings?.ctaBgColor === "string" && ctaSettings.ctaBgColor
-      ? ctaSettings.ctaBgColor
-      : undefined
-  const ctaTextColor =
-    typeof ctaSettings?.ctaTextColor === "string" && ctaSettings.ctaTextColor
-      ? ctaSettings.ctaTextColor
-      : "#ffffff"
+  const designWidth = isMobile ? HERO_MOBILE_DESIGN_WIDTH : HERO_DESIGN_WIDTH
+  const scale = measuredWidth > 0 ? measuredWidth / designWidth : 1
+  const frameHeight = HERO_DESIGN_HEIGHT * scale
+
+  const mediaHasMobileOverride = Boolean(
+    mediaSettings?.[MOBILE_OVERRIDE_FLAG] ||
+      hasMobileOverride(mediaBlock?.settings as Record<string, unknown> | undefined),
+  )
+  const useMobileTitleSeed = isMobile && !mediaHasMobileOverride
+
+  const ctaHasMobileOverride = Boolean(
+    (ctaBlock?.settings as Record<string, unknown> | undefined)?.[MOBILE_OVERRIDE_FLAG],
+  )
+  const useMobileCtaSeed = isMobile && !ctaHasMobileOverride
+
+  const parsedCta = parseHeroCta(
+    ctaBlock?.settings as Record<string, unknown> | undefined,
+    hero?.ctaLabel ?? "Shop Collection",
+    isMobile,
+  )
+  const cta = useMobileCtaSeed ? { ...parsedCta, layout: DEFAULT_CTA_LAYOUT_MOBILE } : parsedCta
 
   const editor = canvas?.editor
   const isSectionSelected = editor?.selectedSectionId === canvas?.sectionId
   const editable = Boolean(editor && isSectionSelected)
+
   const mediaInteractive = editable && editor?.selectedBlockId === mediaBlock?.id
   const ctaInteractive = editable && editor?.selectedBlockId === ctaBlock?.id
 
-  const isCenter = align === "center"
-  const isLight = tone === "light"
+  const onMediaChange = (patch: Record<string, unknown>) => {
+    if (!mediaBlock || !editor) return
+    const full = useMobileTitleSeed
+      ? {
+          ...heroTitleLayoutsToPatch(title1Layout, title2Layout),
+          title1Layer,
+          title2Layer,
+          imgScale: image.scale,
+          imgX: image.x,
+          imgY: image.y,
+          ...patch,
+        }
+      : patch
+    editor.onBlockChange?.(canvas!.sectionId, mediaBlock.id, full)
+  }
+
+  const onCtaChange = (patch: Record<string, unknown>) => {
+    if (!ctaBlock || !editor) return
+    const full = useMobileCtaSeed
+      ? {
+          xPct: cta.layout.xPct,
+          wPct: cta.layout.wPct,
+          yPx: cta.layout.yPx,
+          hPx: cta.layout.hPx,
+          ...patch,
+        }
+      : patch
+    editor.onBlockChange?.(canvas!.sectionId, ctaBlock.id, full)
+  }
+
+  const title1StyleOverride = parseHeroTitleStyle(mediaSettings, "title1")
+  const title2StyleOverride = parseHeroTitleStyle(mediaSettings, "title2")
+
+  const titleLines = [
+    {
+      line: "title1" as const,
+      value: titleLine1,
+      layer: title1Layer,
+      styleOverride: title1StyleOverride,
+      labelLayout: title1Layout,
+      onHeroKey: "title" as const,
+      isSubtitle: false,
+    },
+    {
+      line: "title2" as const,
+      value: titleLine2,
+      layer: title2Layer,
+      styleOverride: title2StyleOverride,
+      labelLayout: title2Layout,
+      onHeroKey: "subtitle" as const,
+      isSubtitle: true,
+    },
+  ]
+
+  const behindTitles = titleLines.filter((item) => item.layer === "behind")
+  const frontTitles = titleLines.filter((item) => item.layer === "front")
 
   return (
-    <section className="relative overflow-hidden">
-      <div className="relative aspect-[16/7] min-h-[320px] w-full bg-gradient-to-br from-stone-200 via-amber-50 to-stone-300 @2xl:min-h-[440px]">
-        {/* Background image — clickable in edit mode to select media block */}
-        {mediaBlock ? (
-          <div
-            className={cn("absolute inset-0 z-[10]", !editable && "pointer-events-none")}
-            onClick={
-              editable
-                ? (event) => {
-                    event.stopPropagation()
-                    editor?.onSelectBlock?.(canvas!.sectionId, mediaBlock.id)
-                  }
-                : undefined
-            }
-          >
-            {image.url || editable ? (
+    <section className="mx-auto max-w-7xl px-4 py-10 @2xl:px-6 @2xl:py-14">
+      <div
+        ref={frameRef}
+        className="relative mx-auto w-full overflow-visible rounded-2xl bg-gradient-to-br from-stone-200 via-amber-50 to-stone-300"
+        style={{ height: frameHeight }}
+      >
+        {editable && (
+          <CanvasGridOverlay canvasHeight={HERO_DESIGN_HEIGHT} scale={scale} />
+        )}
+
+        <div className="absolute inset-0 overflow-hidden rounded-2xl">
+          {behindTitles.map((item) => (
+            <MinimalistTitleLine
+              key={`${item.line}-behind`}
+              {...item}
+              isLight={isLight}
+              frameHeightPx={frameHeight}
+              frameRef={frameRef}
+              mediaInteractive={mediaInteractive}
+              editable={editable}
+              onHeroChange={(key, value) => editor?.onHeroChange?.(key, value)}
+              onLayoutChange={onMediaChange}
+              onSelectMedia={() =>
+                mediaBlock && editor?.onSelectBlock?.(canvas!.sectionId, mediaBlock.id)
+              }
+            />
+          ))}
+
+          {(image.url || editable) && mediaBlock && (
+            <div
+              className={cn("absolute inset-0", !editable && "pointer-events-none")}
+              style={{ zIndex: Z_IMAGE }}
+              onClick={
+                editable
+                  ? (event) => {
+                      event.stopPropagation()
+                      editor?.onSelectBlock?.(canvas!.sectionId, mediaBlock.id)
+                    }
+                  : undefined
+              }
+            >
               <CanvasImageFrame
                 image={image}
                 interactive={mediaInteractive}
-                onChange={(patch) =>
-                  editor?.onBlockChange?.(canvas!.sectionId, mediaBlock.id, patch)
-                }
+                onChange={onMediaChange}
               />
-            ) : (
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(255,255,255,0.65),transparent_55%)]" />
-            )}
-          </div>
-        ) : (
-          <div className="absolute inset-0 z-[10] bg-[radial-gradient(circle_at_70%_20%,rgba(255,255,255,0.65),transparent_55%)]" />
-        )}
-
-        {/* Tone overlay */}
-        <div
-          className={cn(
-            "pointer-events-none absolute inset-0 z-[11]",
-            isLight
-              ? isCenter
-                ? "bg-black/35"
-                : "bg-gradient-to-r from-black/50 via-black/25 to-transparent"
-              : "bg-gradient-to-t from-black/10 via-transparent to-transparent",
-          )}
-        />
-
-        {/* Text — pointer-events-none so clicks fall through to image layer below */}
-        <div className="pointer-events-none absolute inset-0 z-[20] flex items-center">
-          <div className="mx-auto w-full max-w-7xl px-6">
-            <div className={isCenter ? "mx-auto max-w-2xl text-center" : "max-w-lg text-left"}>
-              <h1
-                className={cn(
-                  "font-semibold leading-[1.15] tracking-tight",
-                  TITLE_SIZE_CLASSES[titleSize],
-                  isLight ? "text-white" : "text-[var(--theme-text)]",
-                )}
-                style={{ fontFamily: "var(--theme-heading-font)" }}
-              >
-                {title}
-              </h1>
-              <p
-                className={cn(
-                  "mt-4 max-w-md text-sm leading-relaxed @2xl:text-base",
-                  isCenter && "mx-auto",
-                  isLight ? "text-white/85" : "text-[var(--theme-muted)]",
-                )}
-              >
-                {subtitle}
-              </p>
-              <Link
-                href={ctaHref}
-                className={cn(
-                  "pointer-events-auto mt-8 inline-flex h-11 items-center rounded-full px-8 text-xs font-bold tracking-[0.14em] uppercase transition-opacity hover:opacity-90",
-                  ctaInteractive && "ring-2 ring-indigo-400 ring-offset-2",
-                )}
-                style={{
-                  backgroundColor: ctaBgColor ?? "var(--theme-primary)",
-                  color: ctaTextColor,
-                }}
-                onClick={
-                  editable && ctaBlock
-                    ? (event) => {
-                        event.preventDefault()
-                        event.stopPropagation()
-                        editor?.onSelectBlock?.(canvas!.sectionId, ctaBlock.id)
-                      }
-                    : undefined
-                }
-              >
-                {ctaLabel}
-              </Link>
             </div>
-          </div>
+          )}
+
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"
+            style={{ zIndex: Z_OVERLAY }}
+          />
+
+          {frontTitles.map((item) => (
+            <MinimalistTitleLine
+              key={`${item.line}-front`}
+              {...item}
+              isLight={isLight}
+              frameHeightPx={frameHeight}
+              frameRef={frameRef}
+              mediaInteractive={mediaInteractive}
+              editable={editable}
+              onHeroChange={(key, value) => editor?.onHeroChange?.(key, value)}
+              onLayoutChange={onMediaChange}
+              onSelectMedia={() =>
+                mediaBlock && editor?.onSelectBlock?.(canvas!.sectionId, mediaBlock.id)
+              }
+            />
+          ))}
         </div>
 
+        {mediaInteractive &&
+          titleLines.map((item) => (
+            <div
+              key={`${item.line}-handles`}
+              className="pointer-events-none absolute z-[30] overflow-visible"
+              style={{
+                position: "absolute",
+                left: `${item.labelLayout.xPct}%`,
+                top: `${item.labelLayout.yPct}%`,
+                width: `${item.labelLayout.wPct}%`,
+                height: `${item.labelLayout.hPct}%`,
+              }}
+            >
+              <CanvasLabelResizeHandles
+                layout={item.labelLayout}
+                containerRef={frameRef}
+                onResize={(patch) => onMediaChange(heroTitleLayoutToPatch(item.line, patch))}
+              />
+            </div>
+          ))}
+
+        {ctaBlock && (
+          <CanvasHeroCta
+            cta={cta}
+            href={ctaHref}
+            editable={editable}
+            selected={ctaInteractive}
+            scale={scale}
+            designWidth={designWidth}
+            frameRef={frameRef}
+            onSelect={() => editor?.onSelectBlock?.(canvas!.sectionId, ctaBlock.id)}
+            onChange={onCtaChange}
+          />
+        )}
+
         {editable && !editor?.selectedBlockId && (
-          <p className="pointer-events-none absolute bottom-3 left-0 right-0 z-[30] text-center text-[10px] text-white/70">
-            Klik area hero untuk edit gambar · klik tombol CTA untuk edit warna & teks
+          <p className="pointer-events-none absolute bottom-3 left-0 right-0 z-[30] text-center text-[10px] text-stone-700/60">
+            Klik judul, gambar, atau tombol CTA untuk edit
           </p>
         )}
         {editable && mediaInteractive && (
-          <p className="pointer-events-none absolute bottom-3 left-0 right-0 z-[30] text-center text-[10px] text-white/70">
-            Drag gambar untuk geser · tarik handle ⊙ untuk zoom · atur lewat panel kiri
+          <p className="pointer-events-none absolute bottom-3 left-0 right-0 z-[30] text-center text-[10px] text-stone-700/60">
+            Drag box judul untuk pindah · tarik handle ungu untuk ukuran · atur layer di panel kiri
           </p>
         )}
       </div>

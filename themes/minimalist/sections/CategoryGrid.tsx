@@ -1,97 +1,242 @@
 "use client"
 
 import Link from "next/link"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
+import {
+  CanvasGridOverlay,
+  CanvasMeasurementBadge,
+} from "@/features/builder/components/canvas/CanvasGridOverlay"
 import { CanvasImageFrame } from "@/features/builder/components/canvas/CanvasImageFrame"
+import { CanvasInlineText } from "@/features/builder/components/canvas/CanvasInlineText"
+import { CanvasLabelResizeHandles } from "@/features/builder/components/canvas/CanvasLabelResizeHandles"
+import { CanvasResizeHandles } from "@/features/builder/components/canvas/CanvasResizeHandles"
 import type { SectionProps } from "@/themes/engine/section-registry"
 import type { BlockInstance } from "@/themes/engine/schema"
 import {
-  parseCardBgColor,
-  parseImageTransform,
-  type CategoryImage,
+  blockToCategoryCard,
+  canvasHeight,
+  defaultCategoryCards,
+  DESIGN_WIDTH,
+  labelLayoutToPatch,
+  labelMoveFromDelta,
+  MAX_CATEGORY_CARDS,
+  MOBILE_DESIGN_WIDTH,
+  mobileStackLayouts,
+  type CategoryCardData,
+  type CategoryLabelLayout,
+  type LabelContainerMetrics,
 } from "@/themes/bento/sections/category-grid-layout"
-import { CATEGORIES } from "@/themes/minimalist/data/mock"
+import {
+  hasMobileOverride,
+  MOBILE_OVERRIDE_FLAG,
+} from "@/themes/engine/device-settings"
 
-type MinimalistCard = {
-  id: string
-  slug: string
-  label: string
-  cardBgColor: string
-  image: CategoryImage
+const STACK_BELOW = 640
+const LABEL_DRAG_THRESHOLD = 4
+
+const Z_BG = 1
+const Z_LABEL_BEHIND = 5
+const Z_IMAGE = 10
+const Z_OVERLAY = 13
+const Z_LABEL_FRONT = 15
+
+function getLabelMetrics(element: HTMLElement): LabelContainerMetrics {
+  const rect = element.getBoundingClientRect()
+  return { width: rect.width, height: rect.height, left: rect.left, top: rect.top }
 }
 
-function blockToCard(block: BlockInstance, index: number): MinimalistCard {
-  const s = block.settings as Record<string, unknown> | undefined
-  return {
-    id: block.id,
-    slug: typeof s?.slug === "string" ? s.slug : `category-${index}`,
-    label: typeof s?.label === "string" ? s.label : "Category",
-    cardBgColor: parseCardBgColor(s, index),
-    image: parseImageTransform(s),
-  }
+function isLabelHandleTarget(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLElement &&
+    Boolean(target.closest('button[aria-label^="Tarik"]'))
+  )
 }
 
-function defaultCards(): MinimalistCard[] {
-  return CATEGORIES.map((cat, index) => ({
-    id: `default-${index}`,
-    slug: cat.slug,
-    label: cat.label,
-    cardBgColor: "#d6d3d1",
-    image: parseImageTransform(undefined),
-  }))
-}
-
-interface CardItemProps {
-  card: MinimalistCard
-  aspectClass: string
-  rowSpanClass?: string
+interface MinimalistCardProps {
+  card: CategoryCardData
   editable: boolean
   selected: boolean
+  useFreeForm: boolean
+  scale: number
+  designWidth: number
+  gridRef: React.RefObject<HTMLDivElement | null>
   onSelect: () => void
   onChange: (patch: Record<string, unknown>) => void
 }
 
-function CardItem({
+function MinimalistCard({
   card,
-  aspectClass,
-  rowSpanClass,
   editable,
   selected,
+  useFreeForm,
+  scale,
+  designWidth,
+  gridRef,
   onSelect,
   onChange,
-}: CardItemProps) {
-  const inner = (
-    <>
-      <div
-        className={cn("relative overflow-hidden", aspectClass)}
-        style={{ backgroundColor: card.cardBgColor }}
-      >
-        {(card.image.url || editable) && (
+}: MinimalistCardProps) {
+  const cardBoundsRef = useRef<HTMLDivElement>(null)
+
+  const style: React.CSSProperties = useFreeForm
+    ? {
+        position: "absolute",
+        left: `${card.layout.xPct}%`,
+        width: `${card.layout.wPct}%`,
+        top: `${card.layout.yPx * scale}px`,
+        height: `${card.layout.hPx * scale}px`,
+      }
+    : {
+        position: "relative",
+        width: "100%",
+        height: card.layout.hPx,
+      }
+
+  const cardHeightPx = useFreeForm ? card.layout.hPx * scale : card.layout.hPx
+  const labelBoxHeightPx = cardHeightPx * (card.labelLayout.hPct / 100)
+
+  const labelStyle: React.CSSProperties = {
+    fontFamily: "var(--theme-heading-font)",
+    fontSize: `${Math.max(12, Math.min(24, labelBoxHeightPx * 0.38))}px`,
+    lineHeight: 1.2,
+    fontWeight: 500,
+  }
+
+  const labelLayer = card.labelLayer
+  const labelResizable = editable && selected
+  const labelEditable = labelResizable && labelLayer === "front"
+  const labelMovable = labelResizable
+
+  const startLabelMove = useCallback(
+    (event: React.PointerEvent<HTMLElement>) => {
+      if (!labelMovable || !cardBoundsRef.current || isLabelHandleTarget(event.target)) return
+
+      event.stopPropagation()
+
+      const startX = event.clientX
+      const startY = event.clientY
+      const origin: CategoryLabelLayout = { ...card.labelLayout }
+      let dragging = false
+
+      function onMove(moveEvent: PointerEvent) {
+        if (!cardBoundsRef.current) return
+        const dx = moveEvent.clientX - startX
+        const dy = moveEvent.clientY - startY
+        if (!dragging && Math.abs(dx) + Math.abs(dy) < LABEL_DRAG_THRESHOLD) return
+        dragging = true
+        moveEvent.preventDefault()
+        const metrics = getLabelMetrics(cardBoundsRef.current)
+        onChange(labelLayoutToPatch(labelMoveFromDelta(dx, dy, metrics, origin)))
+      }
+
+      function onUp() {
+        window.removeEventListener("pointermove", onMove)
+        window.removeEventListener("pointerup", onUp)
+      }
+
+      window.addEventListener("pointermove", onMove)
+      window.addEventListener("pointerup", onUp)
+    },
+    [card.labelLayout, labelMovable, onChange],
+  )
+
+  const labelBoxStyle: React.CSSProperties = {
+    position: "absolute",
+    left: `${card.labelLayout.xPct}%`,
+    top: `${card.labelLayout.yPct}%`,
+    width: `${card.labelLayout.wPct}%`,
+    height: `${card.labelLayout.hPct}%`,
+  }
+
+  const labelContent = labelEditable ? (
+    <CanvasInlineText
+      value={card.label}
+      onChange={(label) => onChange({ label })}
+      className="block w-full font-medium text-white"
+      style={labelStyle}
+    />
+  ) : (
+    <p className="block w-full font-medium text-white" style={labelStyle}>
+      {card.label}
+    </p>
+  )
+
+  const cardInner = (
+    <div ref={cardBoundsRef} className="absolute inset-0 rounded-sm">
+      <div className="absolute inset-0 overflow-hidden rounded-sm">
+        <div
+          className="absolute inset-0"
+          style={{ zIndex: Z_BG, backgroundColor: card.bgColor }}
+          aria-hidden
+        />
+
+        {labelLayer === "behind" && (
           <div
             className={cn(
-              "absolute inset-0 overflow-hidden",
-              !selected && "pointer-events-none",
+              "absolute flex items-start p-0",
+              labelMovable && "cursor-move",
             )}
+            style={{ ...labelBoxStyle, zIndex: Z_LABEL_BEHIND }}
+            onPointerDown={labelMovable ? startLabelMove : undefined}
           >
-            <CanvasImageFrame
-              image={card.image}
-              interactive={selected}
-              onChange={onChange}
-            />
+            {labelContent}
+          </div>
+        )}
+
+        <div
+          className={cn("absolute inset-0", !selected && "pointer-events-none")}
+          style={{ zIndex: Z_IMAGE }}
+        >
+          <CanvasImageFrame
+            image={card.image}
+            interactive={selected}
+            onChange={onChange}
+          />
+        </div>
+
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"
+          style={{ zIndex: Z_OVERLAY }}
+        />
+
+        {labelLayer === "front" && (
+          <div
+            className={cn(
+              "absolute flex items-end overflow-visible",
+              labelMovable && "cursor-move",
+            )}
+            style={{ ...labelBoxStyle, zIndex: Z_LABEL_FRONT }}
+            onPointerDown={labelMovable ? startLabelMove : undefined}
+            onClick={(event) => event.stopPropagation()}
+          >
+            {labelContent}
           </div>
         )}
       </div>
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-      <span className="pointer-events-none absolute bottom-6 left-6 text-lg font-medium text-white">
-        {card.label}
-      </span>
-    </>
-  )
 
-  const wrapperClass = cn(
-    "group relative overflow-hidden rounded-sm",
-    rowSpanClass,
-    editable && selected && "ring-2 ring-indigo-500 ring-offset-1",
+      {labelMovable && labelLayer === "behind" && (
+        <div
+          aria-hidden
+          className="absolute z-[15] cursor-move rounded-sm ring-2 ring-violet-500/40 ring-offset-1 ring-offset-transparent"
+          style={labelBoxStyle}
+          onPointerDown={startLabelMove}
+        />
+      )}
+
+      {labelResizable && (
+        <div
+          className="pointer-events-none absolute z-[30] overflow-visible"
+          style={labelBoxStyle}
+        >
+          <CanvasLabelResizeHandles
+            layout={card.labelLayout}
+            containerRef={cardBoundsRef}
+            onResize={(patch) => onChange(labelLayoutToPatch(patch))}
+          />
+        </div>
+      )}
+    </div>
   )
 
   if (editable) {
@@ -99,7 +244,8 @@ function CardItem({
       <div
         role="button"
         tabIndex={0}
-        className={wrapperClass}
+        style={style}
+        className={cn("block overflow-visible rounded-sm")}
         onClick={(event) => {
           event.preventDefault()
           event.stopPropagation()
@@ -108,32 +254,90 @@ function CardItem({
         onKeyDown={(event) => {
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault()
+            event.stopPropagation()
             onSelect()
           }
         }}
       >
-        {inner}
+        {selected && (
+          <CanvasMeasurementBadge
+            layout={card.layout}
+            imageScale={card.image.scale}
+            hasImage={Boolean(card.image.url)}
+          />
+        )}
+        {cardInner}
+        {selected && useFreeForm && (
+          <CanvasResizeHandles
+            layout={card.layout}
+            gridRef={gridRef}
+            onResize={onChange}
+            designWidth={designWidth}
+          />
+        )}
       </div>
     )
   }
 
   return (
-    <Link href={`/categories/${card.slug}`} className={wrapperClass}>
-      {inner}
+    <Link href={`/categories/${card.slug}`} style={style} className="block overflow-hidden rounded-sm">
+      {cardInner}
     </Link>
   )
 }
 
-export function CategoryGrid({ blocks, canvas }: SectionProps) {
-  const items: MinimalistCard[] = blocks?.length
-    ? blocks.map((block: BlockInstance, index) => blockToCard(block, index))
-    : defaultCards()
+export function CategoryGrid({ blocks, canvas, isMobile = false }: SectionProps) {
+  const gridRef = useRef<HTMLDivElement>(null)
+  const [isWideGrid, setIsWideGrid] = useState(true)
+  const [measuredWidth, setMeasuredWidth] = useState(
+    isMobile ? MOBILE_DESIGN_WIDTH : DESIGN_WIDTH,
+  )
 
-  const [featured, ...rest] = items
+  useEffect(() => {
+    const element = gridRef.current
+    if (!element) return
+
+    const observer = new ResizeObserver(([entry]) => {
+      const width = entry.contentRect.width
+      setIsWideGrid(width >= STACK_BELOW)
+      setMeasuredWidth(width)
+    })
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+
+  const cards = blocks?.length
+    ? blocks.slice(0, MAX_CATEGORY_CARDS).map((block: BlockInstance, index) =>
+        blockToCategoryCard(block, index),
+      )
+    : defaultCategoryCards()
 
   const editor = canvas?.editor
   const isSectionSelected = editor?.selectedSectionId === canvas?.sectionId
   const editable = Boolean(editor && isSectionSelected)
+
+  const overriddenIds = new Set(
+    blocks
+      ?.filter(
+        (b) =>
+          Boolean(b.settings?.[MOBILE_OVERRIDE_FLAG]) ||
+          hasMobileOverride(b.settings as Record<string, unknown> | undefined),
+      )
+      .map((b) => b.id) ?? [],
+  )
+  const freeFormMobile = isMobile && (overriddenIds.size > 0 || editable)
+  const useFreeForm = isWideGrid || freeFormMobile
+  const designWidth = isMobile ? MOBILE_DESIGN_WIDTH : DESIGN_WIDTH
+
+  const stackLayouts = isMobile ? mobileStackLayouts(cards) : []
+  const effectiveCards = cards.map((card, index) =>
+    isMobile && !overriddenIds.has(card.id) && stackLayouts[index]
+      ? { ...card, layout: stackLayouts[index] }
+      : card,
+  )
+
+  const scale = useFreeForm && measuredWidth > 0 ? measuredWidth / designWidth : 1
+  const sectionHeight = canvasHeight(effectiveCards) * scale
 
   return (
     <section className="mx-auto max-w-7xl px-6 py-16">
@@ -146,8 +350,7 @@ export function CategoryGrid({ blocks, canvas }: SectionProps) {
             Curated Selections
           </h2>
           <p className="mt-2 max-w-lg text-sm text-[var(--theme-muted)]">
-            Explore our most considered categories — each piece chosen for longevity
-            and quiet impact.
+            Explore our most considered categories — each piece chosen for longevity and quiet impact.
           </p>
         </div>
         {!editable && (
@@ -160,39 +363,53 @@ export function CategoryGrid({ blocks, canvas }: SectionProps) {
         )}
       </div>
 
-      {featured && (
-        <div className="grid gap-4 @3xl:grid-cols-2 @3xl:grid-rows-2">
-          <CardItem
-            card={featured}
-            aspectClass="aspect-[3/4] @3xl:aspect-auto @3xl:h-full min-h-[320px]"
-            rowSpanClass="@3xl:row-span-2"
-            editable={editable}
-            selected={editor?.selectedBlockId === featured.id}
-            onSelect={() => editor?.onSelectBlock?.(canvas!.sectionId, featured.id)}
-            onChange={(patch) =>
-              editor?.onBlockChange?.(canvas!.sectionId, featured.id, patch)
-            }
-          />
-
-          {rest.map((card) => (
-            <CardItem
+      <div
+        ref={gridRef}
+        className={cn(!useFreeForm && "flex flex-col gap-4", editable && isWideGrid && "pt-8")}
+        style={useFreeForm ? { position: "relative", height: sectionHeight } : undefined}
+      >
+        {editable && isWideGrid && (
+          <CanvasGridOverlay canvasHeight={canvasHeight(effectiveCards)} scale={scale} />
+        )}
+        {effectiveCards.map((card) => {
+          const useStackSeed = isMobile && !overriddenIds.has(card.id)
+          return (
+            <MinimalistCard
               key={card.id}
               card={card}
-              aspectClass="aspect-[16/9]"
               editable={editable}
               selected={editor?.selectedBlockId === card.id}
+              useFreeForm={useFreeForm}
+              scale={scale}
+              designWidth={designWidth}
+              gridRef={gridRef}
               onSelect={() => editor?.onSelectBlock?.(canvas!.sectionId, card.id)}
-              onChange={(patch) =>
-                editor?.onBlockChange?.(canvas!.sectionId, card.id, patch)
-              }
+              onChange={(patch) => {
+                const full = useStackSeed
+                  ? {
+                      xPct: card.layout.xPct,
+                      wPct: card.layout.wPct,
+                      yPx: card.layout.yPx,
+                      hPx: card.layout.hPx,
+                      labelXPct: card.labelLayout.xPct,
+                      labelYPct: card.labelLayout.yPct,
+                      labelWPct: card.labelLayout.wPct,
+                      labelHPct: card.labelLayout.hPct,
+                      labelLayer: card.labelLayer,
+                      ...patch,
+                    }
+                  : patch
+                editor?.onBlockChange?.(canvas!.sectionId, card.id, full)
+              }}
             />
-          ))}
-        </div>
-      )}
+          )
+        })}
+      </div>
 
       {editable && !editor?.selectedBlockId && (
-        <p className="mt-4 text-center text-[11px] text-gray-400">
-          Klik kartu untuk edit · drag gambar untuk geser · tarik ⊙ untuk zoom
+        <p className="mt-3 text-center text-[11px] text-gray-400">
+          Maks. {MAX_CATEGORY_CARDS} kartu · klik kartu untuk edit · tarik tepi/sudut kartu · drag
+          box label untuk pindah · tarik ⊙ ungu gambar untuk zoom · drag gambar untuk geser.
         </p>
       )}
     </section>
