@@ -5,7 +5,7 @@ import type { MeResponse } from "@/lib/scalev/schemas";
 import {
   createStorefrontPublicApiKey,
   listSimplifiedStores,
-  listStoreProducts,
+  listStorefrontItems,
   registerStorefrontAllowedOrigin,
 } from "@/lib/scalev/endpoints/storefront";
 import { ScalevError } from "@/lib/scalev/client";
@@ -157,19 +157,37 @@ export async function connectTenantCatalog(
   const storeUniqueId = selected.unique_id;
   const storeName = selected.name?.trim() || "Scalev Store";
 
+  const existingTenant = await getTenantById(input.tenantId);
+  const reuseExistingKey =
+    existingTenant?.scalevStorefrontApiKey &&
+    existingTenant.scalevStoreNumericId === storeNumericId;
+
   let storefrontApiKey: string;
-  try {
-    storefrontApiKey = await createStorefrontPublicApiKey(
-      input.scalevToken,
-      storeNumericId,
-    );
-  } catch (e) {
-    if (e instanceof ScalevError) {
-      throw new Error(
-        `Gagal membuat Storefront API key (HTTP ${e.status}). Pastikan API key merchant punya scope store:update.`,
+  if (reuseExistingKey) {
+    storefrontApiKey = existingTenant.scalevStorefrontApiKey!;
+  } else {
+    try {
+      storefrontApiKey = await createStorefrontPublicApiKey(
+        input.scalevToken,
+        storeNumericId,
       );
+    } catch (e) {
+      if (e instanceof ScalevError && e.status === 409) {
+        // Key already exists for this store but not in our DB (e.g. created externally).
+        // We cannot retrieve the raw token again — user must revoke it in Scalev dashboard
+        // and reconnect, or use a different store.
+        throw new Error(
+          "Storefront API key sudah ada di store ini tapi tidak tersimpan di sistem. " +
+          "Hapus key di Scalev dashboard (Store → Storefront API Keys), lalu coba hubungkan lagi.",
+        );
+      }
+      if (e instanceof ScalevError) {
+        throw new Error(
+          `Gagal membuat Storefront API key (HTTP ${e.status}). Pastikan API key merchant punya scope store:update.`,
+        );
+      }
+      throw e;
     }
-    throw e;
   }
 
   const origin = getStorefrontUrl(input.tenantSlug);
@@ -188,10 +206,10 @@ export async function connectTenantCatalog(
 
   let productCount = 0;
   try {
-    const products = await listStoreProducts(input.scalevToken, storeNumericId);
-    productCount = products.data.filter((p) => p.is_visible !== false).length;
+    const items = await listStorefrontItems(storeUniqueId, storefrontApiKey, { pageSize: 100 });
+    productCount = items.data.length;
   } catch {
-    // Preview count is best-effort; storefront public feed is source of truth later.
+    // Preview count is best-effort; storefront public feed is source of truth.
   }
 
   await prisma.tenant.update({

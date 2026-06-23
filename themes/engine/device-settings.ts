@@ -4,7 +4,9 @@
  * stored as data because the values are numbers applied via inline styles).
  *
  * Only LAYOUT keys are device-specific — content (imageUrl, label, text) always
- * lives on the base so it's shared across devices.
+ * lives on the base so it's shared across devices. The `images` array holds
+ * per-device canvas layout (position, size, zoom); image `src` is duplicated in
+ * each layer so uploads stay independent until we add src-only base merging.
  */
 
 export type DeviceMode = "desktop" | "mobile"
@@ -35,7 +37,11 @@ export const DEVICE_LAYOUT_KEYS = new Set<string>([
   "imgScale",
   "imgX",
   "imgY",
+  "imgRotation",
+  "imgSliderScale",
   "fontScale",
+  /** Multi-image hero canvas — position/size/zoom per device. */
+  "images",
 ])
 
 /** Does this settings object carry a mobile override? */
@@ -71,11 +77,24 @@ export function applyDevicePatch(
   patch: Record<string, unknown>,
   device: DeviceMode,
 ): Record<string, unknown> {
-  if (device === "desktop") return { ...current, ...patch }
+  if (device === "desktop") {
+    const { [MOBILE_SETTINGS_KEY]: existingMobile, ...baseCurrent } = current
+    const basePatch: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(patch)) {
+      if (key === MOBILE_SETTINGS_KEY || key === MOBILE_OVERRIDE_FLAG) continue
+      basePatch[key] = value
+    }
+    const next: Record<string, unknown> = { ...baseCurrent, ...basePatch }
+    if (existingMobile !== undefined) {
+      next[MOBILE_SETTINGS_KEY] = existingMobile
+    }
+    return next
+  }
 
   const basePatch: Record<string, unknown> = {}
   const mobilePatch: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(patch)) {
+    if (key === MOBILE_SETTINGS_KEY || key === MOBILE_OVERRIDE_FLAG) continue
     if (DEVICE_LAYOUT_KEYS.has(key)) mobilePatch[key] = value
     else basePatch[key] = value
   }

@@ -58,7 +58,10 @@ export async function getCatalogProductsForTenant(
       .filter(isProductCard)
       .map((item) => mapStorefrontProductCard(item));
   } catch (e) {
-    console.error("[catalog] listStorefrontItems failed:", e);
+    console.error(
+      `[catalog] listStorefrontItems failed — storeUniqueId=${ctx.storeUniqueId} status=${(e as { status?: number }).status ?? "?"}`,
+      (e as { body?: unknown }).body ?? e,
+    );
     return [];
   }
 }

@@ -77,6 +77,8 @@ export function CustomizeWorkspace({
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null)
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null)
   const previewRootRef = useRef<HTMLDivElement>(null)
+  const deviceRef = useRef(device)
+  deviceRef.current = device
 
   const persistDraft = useCallback(async (next: ThemeConfig) => {
     setIsSaving(true)
@@ -141,7 +143,14 @@ export function CustomizeWorkspace({
 
         const blocks = section.blocks.map((block) =>
           block.id === blockId
-            ? { ...block, settings: applyDevicePatch(block.settings ?? {}, mergedPatch, device) }
+            ? {
+                ...block,
+                settings: applyDevicePatch(
+                  block.settings ?? {},
+                  mergedPatch,
+                  deviceRef.current,
+                ),
+              }
             : block,
         )
 
@@ -161,7 +170,7 @@ export function CustomizeWorkspace({
         setStatus(null)
       }
     },
-    [persistDraft, device],
+    [persistDraft],
   )
 
   const sectionEditor = useMemo(() => {

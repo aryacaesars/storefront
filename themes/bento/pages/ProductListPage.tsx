@@ -1,8 +1,7 @@
 import { ProductCard } from "@/themes/bento/sections/ProductCard"
-import { TRENDING_PRODUCTS } from "@/themes/bento/data/mock"
 import type { ThemePageProps } from "@/themes/engine/page-props"
 
-export function ProductListPage({ config: _config }: ThemePageProps) {
+export function ProductListPage({ config: _config, products = [] }: ThemePageProps) {
   return (
     <section className="mx-auto max-w-7xl px-4 py-12 @2xl:px-6">
       <div className="mb-10 rounded-[27px] bg-white p-8 shadow-[0px_0px_19px_rgba(0,0,0,0.12)]">
@@ -19,11 +18,15 @@ export function ProductListPage({ config: _config }: ThemePageProps) {
           Bold objects and accessories with sharp, product-first industrial design.
         </p>
       </div>
-      <div className="grid grid-cols-2 gap-5 @3xl:grid-cols-4 @3xl:gap-6">
-        {TRENDING_PRODUCTS.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
+      {products.length === 0 ? (
+        <p className="text-sm text-[#515160]">Belum ada produk tersedia.</p>
+      ) : (
+        <div className="grid grid-cols-2 gap-5 @3xl:grid-cols-4 @3xl:gap-6">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      )}
     </section>
   )
 }

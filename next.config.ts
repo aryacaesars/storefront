@@ -19,6 +19,15 @@ const nextConfig: NextConfig = {
         port: "9000",
         pathname: "/storefront-assets/**",
       },
+      // Scalev CDN untuk gambar produk.
+      {
+        protocol: "https",
+        hostname: "**.scalev.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.scalev.id",
+      },
     ],
   },
 };

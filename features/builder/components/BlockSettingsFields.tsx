@@ -40,10 +40,7 @@ export function BlockSettingsFields({
   }
 
   function handleFieldChange(key: string, value: string | undefined) {
-    onChange({
-      ...current,
-      [key]: value ?? "",
-    })
+    onChange({ [key]: value ?? "" })
   }
 
   const visibleFields = fields.filter(

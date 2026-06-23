@@ -65,6 +65,13 @@ function isLabelHandleTarget(target: EventTarget | null): boolean {
   )
 }
 
+function isTextEditTarget(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLElement &&
+    Boolean(target.closest('[contenteditable="true"]'))
+  )
+}
+
 interface BoldTitleLineProps {
   line: HeroTitleLine
   value: string
@@ -76,6 +83,8 @@ interface BoldTitleLineProps {
   frameRef: React.RefObject<HTMLDivElement | null>
   mediaInteractive: boolean
   editable: boolean
+  lineSelected: boolean
+  onActivate: () => void
   onHeroKey: "title" | "subtitle"
   onHeroChange?: (key: "title" | "subtitle", value: string) => void
   onLayoutChange: (patch: Record<string, unknown>) => void
@@ -93,6 +102,8 @@ function BoldTitleLine({
   frameRef,
   mediaInteractive,
   editable,
+  lineSelected,
+  onActivate,
   onHeroKey,
   onHeroChange,
   onLayoutChange,
@@ -164,6 +175,20 @@ function BoldTitleLine({
     [frameRef, labelLayout, labelMovable, line, onLayoutChange],
   )
 
+  function handleLabelClick(event: React.MouseEvent<HTMLElement>) {
+    if (!editable) return
+    event.stopPropagation()
+    onActivate()
+    onSelectMedia()
+  }
+
+  function handleLabelPointerDown(event: React.PointerEvent<HTMLElement>) {
+    if (!editable || isLabelHandleTarget(event.target)) return
+    onActivate()
+    if (!labelMovable || isTextEditTarget(event.target)) return
+    startLabelMove(event)
+  }
+
   const labelContent = labelEditable ? (
     <CanvasInlineText
       value={value}
@@ -188,7 +213,8 @@ function BoldTitleLine({
             labelMovable && "cursor-move",
           )}
           style={{ ...labelBoxStyle, zIndex }}
-          onPointerDown={labelMovable ? startLabelMove : undefined}
+          onPointerDown={handleLabelPointerDown}
+          onClick={handleLabelClick}
         >
           {labelContent}
         </div>
@@ -197,9 +223,14 @@ function BoldTitleLine({
       {labelMovable && layer === "behind" && (
         <div
           aria-hidden
-          className="absolute z-[15] cursor-move rounded-sm ring-2 ring-violet-500/40 ring-offset-1 ring-offset-transparent"
+          className={cn(
+            "absolute z-[15] cursor-move rounded-sm",
+            lineSelected &&
+              "ring-2 ring-violet-500/40 ring-offset-1 ring-offset-transparent",
+          )}
           style={labelBoxStyle}
-          onPointerDown={startLabelMove}
+          onPointerDown={handleLabelPointerDown}
+          onClick={handleLabelClick}
         />
       )}
 
@@ -208,19 +239,12 @@ function BoldTitleLine({
           className={cn(
             "absolute flex items-start overflow-visible",
             labelMovable && "cursor-move",
-            mediaInteractive &&
+            lineSelected &&
               "rounded-sm ring-2 ring-indigo-400 ring-offset-2 ring-offset-transparent",
           )}
           style={{ ...labelBoxStyle, zIndex }}
-          onPointerDown={labelMovable ? startLabelMove : undefined}
-          onClick={
-            editable
-              ? (event) => {
-                  event.stopPropagation()
-                  onSelectMedia()
-                }
-              : undefined
-          }
+          onPointerDown={handleLabelPointerDown}
+          onClick={handleLabelClick}
         >
           {labelContent}
         </div>
@@ -235,6 +259,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
     isMobile ? HERO_MOBILE_DESIGN_WIDTH : HERO_DESIGN_WIDTH,
   )
   const [activeImageId, setActiveImageId] = useState<string | null>(null)
+  const [activeTitleLine, setActiveTitleLine] = useState<HeroTitleLine | null>(null)
 
   useEffect(() => {
     const element = frameRef.current
@@ -282,6 +307,10 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const editable = Boolean(editor && isSectionSelected)
   const mediaInteractive = editable && editor?.selectedBlockId === mediaBlock?.id
 
+  useEffect(() => {
+    if (!mediaInteractive) setActiveTitleLine(null)
+  }, [mediaInteractive])
+
   const hasImage = Boolean(image.url) || canvasImages.length > 0
 
   const onMediaChange = (patch: Record<string, unknown>) => {
@@ -302,10 +331,20 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
 
   const onMultiImageChange = (imageId: string, patch: Partial<CanvasImageItem>) => {
     if (!mediaBlock || !editor) return
-    const current = parseCanvasImages(mediaBlock.settings as Record<string, unknown> | undefined)
-    editor.onBlockChange?.(canvas!.sectionId, mediaBlock.id, {
-      images: updateImageInArray(current, imageId, patch),
-    })
+    const current = parseCanvasImages(mediaSettings)
+    const updatedImages = updateImageInArray(current, imageId, patch)
+    const full = useMobileTitleSeed
+      ? {
+          ...heroTitleLayoutsToPatch(title1Layout, title2Layout),
+          title1Layer,
+          title2Layer,
+          imgScale: image.scale,
+          imgX: image.x,
+          imgY: image.y,
+          images: updatedImages,
+        }
+      : { images: updatedImages }
+    editor.onBlockChange?.(canvas!.sectionId, mediaBlock.id, full)
   }
 
   const title1StyleOverride = parseHeroTitleStyle(mediaSettings, "title1")
@@ -355,6 +394,11 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
             frameRef={frameRef}
             mediaInteractive={mediaInteractive}
             editable={editable}
+            lineSelected={mediaInteractive && activeTitleLine === item.line}
+            onActivate={() => {
+              setActiveTitleLine(item.line)
+              setActiveImageId(null)
+            }}
             onHeroChange={(key, val) => editor?.onHeroChange?.(key, val)}
             onLayoutChange={onMediaChange}
             onSelectMedia={() =>
@@ -373,6 +417,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
                     event.stopPropagation()
                     editor?.onSelectBlock?.(canvas!.sectionId, mediaBlock.id)
                     setActiveImageId(null)
+                    setActiveTitleLine(null)
                   }
                 : undefined
             }
@@ -385,6 +430,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
                 editable={mediaInteractive}
                 onSelect={() => {
                   setActiveImageId(img.id)
+                  setActiveTitleLine(null)
                   editor?.onSelectBlock?.(canvas!.sectionId, mediaBlock.id)
                 }}
                 onChange={(patch) => onMultiImageChange(img.id, patch)}
@@ -493,6 +539,11 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
             frameRef={frameRef}
             mediaInteractive={mediaInteractive}
             editable={editable}
+            lineSelected={mediaInteractive && activeTitleLine === item.line}
+            onActivate={() => {
+              setActiveTitleLine(item.line)
+              setActiveImageId(null)
+            }}
             onHeroChange={(key, val) => editor?.onHeroChange?.(key, val)}
             onLayoutChange={onMediaChange}
             onSelectMedia={() =>
@@ -540,7 +591,10 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
 
       {/* Title resize handles — outside overflow-hidden so they can overflow */}
       {mediaInteractive &&
-        titleLines.map((item) => (
+        activeTitleLine &&
+        titleLines
+          .filter((item) => item.line === activeTitleLine)
+          .map((item) => (
           <div
             key={`${item.line}-handles`}
             className="pointer-events-none absolute z-[30] overflow-visible"
