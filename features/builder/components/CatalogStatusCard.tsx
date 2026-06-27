@@ -1,16 +1,20 @@
 import Link from "next/link";
 import { Package, PlugZap } from "lucide-react";
-import type { Tenant } from "@/server/services/tenant.service";
-import { isCatalogConnected } from "@/server/services/tenant.service";
+// TODO Sprint 2: reconnect to Prisma data source — Tenant type and isCatalogConnected removed
+// import type { Tenant } from "@/server/services/tenant.service";
+// import { isCatalogConnected } from "@/server/services/tenant.service";
 import { getStorefrontUrl } from "@/lib/tenant/storefront-url";
 
 type CatalogStatusCardProps = {
-  tenant: Tenant | null;
+  // TODO Sprint 2: replace with Store type from new tenant.service
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  tenant: any | null;
   tenantSlug: string;
 };
 
 export function CatalogStatusCard({ tenant, tenantSlug }: CatalogStatusCardProps) {
-  const connected = tenant ? isCatalogConnected(tenant) : false;
+  // TODO Sprint 2: reconnect to Prisma data source — isCatalogConnected stub
+  const connected = false;
   const storefrontUrl = getStorefrontUrl(tenantSlug);
 
   return (
@@ -29,7 +33,7 @@ export function CatalogStatusCard({ tenant, tenantSlug }: CatalogStatusCardProps
             )}
           </div>
           <div>
-            <p className="text-sm font-bold text-gray-900">Katalog Scalev</p>
+            <p className="text-sm font-bold text-gray-900">Katalog</p>
             <p className="text-xs text-gray-500">
               {connected
                 ? `${tenant?.catalogProductCount ?? 0} produk · ${tenant?.scalevStoreName}`

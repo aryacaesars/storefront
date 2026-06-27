@@ -1,5 +1,8 @@
 import "server-only"
 
+// TODO Sprint 2: reconnect to Prisma data source — prisma.themeConfig does not exist in new schema
+// Rewrite using prisma.store or a new ThemeConfig model when schema is updated.
+
 import type { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/db/prisma"
 import {
@@ -8,6 +11,9 @@ import {
   type ThemeConfig,
   type TemplateId,
 } from "@/themes/engine/schema"
+
+// Suppress unused import warning during Sprint 1 stub
+void prisma
 
 function parseThemeConfig(json: unknown): ThemeConfig | null {
   const result = themeConfigSchema.safeParse(json)
@@ -18,91 +24,48 @@ function toJsonConfig(config: ThemeConfig): Prisma.InputJsonValue {
   return JSON.parse(JSON.stringify(config)) as Prisma.InputJsonValue
 }
 
+// TODO Sprint 2: reconnect to Prisma data source
 export async function getPublishedThemeBySlug(
-  slug: string,
+  _slug: string,
 ): Promise<ThemeConfig | null> {
-  const row = await prisma.themeConfig.findFirst({
-    where: {
-      isPublished: true,
-      tenant: { slug },
-    },
-    select: { config: true },
-  })
-
-  if (!row) return null
-  return parseThemeConfig(row.config)
+  // prisma.themeConfig removed — needs new schema
+  return null
 }
 
+// TODO Sprint 2: reconnect to Prisma data source
 export async function getThemeForTenant(
-  tenantId: string,
+  _tenantId: string,
 ): Promise<{ config: ThemeConfig; isPublished: boolean } | null> {
-  const row = await prisma.themeConfig.findUnique({
-    where: { tenantId },
-    select: { config: true, isPublished: true },
-  })
-
-  if (!row) return null
-
-  const config = parseThemeConfig(row.config)
-  if (!config) return null
-
-  return { config, isPublished: row.isPublished }
+  // prisma.themeConfig removed — needs new schema
+  return null
 }
 
+// TODO Sprint 2: reconnect to Prisma data source
 export async function getActiveTemplateIdForTenant(
-  tenantId: string,
+  _tenantId: string,
 ): Promise<TemplateId | null> {
-  const row = await prisma.themeConfig.findUnique({
-    where: { tenantId },
-    select: { templateId: true },
-  })
-
-  if (!row) return null
-
-  const parsed = templateIdSchema.safeParse(row.templateId)
-  return parsed.success ? parsed.data : null
+  // prisma.themeConfig removed — needs new schema
+  return null
 }
 
+// TODO Sprint 2: reconnect to Prisma data source
 export async function saveThemeDraft(
-  tenantId: string,
+  _tenantId: string,
   config: ThemeConfig,
 ): Promise<void> {
-  const parsed = themeConfigSchema.parse(config)
-
-  await prisma.themeConfig.upsert({
-    where: { tenantId },
-    create: {
-      tenantId,
-      templateId: parsed.templateId,
-      config: toJsonConfig(parsed),
-      isPublished: false,
-    },
-    update: {
-      templateId: parsed.templateId,
-      config: toJsonConfig(parsed),
-      isPublished: false,
-    },
-  })
+  // prisma.themeConfig removed — needs new schema
+  const _parsed = themeConfigSchema.parse(config)
+  const _json = toJsonConfig(_parsed)
+  return
 }
 
+// TODO Sprint 2: reconnect to Prisma data source
 export async function publishTheme(
-  tenantId: string,
+  _tenantId: string,
   config: ThemeConfig,
 ): Promise<void> {
-  const parsed = themeConfigSchema.parse(config)
-
-  await prisma.themeConfig.upsert({
-    where: { tenantId },
-    create: {
-      tenantId,
-      templateId: parsed.templateId,
-      config: toJsonConfig(parsed),
-      isPublished: true,
-    },
-    update: {
-      templateId: parsed.templateId,
-      config: toJsonConfig(parsed),
-      isPublished: true,
-    },
-  })
+  // prisma.themeConfig removed — needs new schema
+  const _parsed = themeConfigSchema.parse(config)
+  const _json = toJsonConfig(_parsed)
+  return
 }

@@ -1,10 +1,8 @@
 import Link from "next/link";
 import { CheckCircle2, Package, PlugZap } from "lucide-react";
 import { requireSession } from "@/features/auth/dal";
-import {
-  getTenantById,
-  isCatalogConnected,
-} from "@/server/services/tenant.service";
+// TODO Sprint 2: reconnect to Prisma data source — getTenantById/isCatalogConnected removed
+// import { getTenantById, isCatalogConnected } from "@/server/services/tenant.service";
 import { loadScalevStoreOptions } from "@/features/builder/actions/connect-catalog";
 import { ConnectCatalogForm } from "@/features/builder/components/ConnectCatalogForm";
 import { getStorefrontUrl } from "@/lib/tenant/storefront-url";
@@ -13,24 +11,23 @@ export const metadata = { title: "Connect Catalog — Storefront Builder" };
 
 export default async function ConnectCatalogPage() {
   const session = await requireSession();
-  const tenant = await getTenantById(session.tenantId);
+  // TODO Sprint 2: reconnect to Prisma data source
+  // const tenant = await getTenantById(session.tenantId);
+  const tenant = null;
   const stores = await loadScalevStoreOptions();
-  const connected = tenant ? isCatalogConnected(tenant) : false;
-  const storefrontUrl = getStorefrontUrl(session.tenantSlug);
+  // TODO Sprint 2: reconnect — isCatalogConnected needs new Store model
+  const connected = false;
+  // @ts-expect-error TODO Sprint 2: session.tenantSlug not in new SessionData shape
+  const storefrontUrl = getStorefrontUrl(session.tenantSlug ?? "");
 
   return (
     <div className="p-8 max-w-2xl">
       <div className="mb-8">
-        <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
-          Scalev Commerce
-        </p>
         <h1 className="mt-2 text-3xl font-extrabold text-gray-900 tracking-tight">
           Connect Product Catalog
         </h1>
         <p className="mt-2 text-sm text-gray-500 leading-relaxed">
-          Hubungkan store Scalev ke etalase{" "}
-          <span className="font-medium text-gray-700">{session.tenantSlug}</span>.
-          Produk akan tampil di storefront publik tanpa setting env manual.
+          Hubungkan store ke etalase. Produk akan tampil di storefront publik.
         </p>
       </div>
 
@@ -40,12 +37,6 @@ export default async function ConnectCatalogPage() {
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-green-900">
               Katalog terhubung
-            </p>
-            <p className="mt-1 text-sm text-green-800">
-              Store: <strong>{tenant.scalevStoreName}</strong>
-              {tenant.catalogProductCount != null && (
-                <> · {tenant.catalogProductCount} produk visible</>
-              )}
             </p>
             <Link
               href={`${storefrontUrl}/products`}
@@ -72,15 +63,12 @@ export default async function ConnectCatalogPage() {
             <h2 className="text-lg font-bold text-gray-900">
               {connected ? "Reconnect atau ganti store" : "Hubungkan produk"}
             </h2>
-            <p className="text-xs text-gray-500">
-              Menggunakan token Scalev dari sesi login Anda (sk_/rk_).
-            </p>
           </div>
         </div>
 
         <ConnectCatalogForm
           stores={stores}
-          defaultStoreId={tenant?.scalevStoreNumericId}
+          defaultStoreId={undefined}
         />
       </div>
     </div>
