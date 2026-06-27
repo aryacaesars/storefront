@@ -24,7 +24,7 @@ const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "localhost:3000";
 const CTX_HEADER = "x-app-context"; // 'builder' | 'storefront'
 const TENANT_HEADER = "x-tenant-subdomain";
 
-// Cookie sesi (JWE) — lihat features/auth/session.ts.
+// Cookie sesi owner/admin (NextAuth JWT, lihat auth.ts).
 const SESSION_COOKIE = "sf_session";
 // Cookie sesi end user storefront (set saat Sprint 5 — gate sudah dipasang).
 const SF_CUSTOMER_COOKIE = "sf_customer_session";
