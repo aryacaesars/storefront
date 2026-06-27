@@ -64,14 +64,12 @@ export default async function LoginPage() {
 
         <div className="relative z-10 mt-12 w-full max-w-md rounded-3xl bg-white p-8 shadow-xl shadow-slate-900/5 ring-1 ring-black/5">
           <h2 className="text-center text-2xl font-bold text-ink">
-            Connect to Scalev
+            Masuk ke Etalase
           </h2>
 
           <div className="my-6 flex justify-center">
-            <ScalevIcon />
+            <LoginForm />
           </div>
-
-          <LoginForm />
         </div>
       </main>
 
@@ -84,19 +82,5 @@ export default async function LoginPage() {
         </div>
       </footer>
     </div>
-  );
-}
-
-/** Scalev brand glyph — cyan disc with intertwined nodes. */
-function ScalevIcon() {
-  return (
-    <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#29b6e8]">
-      <svg viewBox="0 0 32 32" className="h-9 w-9" aria-hidden>
-        <circle cx="11" cy="11" r="4" fill="#1e2a78" />
-        <circle cx="21" cy="21" r="4" fill="#1e2a78" />
-        <circle cx="20" cy="12" r="3" fill="#ffffff" />
-        <circle cx="12" cy="20" r="3" fill="#ffffff" />
-      </svg>
-    </span>
   );
 }
