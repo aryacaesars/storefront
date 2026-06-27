@@ -26,8 +26,12 @@ const TENANT_HEADER = "x-tenant-subdomain";
 
 // Cookie sesi (JWE) — lihat features/auth/session.ts.
 const SESSION_COOKIE = "sf_session";
+// Cookie sesi end user storefront (set saat Sprint 5 — gate sudah dipasang).
+const SF_CUSTOMER_COOKIE = "sf_customer_session";
 // Path builder yang wajib login.
-const PROTECTED = ["/dashboard", "/templates", "/customize"];
+const PROTECTED = ["/dashboard", "/templates", "/customize", "/stores", "/admin"];
+// Path storefront yang wajib login end user.
+const PROTECTED_STOREFRONT = ["/account", "/checkout"];
 
 /** Ambil hostname tanpa port. Tangani juga preview Vercel & localhost. */
 function getHostname(request: NextRequest): string {
@@ -108,6 +112,18 @@ export function proxy(request: NextRequest) {
     }
   }
 
+  // Auth gate storefront: /account dan /checkout wajib login end user.
+  if (context === "storefront") {
+    const needsAuth = PROTECTED_STOREFRONT.some(
+      (p) => pathname === p || pathname.startsWith(`${p}/`),
+    );
+    if (needsAuth && !request.cookies.has(SF_CUSTOMER_COOKIE)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+  }
+
   // Salin header masuk, strip header internal (anti-spoof), set ulang.
   const headers = new Headers(request.headers);
   headers.delete(CTX_HEADER);
@@ -120,5 +136,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   // Jalankan di semua path KECUALI internal Next, static asset, & file dengan ekstensi.
-  matcher: ["/((?!api/|_next/|_static/|_vercel|favicon.ico|.*\\..*).*)"],
+  // api/storefront/ tetap masuk supaya x-tenant-subdomain ter-inject ke route handlers storefront.
+  matcher: ["/((?!api/(?!storefront/)|_next/|_static/|_vercel|favicon.ico|.*\\..*).*)"],
 };
