@@ -15,10 +15,11 @@ export default async function ProfilePage() {
         <dl className="space-y-5">
           <div>
             <dt className="text-xs font-medium text-gray-500">Nama Merchant</dt>
-            <dd className="text-sm text-gray-900 mt-1">{session.displayName}</dd>
+            <dd className="text-sm text-gray-900 mt-1">{session.name}</dd>
           </div>
           <div>
             <dt className="text-xs font-medium text-gray-500">Toko</dt>
+            {/* @ts-expect-error TODO Sprint 2: add storeSlug to SessionData */}
             <dd className="text-sm text-gray-900 mt-1">{session.tenantSlug}</dd>
           </div>
           <div>
