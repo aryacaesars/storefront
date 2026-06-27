@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Search, ShoppingBag, Menu, User } from "lucide-react"
+import { cn } from "@/lib/utils"
 import type { ThemeConfig } from "@/themes/engine/schema"
 import { isNavHrefAvailable } from "@/themes/engine/nav-utils"
 import { NavLinksClient } from "@/themes/bold/sections/NavLinksClient"
@@ -11,18 +12,14 @@ const NAV_LINKS: Array<{
   key: string
   sectionId?: string
 }> = [
-  { label: "Performance", href: "/products", key: "performance", sectionId: "section-performance" },
   { label: "New Arrivals", href: "/new-arrivals", key: "new-arrivals" },
-  { label: "Tech Series", href: "/tech-series", key: "tech-series" },
   { label: "All Products", href: "/all-products", key: "all-products" },
   { label: "About", href: "/about", key: "about" },
 ]
 
 const PREVIEW_MAP: Record<string, string> = {
-  "/products": "",
   "/all-products": "/all-products",
   "/new-arrivals": "/new-arrivals",
-  "/tech-series": "/tech-series",
   "/about": "/about",
 }
 
@@ -37,9 +34,16 @@ interface NavbarProps {
   cartCount?: number
   basePath?: string
   activeKey?: string
+  transparent?: boolean
 }
 
-export function Navbar({ config, cartCount = 0, basePath, activeKey }: NavbarProps) {
+export function Navbar({
+  config,
+  cartCount = 0,
+  basePath,
+  activeKey,
+  transparent = false,
+}: NavbarProps) {
   const visibleLinks = NAV_LINKS.filter((link) =>
     isNavHrefAvailable(config.templateId, link.href),
   )
@@ -53,8 +57,12 @@ export function Navbar({ config, cartCount = 0, basePath, activeKey }: NavbarPro
 
   return (
     <header
-      className="sticky top-0 z-50 border-b border-white/10"
-      style={{ backgroundColor: "#090909" }}
+      className={cn(
+        "top-0 z-50 border-b",
+        transparent
+          ? "absolute inset-x-0 border-white/15 bg-transparent"
+          : "sticky border-white/10 bg-[#090909]",
+      )}
     >
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
         <Link

@@ -141,6 +141,19 @@ export const SHOP_PRODUCTS: MockShopProduct[] = [
   },
 ]
 
+export function mockShopToCatalog(mock: MockShopProduct): import("@/features/storefront/catalog-types").CatalogProduct {
+  return {
+    id: mock.id,
+    slug: mock.id,
+    name: mock.name,
+    subtitle: mock.category,
+    price: mock.price,
+    imageClass: mock.imageClass,
+    inStock: true,
+    description: `Materials: ${mock.material.join(", ")}.`,
+  }
+}
+
 export const FILTER_CATEGORIES = [
   { label: "Apparel",     count: 24 },
   { label: "Accessories", count: 12 },

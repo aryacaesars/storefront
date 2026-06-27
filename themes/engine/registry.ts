@@ -4,7 +4,6 @@ import { ProductDetailPage as BoldProductDetailPage } from "@/themes/bold/pages/
 import { CollectionPage as BoldCollectionPage } from "@/themes/bold/pages/CollectionPage"
 import { CartPage as BoldCartPage } from "@/themes/bold/pages/CartPage"
 import { CheckoutPage as BoldCheckoutPage } from "@/themes/bold/pages/CheckoutPage"
-import { TechSeriesPage as BoldTechSeriesPage } from "@/themes/bold/pages/TechSeriesPage"
 import { NewArrivalsPage as BoldNewArrivalsPage } from "@/themes/bold/pages/NewArrivalsPage"
 import { AllProductsStorePage } from "@/themes/bold/pages/AllProductsStorePage"
 import { AboutPage as FashionAboutPage } from "@/themes/fashion/pages/AboutPage"
@@ -78,7 +77,6 @@ export const templatePages = {
     collection: BoldCollectionPage,
     cart: BoldCartPage,
     checkout: BoldCheckoutPage,
-    techSeries: BoldTechSeriesPage,
     newArrivals: BoldNewArrivalsPage,
     allProducts: AllProductsStorePage,
   },

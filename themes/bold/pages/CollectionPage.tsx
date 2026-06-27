@@ -1,4 +1,4 @@
-import { PRODUCTS } from "@/themes/bold/data/mock"
+import { mockProductToCatalog, PRODUCTS } from "@/themes/bold/data/mock"
 import { ProductsHeader } from "@/themes/bold/sections/products/ProductsHeader"
 import { FilterSidebar } from "@/themes/bold/sections/products/FilterSidebar"
 import { ProductGrid } from "@/themes/bold/sections/products/ProductGrid"
@@ -17,7 +17,7 @@ export function CollectionPage({ config, slug = "running" }: ThemePageProps) {
           <div className="flex items-start gap-8">
             <FilterSidebar />
             <div className="min-w-0 flex-1">
-              <ProductGrid products={PRODUCTS} />
+              <ProductGrid products={PRODUCTS.map(mockProductToCatalog)} />
               <Pagination currentPage={1} totalPages={4} />
             </div>
           </div>

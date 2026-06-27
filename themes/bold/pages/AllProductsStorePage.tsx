@@ -1,15 +1,11 @@
 import { AllProductsPage } from "@/themes/bold/pages/AllProductsPage"
 import { PerformanceFooter } from "@/themes/bold/sections/performance/PerformanceFooter"
-import type { ThemeConfig } from "@/themes/engine/schema"
+import type { ThemePageProps } from "@/themes/engine/page-props"
 
-interface AllProductsStorePageProps {
-  config: ThemeConfig
-}
-
-export function AllProductsStorePage({ config }: AllProductsStorePageProps) {
+export function AllProductsStorePage({ config, products = [] }: ThemePageProps) {
   return (
     <>
-      <AllProductsPage />
+      <AllProductsPage products={products} />
       <PerformanceFooter config={config} />
     </>
   )

@@ -3,45 +3,28 @@ import { mockProductToCatalog, TRENDING_PRODUCTS } from "@/themes/minimalist/dat
 import { ProductCard } from "@/themes/minimalist/sections/ProductCard"
 import type { ThemePageProps } from "@/themes/engine/page-props"
 import { formatIdr } from "@/features/storefront/catalog-types"
+import { ProductNotFound } from "@/features/storefront/ProductNotFound"
+import { resolveProductDetail } from "@/features/storefront/resolve-catalog-product"
+
+const MOCK_CATALOG = TRENDING_PRODUCTS.map(mockProductToCatalog)
 
 export function ProductDetailPage({
   slug = "1",
   product,
   products = [],
 }: ThemePageProps) {
-  const mockFallback = TRENDING_PRODUCTS.find((item) => item.id === slug) ??
-    TRENDING_PRODUCTS[0]
-
-  const resolved =
-    product ??
-    (products.length === 0
-      ? {
-          ...mockProductToCatalog(mockFallback),
-          description:
-            "Cut from premium materials with a focus on longevity and quiet luxury.",
-        }
-      : null)
+  const { product: resolved, related, isLiveCatalog } = resolveProductDetail(
+    slug,
+    product,
+    products,
+    MOCK_CATALOG,
+  )
 
   if (!resolved) {
-    return (
-      <section className="mx-auto max-w-3xl px-6 py-20 text-center">
-        <h1 className="text-2xl font-semibold text-[var(--theme-text)]">
-          Produk tidak ditemukan
-        </h1>
-        <Link
-          href="/products"
-          className="mt-4 inline-block text-sm text-[var(--theme-primary)] hover:underline"
-        >
-          Kembali ke daftar produk
-        </Link>
-      </section>
-    )
+    return <ProductNotFound />
   }
 
   const displayPrice = resolved.salePrice ?? resolved.price
-  const related = (products.length > 0 ? products : []).filter(
-    (item) => item.slug !== resolved.slug,
-  )
 
   return (
     <section className="mx-auto max-w-7xl px-6 py-12">
@@ -76,6 +59,11 @@ export function ProductDetailPage({
               {resolved.badge}
             </span>
           )}
+          {!resolved.inStock && (
+            <span className="absolute right-4 top-4 bg-black/70 px-2 py-0.5 text-[9px] font-bold tracking-widest text-white uppercase">
+              Habis
+            </span>
+          )}
         </div>
 
         <div className="flex flex-col justify-center">
@@ -85,9 +73,11 @@ export function ProductDetailPage({
           >
             {resolved.name}
           </h1>
-          <p className="mt-2 text-sm text-[var(--theme-muted)]">
-            {resolved.subtitle}
-          </p>
+          {resolved.subtitle && (
+            <p className="mt-2 text-sm text-[var(--theme-muted)]">
+              {resolved.subtitle}
+            </p>
+          )}
           <div className="mt-6 flex items-center gap-3">
             <span className="text-2xl font-semibold text-[var(--theme-text)]">
               {formatIdr(displayPrice)}
@@ -98,17 +88,19 @@ export function ProductDetailPage({
               </span>
             )}
           </div>
-          <p className="mt-6 text-sm leading-relaxed text-[var(--theme-muted)]">
-            {resolved.description ??
-              "Cut from premium materials with a focus on longevity and quiet luxury."}
-          </p>
+          {resolved.description && (
+            <p className="mt-6 text-sm leading-relaxed text-[var(--theme-muted)]">
+              {resolved.description}
+            </p>
+          )}
           <div className="mt-8 flex flex-wrap gap-3">
             <button
               type="button"
-              className="h-11 px-8 text-xs font-bold tracking-[0.14em] text-white uppercase transition-opacity hover:opacity-90"
+              disabled={!resolved.inStock}
+              className="h-11 px-8 text-xs font-bold tracking-[0.14em] text-white uppercase transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               style={{ backgroundColor: "var(--theme-primary)" }}
             >
-              Add to Cart
+              {resolved.inStock ? "Add to Cart" : "Stok habis"}
             </button>
             <Link
               href="/cart"
@@ -117,6 +109,11 @@ export function ProductDetailPage({
               View Cart
             </Link>
           </div>
+          {isLiveCatalog && (
+            <p className="mt-4 text-[10px] tracking-wide text-[var(--theme-muted)] uppercase">
+              Data langsung dari katalog Scalev
+            </p>
+          )}
         </div>
       </div>
 

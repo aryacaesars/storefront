@@ -1006,12 +1006,19 @@ export function SectionInspector({
 
   if (instance.type === "hero" && config.templateId === "bold") {
     const heroMediaDef = blockDefs["hero-media"]
+    const heroCtaDef = blockDefs["hero-cta"]
     const selectedBlock = selectedBlockId
       ? currentBlocks.find((block) => block.id === selectedBlockId)
       : null
     const selectedIdx = selectedBlock
       ? currentBlocks.findIndex((block) => block.id === selectedBlock.id)
       : -1
+    const selectedDef =
+      selectedBlock?.type === "hero-cta"
+        ? heroCtaDef
+        : selectedBlock?.type === "hero-media"
+          ? heroMediaDef
+          : null
     const resolvedSettings = selectedBlock
       ? resolveDeviceSettings(selectedBlock.settings, device === "mobile")
       : undefined
@@ -1035,27 +1042,28 @@ export function SectionInspector({
         {!selectedBlock ? (
           <>
             <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
-              Klik gambar hero di canvas untuk mengedit. Drag box judul untuk pindah posisi.
+              Klik judul atau tombol CTA di canvas untuk mengedit. Ganti foto hero lewat panel
+              Gambar Hero. Drag box judul untuk pindah posisi.
             </p>
             <div className="space-y-3">
               <SettingsField label="Judul baris 1">
                 <SettingsInput
                   value={config.hero?.title ?? ""}
-                  placeholder="DEFINING THE LIMIT"
+                  placeholder="NO LIMITS."
                   onChange={(e) => onHeroChange("title", e.target.value)}
                 />
               </SettingsField>
               <SettingsField label="Judul baris 2">
                 <SettingsInput
                   value={config.hero?.subtitle ?? ""}
-                  placeholder="Momentum Bold isn't just gear."
+                  placeholder="MORE MOTION"
                   onChange={(e) => onHeroChange("subtitle", e.target.value)}
                 />
               </SettingsField>
               <SettingsField label="Teks tombol CTA">
                 <SettingsInput
                   value={config.hero?.ctaLabel ?? ""}
-                  placeholder="SHOP ELITE GEAR"
+                  placeholder="SHOP NOW"
                   onChange={(e) => onHeroChange("ctaLabel", e.target.value)}
                 />
               </SettingsField>
@@ -1068,15 +1076,35 @@ export function SectionInspector({
                 {device === "mobile" ? "Mobile" : "Desktop"}
               </span>
               <span className="text-xs font-medium text-gray-700">
-                {heroMediaDef?.label ?? selectedBlock.type}
+                {selectedDef?.label ?? selectedBlock.type}
               </span>
             </div>
-            {heroMediaDef && selectedIdx >= 0 && (
+            {selectedDef && selectedIdx >= 0 && (
               <div className="space-y-3">
+                {selectedBlock.type === "hero-media" && (
+                  <>
                 <HeroImageListPanel
                   images={parseCanvasImages(resolvedSettings)}
                   onChange={(imgs) => updateBlockSettings(selectedIdx, { images: imgs })}
                 />
+                <SettingsField
+                  label={`Zoom gambar (${Math.round(Number(resolvedSettings?.imgScale ?? 100))}%)`}
+                  hint="Perbesar foto hero dari tengah — tanpa drag di canvas"
+                >
+                  <input
+                    type="range"
+                    min={100}
+                    max={200}
+                    step={5}
+                    value={Number(resolvedSettings?.imgScale ?? 100)}
+                    onChange={(event) =>
+                      updateBlockSettings(selectedIdx, {
+                        imgScale: Number(event.target.value),
+                      })
+                    }
+                    className="h-1.5 w-full cursor-pointer accent-indigo-600"
+                  />
+                </SettingsField>
                 <div className="space-y-3 border-t border-gray-100 pt-3">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                     Judul
@@ -1084,14 +1112,14 @@ export function SectionInspector({
                   <SettingsField label="Judul baris 1">
                     <SettingsInput
                       value={config.hero?.title ?? ""}
-                      placeholder="DEFINING THE LIMIT"
+                      placeholder="NO LIMITS."
                       onChange={(e) => onHeroChange("title", e.target.value)}
                     />
                   </SettingsField>
                   <SettingsField label="Judul baris 2">
                     <SettingsInput
                       value={config.hero?.subtitle ?? ""}
-                      placeholder="Momentum Bold isn't just gear."
+                      placeholder="MORE MOTION"
                       onChange={(e) => onHeroChange("subtitle", e.target.value)}
                     />
                   </SettingsField>
@@ -1170,6 +1198,22 @@ export function SectionInspector({
                 <p className="text-[11px] text-gray-500">
                   Posisi & lebar teks: drag box judul di canvas atau tarik handle ungu.
                 </p>
+                  </>
+                )}
+                {selectedBlock.type === "hero-cta" && (
+                  <>
+                    <SettingsField label="Teks tombol CTA">
+                      <SettingsInput
+                        value={config.hero?.ctaLabel ?? ""}
+                        placeholder="SHOP NOW"
+                        onChange={(e) => onHeroChange("ctaLabel", e.target.value)}
+                      />
+                    </SettingsField>
+                    <p className="text-[11px] text-gray-500">
+                      Posisi & ukuran tombol: tarik tepi/sudut di canvas.
+                    </p>
+                  </>
+                )}
               </div>
             )}
           </>

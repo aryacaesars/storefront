@@ -4,13 +4,12 @@ import { ProductGrid } from "@/themes/fashion/sections/shop/ProductGrid"
 import { Pagination } from "@/themes/fashion/sections/shop/Pagination"
 import { ShopFooter } from "@/themes/fashion/sections/shop/ShopFooter"
 import { DEFAULT_FASHION_CONFIG } from "@/themes/fashion/theme.config"
-import type { ThemeConfig } from "@/themes/engine/schema"
+import type { ThemePageProps } from "@/themes/engine/page-props"
 
-interface ShopAllPageProps {
-  config?: ThemeConfig
-}
-
-export function ShopAllPage({ config = DEFAULT_FASHION_CONFIG }: ShopAllPageProps) {
+export function ShopAllPage({
+  config = DEFAULT_FASHION_CONFIG,
+  products = [],
+}: ThemePageProps) {
   return (
     <div style={{ backgroundColor: "var(--theme-bg)" }}>
       <ShopHeader />
@@ -18,7 +17,7 @@ export function ShopAllPage({ config = DEFAULT_FASHION_CONFIG }: ShopAllPageProp
         <div className="flex gap-12">
           <FilterSidebarClient />
           <div className="flex-1 min-w-0">
-            <ProductGrid />
+            <ProductGrid products={products} />
             <Pagination />
           </div>
         </div>

@@ -8,7 +8,7 @@ interface ShopFooterProps {
 export function ShopFooter({ config = DEFAULT_FASHION_CONFIG }: ShopFooterProps) {
   return (
     <footer style={{ backgroundColor: "var(--theme-text)" }}>
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-4">
+      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-2">
         <div>
           <p
             className="mb-4 text-2xl font-medium text-white"
@@ -19,36 +19,6 @@ export function ShopFooter({ config = DEFAULT_FASHION_CONFIG }: ShopFooterProps)
           <p className="max-w-[200px] text-xs leading-relaxed text-white/40">
             {config.tagline ?? "Redefining modern luxury through sustainable materials."}
           </p>
-        </div>
-
-        <div>
-          <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/50">
-            SHOP
-          </p>
-          {["New Arrivals", "Best Sellers", "Collections", "Accessories"].map((item) => (
-            <a
-              key={item}
-              href="#"
-              className="mb-2.5 block text-xs text-white/40 transition-colors hover:text-white/80"
-            >
-              {item}
-            </a>
-          ))}
-        </div>
-
-        <div>
-          <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/50">
-            COMPANY
-          </p>
-          {["Sustainability", "Journal", "Our Story", "Privacy Policy"].map((item) => (
-            <a
-              key={item}
-              href="#"
-              className="mb-2.5 block text-xs text-white/40 transition-colors hover:text-white/80"
-            >
-              {item}
-            </a>
-          ))}
         </div>
 
         <div>

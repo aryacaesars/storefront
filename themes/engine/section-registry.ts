@@ -1,13 +1,8 @@
 import type { ComponentType } from "react"
 import type { BlockInstance, SectionPageType, ThemeConfig } from "@/themes/engine/schema"
 import type { SectionEditorState } from "@/themes/engine/section-editor"
-import { ArchitectsSection } from "@/themes/bold/sections/ArchitectsSection"
 import { CallToActionSection as BoldCallToActionSection } from "@/themes/bold/sections/CallToActionSection"
 import { HeroSection as BoldHeroSection } from "@/themes/bold/sections/HeroSection"
-import { ImpactSection } from "@/themes/bold/sections/ImpactSection"
-import { ManifestoSection } from "@/themes/bold/sections/ManifestoSection"
-import { OriginSection } from "@/themes/bold/sections/OriginSection"
-import { PillarsSection } from "@/themes/bold/sections/PillarsSection"
 import { BrandStory } from "@/themes/fashion/sections/BrandStory"
 import { CategoryCards } from "@/themes/fashion/sections/CategoryCards"
 import { CommunityGallery } from "@/themes/fashion/sections/CommunityGallery"
@@ -22,6 +17,7 @@ import { HeroSection as MinimalistHeroSection } from "@/themes/minimalist/sectio
 import { ImageLayers } from "@/themes/minimalist/sections/ImageLayers"
 import { ProductGrid } from "@/themes/minimalist/sections/ProductGrid"
 import { CallToActionSection as BentoCallToActionSection } from "@/themes/bento/sections/CallToActionSection"
+import { CategorySection as BoldCategorySection } from "@/themes/bold/sections/CategorySection"
 import { CategoryGrid as BentoCategoryGrid } from "@/themes/bento/sections/CategoryGrid"
 import { HeroSection as BentoHeroSection } from "@/themes/bento/sections/HeroSection"
 import { ProductGrid as BentoProductGrid } from "@/themes/bento/sections/ProductGrid"
@@ -78,18 +74,10 @@ const MINIMALIST_SECTIONS: Record<string, SectionDefinition> = {
 
 const BOLD_SECTIONS: Record<string, SectionDefinition> = {
   hero: { type: "hero", label: "Hero", component: BoldHeroSection },
-  origin: { type: "origin", label: "Origin", component: OriginSection },
-  manifesto: {
-    type: "manifesto",
-    label: "Manifesto",
-    component: ManifestoSection,
-  },
-  pillars: { type: "pillars", label: "Pillars", component: PillarsSection },
-  impact: { type: "impact", label: "Impact", component: ImpactSection },
-  architects: {
-    type: "architects",
-    label: "Architects",
-    component: ArchitectsSection,
+  "category-grid": {
+    type: "category-grid",
+    label: "Category Grid",
+    component: BoldCategorySection,
   },
   "call-to-action": {
     type: "call-to-action",

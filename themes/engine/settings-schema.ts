@@ -75,6 +75,15 @@ export const THEME_SETTINGS_GROUPS: SettingsGroupDef[] = [
     ],
   },
   {
+    title: "Kontak",
+    description: "Ditampilkan di halaman About › Direct Channels.",
+    fields: [
+      { id: "contactPhone", scope: "config", type: "text", label: "Nomor Telepon", placeholder: "+62 812 3456 7890" },
+      { id: "contactEmail", scope: "config", type: "text", label: "Email", placeholder: "hello@tokoku.com" },
+      { id: "contactAddress", scope: "config", type: "textarea", label: "Alamat", placeholder: "Jl. Contoh No. 1, Jakarta", rows: 2 },
+    ],
+  },
+  {
     title: "Warna & Tipografi",
     fields: [
       { id: "primaryColor", scope: "config", type: "color", label: "Warna Utama" },

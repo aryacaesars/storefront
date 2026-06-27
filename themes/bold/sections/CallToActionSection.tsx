@@ -10,14 +10,14 @@ export function CallToActionSection({ settings }: SectionProps) {
   )
 
   return (
-    <section className="bg-zinc-950 px-6 py-28 text-center">
+    <section className="bg-white px-6 py-28 text-center">
       <h2
-        className="text-4xl font-black uppercase leading-tight text-white md:text-6xl"
+        className="text-4xl font-black uppercase leading-tight text-zinc-900 md:text-6xl"
         style={{ fontFamily: "var(--theme-heading-font)" }}
       >
         {title}
       </h2>
-      <p className="mx-auto mt-4 max-w-lg text-sm text-white/50">{subtitle}</p>
+      <p className="mx-auto mt-4 max-w-lg text-sm text-zinc-500">{subtitle}</p>
       <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
         <a
           href="/products"
@@ -28,7 +28,7 @@ export function CallToActionSection({ settings }: SectionProps) {
         </a>
         <a
           href="/about"
-          className="inline-flex h-12 items-center border border-white/30 px-10 text-xs font-bold uppercase tracking-[0.15em] text-white transition-colors hover:border-white"
+          className="inline-flex h-12 items-center border border-zinc-300 px-10 text-xs font-bold uppercase tracking-[0.15em] text-zinc-900 transition-colors hover:border-zinc-900"
         >
           OUR STORY
         </a>

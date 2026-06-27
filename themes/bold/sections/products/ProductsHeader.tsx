@@ -3,9 +3,14 @@ import Link from "next/link"
 interface ProductsHeaderProps {
   totalCount: number
   title?: string
+  subtitle?: string
 }
 
-export function ProductsHeader({ totalCount, title = "All Products" }: ProductsHeaderProps) {
+export function ProductsHeader({
+  totalCount,
+  title = "All Products",
+  subtitle = "Precision engineered for the high-endurance athlete.",
+}: ProductsHeaderProps) {
   return (
     <div className="border-b border-gray-100 bg-white px-6 py-5">
       {/* Breadcrumb */}
@@ -27,7 +32,7 @@ export function ProductsHeader({ totalCount, title = "All Products" }: ProductsH
             {title.toUpperCase()}
           </h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Precision engineered for the high-endurance athlete.
+            {subtitle}
           </p>
         </div>
         <div className="hidden items-center gap-4 sm:flex">

@@ -1,5 +1,3 @@
-import Link from "next/link"
-import { Globe, Heart, Share2 } from "lucide-react"
 import type { ThemeConfig } from "@/themes/engine/schema"
 
 interface FooterProps {
@@ -12,7 +10,7 @@ export function Footer({ config }: FooterProps) {
       className="border-t border-white/10"
       style={{ backgroundColor: "var(--theme-text)" }}
     >
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-4">
+      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-2">
         <div>
           <p
             className="text-lg font-medium text-white"
@@ -23,47 +21,6 @@ export function Footer({ config }: FooterProps) {
           <p className="mt-3 max-w-[200px] text-xs leading-relaxed text-white/40">
             {config.tagline}
           </p>
-          <div className="mt-5 flex gap-3">
-            <Globe className="h-4 w-4 cursor-pointer text-white/40 hover:text-white" />
-            <Heart className="h-4 w-4 cursor-pointer text-white/40 hover:text-white" />
-            <Share2 className="h-4 w-4 cursor-pointer text-white/40 hover:text-white" />
-          </div>
-        </div>
-
-        <div>
-          <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/50">
-            COLLECTIONS
-          </p>
-          <ul className="space-y-2.5">
-            {["New Arrivals", "Best Sellers", "Signature Silk", "Essential Knits"].map((item) => (
-              <li key={item}>
-                <Link
-                  href="#"
-                  className="text-sm text-white/40 transition-colors hover:text-white/80"
-                >
-                  {item}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div>
-          <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/50">
-            INFORMATION
-          </p>
-          <ul className="space-y-2.5">
-            {["Sustainability", "Journal", "Privacy Policy", "Shipping & Returns"].map((item) => (
-              <li key={item}>
-                <Link
-                  href="#"
-                  className="text-sm text-white/40 transition-colors hover:text-white/80"
-                >
-                  {item}
-                </Link>
-              </li>
-            ))}
-          </ul>
         </div>
 
         <div>
@@ -71,11 +28,6 @@ export function Footer({ config }: FooterProps) {
             CONTACT
           </p>
           <p className="text-sm text-white/60">hello@lunasoft.com</p>
-          <div className="mt-4 flex gap-3">
-            <Globe className="h-4 w-4 cursor-pointer text-white/40 hover:text-white" />
-            <Heart className="h-4 w-4 cursor-pointer text-white/40 hover:text-white" />
-            <Share2 className="h-4 w-4 cursor-pointer text-white/40 hover:text-white" />
-          </div>
         </div>
       </div>
 

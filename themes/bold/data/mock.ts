@@ -53,6 +53,20 @@ export interface MockProduct {
   imageClass: string
 }
 
+export function mockProductToCatalog(mock: MockProduct): import("@/features/storefront/catalog-types").CatalogProduct {
+  return {
+    id: mock.id,
+    slug: mock.id,
+    name: mock.name,
+    subtitle: mock.category,
+    price: mock.originalPrice ?? mock.price,
+    salePrice: mock.originalPrice ? mock.price : undefined,
+    badge: mock.badge === "NEW RELEASE" ? "NEW" : mock.badge === "SALE" ? "SALE" : undefined,
+    imageClass: mock.imageClass,
+    inStock: true,
+  }
+}
+
 export const PRODUCTS: MockProduct[] = [
   {
     id: "1",
@@ -187,13 +201,18 @@ export interface MockProductDetail {
   rating: number
   reviewCount: number
   price: number
+  /** When set, shown instead of `$price.00` (e.g. IDR from Scalev). */
+  priceLabel?: string
   badge?: string
   colors: Array<{ name: string; hex: string }>
   sizes: number[]
   defaultColor: string
   defaultSize: number
-  thumbnails: Array<{ imageClass: string; alt: string }>
+  thumbnails: Array<{ imageClass: string; alt: string; imageUrl?: string }>
   mainImageClass: string
+  imageUrl?: string
+  description?: string
+  inStock?: boolean
 }
 
 export const KINETIC_ELITE_V2: MockProductDetail = {

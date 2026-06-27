@@ -1,6 +1,17 @@
 import { Phone, Mail, MapPin } from "lucide-react"
+import type { ThemeConfig } from "@/themes/engine/schema"
 
-export function DirectChannels() {
+interface DirectChannelsProps {
+  config?: ThemeConfig
+}
+
+export function DirectChannels({ config }: DirectChannelsProps) {
+  const phone = config?.contactPhone
+  const email = config?.contactEmail
+  const address = config?.contactAddress
+
+  const hasAny = phone || email || address
+
   return (
     <div className="rounded-sm border border-gray-200 bg-white p-7">
       <h3 className="mb-6 text-base font-bold" style={{ color: "var(--theme-primary)" }}>
@@ -8,52 +19,55 @@ export function DirectChannels() {
       </h3>
 
       <div className="space-y-6">
-        {/* Phone */}
-        <div className="flex items-start gap-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-gray-100 bg-gray-50">
-            <Phone className="h-4 w-4" style={{ color: "var(--theme-primary)" }} strokeWidth={1.5} />
+        {phone && (
+          <div className="flex items-start gap-4">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-gray-100 bg-gray-50">
+              <Phone className="h-4 w-4" style={{ color: "var(--theme-primary)" }} strokeWidth={1.5} />
+            </div>
+            <div>
+              <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-zinc-400">
+                PHONE SUPPORT
+              </p>
+              <p className="mt-0.5 text-sm font-bold text-zinc-900">{phone}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-zinc-400">
-              PHONE SUPPORT
-            </p>
-            <p className="mt-0.5 text-sm font-bold text-zinc-900">+1 (800) MOMENTUM</p>
-            <p className="text-xs text-zinc-400">Mon-Fri: 8am - 6pm EST</p>
-          </div>
-        </div>
+        )}
 
-        {/* Email */}
-        <div className="flex items-start gap-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-gray-100 bg-gray-50">
-            <Mail className="h-4 w-4" style={{ color: "var(--theme-primary)" }} strokeWidth={1.5} />
+        {email && (
+          <div className="flex items-start gap-4">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-gray-100 bg-gray-50">
+              <Mail className="h-4 w-4" style={{ color: "var(--theme-primary)" }} strokeWidth={1.5} />
+            </div>
+            <div>
+              <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-zinc-400">
+                EMAIL ENQUIRIES
+              </p>
+              <p className="mt-0.5 text-sm font-bold text-zinc-900">{email}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-zinc-400">
-              EMAIL ENQUIRIES
-            </p>
-            <p className="mt-0.5 text-sm font-bold text-zinc-900">support@momentum-bold.com</p>
-            <p className="text-xs text-zinc-400">24/7 Response within 12h</p>
-          </div>
-        </div>
+        )}
 
-        {/* HQ */}
-        <div className="flex items-start gap-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-gray-100 bg-gray-50">
-            <MapPin className="h-4 w-4" style={{ color: "var(--theme-primary)" }} strokeWidth={1.5} />
+        {address && (
+          <div className="flex items-start gap-4">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-gray-100 bg-gray-50">
+              <MapPin className="h-4 w-4" style={{ color: "var(--theme-primary)" }} strokeWidth={1.5} />
+            </div>
+            <div>
+              <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-zinc-400">
+                ALAMAT
+              </p>
+              <p className="mt-0.5 text-sm font-bold text-zinc-900">{address}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-zinc-400">
-              GLOBAL HQ
-            </p>
-            <p className="mt-0.5 text-sm font-bold text-zinc-900">
-              459 Innovation Dr, Silicon Valley, CA
-            </p>
-            <p className="text-xs text-zinc-400">Elite Design Center</p>
-          </div>
-        </div>
+        )}
+
+        {!hasAny && (
+          <p className="text-xs text-zinc-400">
+            Isi informasi kontak di builder → Settings → Kontak.
+          </p>
+        )}
       </div>
 
-      {/* Location image */}
       <div className="relative mt-6 overflow-hidden rounded-sm">
         <div className="aspect-video bg-gradient-to-br from-[#0D4A3E] via-teal-900 to-zinc-950">
           <div

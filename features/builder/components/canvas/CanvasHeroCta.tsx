@@ -20,6 +20,7 @@ interface CanvasHeroCtaProps {
   scale: number
   designWidth: number
   frameRef: React.RefObject<HTMLDivElement | null>
+  variant?: "filled" | "outline"
   onSelect: () => void
   onChange: (patch: Record<string, unknown>) => void
 }
@@ -32,11 +33,13 @@ export function CanvasHeroCta({
   scale,
   designWidth,
   frameRef,
+  variant = "filled",
   onSelect,
   onChange,
 }: CanvasHeroCtaProps) {
   const { layout } = cta
-  const textColor = cta.textColor.trim() || "var(--theme-primary)"
+  const isOutline = variant === "outline"
+  const textColor = cta.textColor.trim() || (isOutline ? "#ffffff" : "var(--theme-primary)")
 
   const boxStyle: React.CSSProperties = {
     position: "absolute",
@@ -47,14 +50,19 @@ export function CanvasHeroCta({
   }
 
   const buttonStyle: React.CSSProperties = {
-    backgroundColor: cta.bgColor,
+    backgroundColor: isOutline ? "transparent" : cta.bgColor,
     color: textColor,
     fontFamily: "var(--theme-heading-font)",
     fontSize: `${Math.max(12, layout.hPx * scale * 0.38)}px`,
+    ...(isOutline && {
+      border: "1.5px solid #ffffff",
+      boxShadow: "none",
+    }),
   }
 
   const className = cn(
-    "z-20 flex items-center justify-center overflow-visible rounded-[47px] px-4 font-bold capitalize shadow-lg",
+    "pointer-events-auto z-20 flex items-center justify-center overflow-visible px-6 font-black uppercase tracking-[0.14em]",
+    isOutline ? "rounded-full" : "rounded-[47px] capitalize shadow-lg",
     editable && "cursor-pointer",
     !editable && "hover:opacity-80",
   )
@@ -100,7 +108,8 @@ export function CanvasHeroCta({
         )}
         <div
           className={cn(
-            "flex h-full w-full items-center justify-center rounded-[47px]",
+            "flex h-full w-full items-center justify-center",
+            isOutline ? "rounded-full" : "rounded-[47px]",
             className,
             selected && "ring-2 ring-indigo-400 ring-offset-2 ring-offset-transparent",
           )}

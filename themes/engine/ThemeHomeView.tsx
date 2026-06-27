@@ -20,13 +20,13 @@ export function ThemeHomeView({ config, sectionEditor }: ThemeHomeViewProps) {
   switch (config.templateId) {
     case "bold":
       return (
-        <>
-          <BoldNavbar config={config} />
+        <div className="relative">
+          <BoldNavbar config={config} transparent />
           <main>
             <HomePage config={config} sectionEditor={sectionEditor} />
           </main>
           <BoldFooter config={config} />
-        </>
+        </div>
       )
     case "fashion":
       return (

@@ -9,8 +9,7 @@ export function TechSeriesFooter({ config }: TechSeriesFooterProps) {
   return (
     <footer className="border-t border-white/10 bg-zinc-950">
       <div className="mx-auto max-w-7xl">
-        {/* Main grid */}
-        <div className="grid gap-10 px-6 py-14 md:grid-cols-4">
+        <div className="grid gap-10 px-6 py-14 md:grid-cols-2">
           {/* Brand */}
           <div>
             <p
@@ -24,45 +23,15 @@ export function TechSeriesFooter({ config }: TechSeriesFooterProps) {
               and technical excellence.
             </p>
             <div className="mt-5 flex gap-3">
-              <Globe className="h-4 w-4 cursor-pointer text-white/40 transition-colors hover:text-white" strokeWidth={1.5} />
-              <Share2 className="h-4 w-4 cursor-pointer text-white/40 transition-colors hover:text-white" strokeWidth={1.5} />
-              <Bell className="h-4 w-4 cursor-pointer text-white/40 transition-colors hover:text-white" strokeWidth={1.5} />
+              <Globe className="h-4 w-4 text-white/40" strokeWidth={1.5} />
+              <Share2 className="h-4 w-4 text-white/40" strokeWidth={1.5} />
+              <Bell className="h-4 w-4 text-white/40" strokeWidth={1.5} />
             </div>
-          </div>
-
-          {/* Products */}
-          <div>
-            <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.15em] text-white/50">
-              PRODUCTS
-            </p>
-            <ul className="space-y-2.5">
-              {["Men's Performance", "Women's Elite", "Tech Accessories", "New Arrivals"].map((l) => (
-                <li key={l}>
-                  <a href="#" className="text-sm text-white/40 transition-colors hover:text-white">{l}</a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Company */}
-          <div>
-            <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.15em] text-white/50">
-              COMPANY
-            </p>
-            <ul className="space-y-2.5">
-              {["Our Story", "Sustainability", "Tech Labs", "Careers"].map((l) => (
-                <li key={l}>
-                  <a href="#" className="text-sm text-white/40 transition-colors hover:text-white">{l}</a>
-                </li>
-              ))}
-            </ul>
           </div>
 
           {/* Newsletter */}
           <div>
-            <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.15em] text-white/50">
-              NEWSLETTER
-            </p>
+            <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.15em] text-white/50">NEWSLETTER</p>
             <p className="text-xs text-white/40">Get performance updates and early access.</p>
             <form className="mt-3 flex">
               <input
@@ -81,14 +50,8 @@ export function TechSeriesFooter({ config }: TechSeriesFooterProps) {
           </div>
         </div>
 
-        {/* Bottom bar */}
         <div className="flex items-center justify-between border-t border-white/10 px-6 py-5">
           <p className="text-xs text-white/30">© 2024 MOMENTUM BOLD. PRECISION ENGINEERED.</p>
-          <div className="flex gap-4 text-xs text-white/30">
-            <a href="#" className="transition-colors hover:text-white/60">Privacy Policy</a>
-            <a href="#" className="transition-colors hover:text-white/60">Terms of Service</a>
-            <a href="#" className="transition-colors hover:text-white/60">Shipping &amp; Returns</a>
-          </div>
         </div>
       </div>
     </footer>

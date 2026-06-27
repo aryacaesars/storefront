@@ -1,34 +1,29 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { CanvasGridOverlay } from "@/features/builder/components/canvas/CanvasGridOverlay"
-import { CanvasImageFrame } from "@/features/builder/components/canvas/CanvasImageFrame"
-import { CanvasMultiImageItem } from "@/features/builder/components/canvas/CanvasMultiImageItem"
 import { CanvasInlineText } from "@/features/builder/components/canvas/CanvasInlineText"
+import { CanvasHeroCta } from "@/features/builder/components/canvas/CanvasHeroCta"
 import { CanvasLabelResizeHandles } from "@/features/builder/components/canvas/CanvasLabelResizeHandles"
-import type { SectionProps } from "@/themes/engine/section-registry"
-import {
-  parseCanvasImages,
-  updateImageInArray,
-  type CanvasImageItem,
-} from "@/themes/engine/canvas-image"
+import { parseCanvasImages } from "@/themes/engine/canvas-image"
 import {
   hasMobileOverride,
   MOBILE_OVERRIDE_FLAG,
 } from "@/themes/engine/device-settings"
 import {
   labelMoveFromDelta,
-  parseImageTransform,
   type CategoryLabelLayout,
   type LabelContainerMetrics,
 } from "@/themes/bento/sections/category-grid-layout"
 import {
-  HERO_DESIGN_HEIGHT,
   HERO_DESIGN_WIDTH,
   HERO_MOBILE_DESIGN_WIDTH,
+  parseHeroCta,
+  type HeroCtaData,
 } from "@/themes/bento/sections/hero-cta-layout"
+import type { CategoryCardLayout } from "@/themes/bento/sections/category-grid-layout"
+import type { SectionProps } from "@/themes/engine/section-registry"
 import {
   heroTitleLayoutToPatch,
   heroTitleLayoutsToPatch,
@@ -42,10 +37,14 @@ import {
 
 type HeroTitleLayer = "front" | "behind"
 
+const BOLD_HERO_DESIGN_HEIGHT = 700
+const BOLD_DEFAULT_CTA_DESKTOP = { xPct: 5, wPct: 22, yPx: 430, hPx: 48 }
+const BOLD_DEFAULT_CTA_MOBILE = { xPct: 5, wPct: 50, yPx: 430, hPx: 48 }
+const MIN_HERO_ZOOM = 100
+const MAX_HERO_ZOOM = 200
 const Z_TITLE_BEHIND = 5
 const Z_IMAGE = 10
 const Z_OVERLAY = 11
-const Z_DECOR = 13
 const Z_TITLE_FRONT = 15
 const LABEL_DRAG_THRESHOLD = 4
 
@@ -65,10 +64,69 @@ function isLabelHandleTarget(target: EventTarget | null): boolean {
   )
 }
 
-function isTextEditTarget(target: EventTarget | null): boolean {
+function resolveHeroImageUrl(
+  configUrl: string | undefined,
+  mediaSettings: Record<string, unknown> | undefined,
+): string | undefined {
+  const blockUrl =
+    typeof mediaSettings?.imageUrl === "string" && mediaSettings.imageUrl.trim()
+      ? mediaSettings.imageUrl
+      : undefined
+  const canvasUrl = parseCanvasImages(mediaSettings).find((img) => img.src)?.src
+  return configUrl ?? blockUrl ?? canvasUrl
+}
+
+function parseHeroImageZoom(settings: Record<string, unknown> | undefined): number {
+  const n = Number(settings?.imgScale ?? 100)
+  if (!Number.isFinite(n)) return 100
+  return Math.min(MAX_HERO_ZOOM, Math.max(MIN_HERO_ZOOM, Math.round(n)))
+}
+
+function hasCtaBoxLayout(settings: Record<string, unknown> | undefined): boolean {
   return (
-    target instanceof HTMLElement &&
-    Boolean(target.closest('[contenteditable="true"]'))
+    settings != null &&
+    ("xPct" in settings || "wPct" in settings || "yPx" in settings || "hPx" in settings)
+  )
+}
+
+function resolveBoldCtaLayout(
+  settings: Record<string, unknown> | undefined,
+  isMobile: boolean,
+  parsedLayout: CategoryCardLayout,
+): CategoryCardLayout {
+  if (!hasCtaBoxLayout(settings)) {
+    return isMobile ? BOLD_DEFAULT_CTA_MOBILE : BOLD_DEFAULT_CTA_DESKTOP
+  }
+  return parsedLayout
+}
+
+function HeroBackground({
+  url,
+  alt,
+  zoom,
+}: {
+  url?: string
+  alt: string
+  zoom: number
+}) {
+  if (!url) return null
+
+  const scale = zoom / 100
+
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" style={{ zIndex: Z_IMAGE }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={url}
+        alt={alt}
+        className="h-full w-full object-cover object-center"
+        style={{
+          transform: `scale(${scale})`,
+          transformOrigin: "center center",
+        }}
+        draggable={false}
+      />
+    </div>
   )
 }
 
@@ -76,7 +134,7 @@ interface BoldTitleLineProps {
   line: HeroTitleLine
   value: string
   layer: HeroTitleLayer
-  isSubtitle: boolean
+  isAccentLine: boolean
   styleOverride: HeroTitleStyleOverride
   labelLayout: CategoryLabelLayout
   frameHeightPx: number
@@ -95,7 +153,7 @@ function BoldTitleLine({
   line,
   value,
   layer,
-  isSubtitle,
+  isAccentLine,
   styleOverride,
   labelLayout,
   frameHeightPx,
@@ -115,13 +173,15 @@ function BoldTitleLine({
 
   const labelBoxHeightPx = frameHeightPx * (labelLayout.hPct / 100)
 
-  const labelStyle: React.CSSProperties = isSubtitle
+  const labelStyle: React.CSSProperties = isAccentLine
     ? {
-        fontFamily: styleOverride.fontFamily ?? "var(--theme-body-font)",
-        fontSize: `${Math.max(12, labelBoxHeightPx * 0.45)}px`,
-        lineHeight: 1.5,
-        fontWeight: styleOverride.fontWeight ?? 400,
-        color: styleOverride.color ?? "rgba(255,255,255,0.65)",
+        fontFamily: styleOverride.fontFamily ?? "var(--theme-heading-font)",
+        fontSize: `${Math.max(28, labelBoxHeightPx * 0.72)}px`,
+        lineHeight: 0.92,
+        fontWeight: styleOverride.fontWeight ?? 900,
+        textTransform: "uppercase" as const,
+        letterSpacing: "-0.02em",
+        color: styleOverride.color ?? "var(--theme-accent)",
         fontStyle: styleOverride.fontStyle ?? "normal",
       }
     : {
@@ -160,6 +220,10 @@ function BoldTitleLine({
         if (!dragging && Math.abs(dx) + Math.abs(dy) < LABEL_DRAG_THRESHOLD) return
         dragging = true
         moveEvent.preventDefault()
+        const active = document.activeElement
+        if (active instanceof HTMLElement && active.isContentEditable) {
+          active.blur()
+        }
         const metrics = getLabelMetrics(frameRef.current)
         onLayoutChange(heroTitleLayoutToPatch(line, labelMoveFromDelta(dx, dy, metrics, origin)))
       }
@@ -185,7 +249,8 @@ function BoldTitleLine({
   function handleLabelPointerDown(event: React.PointerEvent<HTMLElement>) {
     if (!editable || isLabelHandleTarget(event.target)) return
     onActivate()
-    if (!labelMovable || isTextEditTarget(event.target)) return
+    onSelectMedia()
+    if (!labelMovable) return
     startLabelMove(event)
   }
 
@@ -258,7 +323,6 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const [measuredWidth, setMeasuredWidth] = useState(
     isMobile ? HERO_MOBILE_DESIGN_WIDTH : HERO_DESIGN_WIDTH,
   )
-  const [activeImageId, setActiveImageId] = useState<string | null>(null)
   const [activeTitleLine, setActiveTitleLine] = useState<HeroTitleLine | null>(null)
 
   useEffect(() => {
@@ -273,19 +337,17 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   }, [])
 
   const hero = config?.hero
-  const titleLine1 = hero?.title ?? "DEFINING THE LIMIT OF HUMAN POTENTIAL."
-  const titleLine2 =
-    hero?.subtitle ??
-    "Momentum Bold isn't just gear. It's a commitment to the engineering of motion."
-  const ctaLabel = hero?.ctaLabel ?? "SHOP ELITE GEAR"
+  const titleLine1 = hero?.title ?? "NO LIMITS."
+  const titleLine2 = hero?.subtitle ?? "MORE MOTION"
   const ctaHref = hero?.ctaHref ?? "/products"
 
   const mediaBlock = blocks?.find((b) => b.type === "hero-media") ?? blocks?.[0]
+  const ctaBlock = blocks?.find((b) => b.type === "hero-cta") ?? blocks?.[1]
 
   const mediaSettings = mediaBlock?.settings as Record<string, unknown> | undefined
-  const parsedImage = parseImageTransform(mediaSettings)
-  const image = { ...parsedImage, url: parsedImage.url ?? config?.heroImageUrl }
-  const canvasImages = parseCanvasImages(mediaSettings)
+  const ctaSettings = ctaBlock?.settings as Record<string, unknown> | undefined
+  const heroImageUrl = resolveHeroImageUrl(config?.heroImageUrl, mediaSettings)
+  const heroImageZoom = parseHeroImageZoom(mediaSettings)
 
   const title1Layout = parseHeroTitleLayout(mediaSettings, "title1", isMobile)
   const title2Layout = parseHeroTitleLayout(mediaSettings, "title2", isMobile)
@@ -294,7 +356,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
 
   const designWidth = isMobile ? HERO_MOBILE_DESIGN_WIDTH : HERO_DESIGN_WIDTH
   const scale = measuredWidth > 0 ? measuredWidth / designWidth : 1
-  const frameHeight = HERO_DESIGN_HEIGHT * scale
+  const frameHeight = BOLD_HERO_DESIGN_HEIGHT * scale
 
   const mediaHasMobileOverride = Boolean(
     mediaSettings?.[MOBILE_OVERRIDE_FLAG] ||
@@ -302,16 +364,38 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   )
   const useMobileTitleSeed = isMobile && !mediaHasMobileOverride
 
+  const ctaHasMobileOverride = Boolean(
+    (ctaBlock?.settings as Record<string, unknown> | undefined)?.[MOBILE_OVERRIDE_FLAG],
+  )
+  const useMobileCtaSeed = isMobile && !ctaHasMobileOverride
+
+  const parsedCta = parseHeroCta(ctaSettings, hero?.ctaLabel ?? "SHOP NOW", isMobile)
+  const ctaLayout = ctaBlock
+    ? useMobileCtaSeed
+      ? BOLD_DEFAULT_CTA_MOBILE
+      : resolveBoldCtaLayout(ctaSettings, isMobile, parsedCta.layout)
+    : isMobile
+      ? BOLD_DEFAULT_CTA_MOBILE
+      : BOLD_DEFAULT_CTA_DESKTOP
+  const cta: HeroCtaData = {
+    ...parsedCta,
+    label: hero?.ctaLabel?.trim() || parsedCta.label || "SHOP NOW",
+    layout: ctaLayout,
+  }
+  const ctaVariant =
+    ctaSettings?.ctaVariant === "filled" ? "filled" : "outline"
+
   const editor = canvas?.editor
   const isSectionSelected = editor?.selectedSectionId === canvas?.sectionId
   const editable = Boolean(editor && isSectionSelected)
   const mediaInteractive = editable && editor?.selectedBlockId === mediaBlock?.id
+  const ctaInteractive = editable && editor?.selectedBlockId === ctaBlock?.id
 
   useEffect(() => {
     if (!mediaInteractive) setActiveTitleLine(null)
   }, [mediaInteractive])
 
-  const hasImage = Boolean(image.url) || canvasImages.length > 0
+  const hasImage = Boolean(heroImageUrl)
 
   const onMediaChange = (patch: Record<string, unknown>) => {
     if (!mediaBlock || !editor) return
@@ -320,31 +404,28 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
           ...heroTitleLayoutsToPatch(title1Layout, title2Layout),
           title1Layer,
           title2Layer,
-          imgScale: image.scale,
-          imgX: image.x,
-          imgY: image.y,
+          imgScale: heroImageZoom,
           ...patch,
         }
       : patch
     editor.onBlockChange?.(canvas!.sectionId, mediaBlock.id, full)
   }
 
-  const onMultiImageChange = (imageId: string, patch: Partial<CanvasImageItem>) => {
-    if (!mediaBlock || !editor) return
-    const current = parseCanvasImages(mediaSettings)
-    const updatedImages = updateImageInArray(current, imageId, patch)
-    const full = useMobileTitleSeed
+  const onCtaChange = (patch: Record<string, unknown>) => {
+    if (typeof patch.label === "string") {
+      editor?.onHeroChange?.("ctaLabel", patch.label)
+    }
+    if (!ctaBlock || !editor) return
+    const full = useMobileCtaSeed
       ? {
-          ...heroTitleLayoutsToPatch(title1Layout, title2Layout),
-          title1Layer,
-          title2Layer,
-          imgScale: image.scale,
-          imgX: image.x,
-          imgY: image.y,
-          images: updatedImages,
+          xPct: cta.layout.xPct,
+          wPct: cta.layout.wPct,
+          yPx: cta.layout.yPx,
+          hPx: cta.layout.hPx,
+          ...patch,
         }
-      : { images: updatedImages }
-    editor.onBlockChange?.(canvas!.sectionId, mediaBlock.id, full)
+      : patch
+    editor.onBlockChange?.(canvas!.sectionId, ctaBlock.id, full)
   }
 
   const title1StyleOverride = parseHeroTitleStyle(mediaSettings, "title1")
@@ -358,7 +439,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
       styleOverride: title1StyleOverride,
       labelLayout: title1Layout,
       onHeroKey: "title" as const,
-      isSubtitle: false,
+      isAccentLine: false,
     },
     {
       line: "title2" as const,
@@ -367,7 +448,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
       styleOverride: title2StyleOverride,
       labelLayout: title2Layout,
       onHeroKey: "subtitle" as const,
-      isSubtitle: true,
+      isAccentLine: true,
     },
   ]
 
@@ -378,11 +459,11 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
     <div
       ref={frameRef}
       id="section-hero"
-      className="relative w-full overflow-visible bg-gradient-to-br from-zinc-950 via-zinc-900 to-[#0D4A3E]"
+      className="relative w-full overflow-visible bg-sky-400"
       style={{ height: frameHeight }}
     >
       {editable && (
-        <CanvasGridOverlay canvasHeight={HERO_DESIGN_HEIGHT} scale={scale} />
+        <CanvasGridOverlay canvasHeight={BOLD_HERO_DESIGN_HEIGHT} scale={scale} />
       )}
 
       <div className="absolute inset-0 overflow-hidden">
@@ -397,7 +478,6 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
             lineSelected={mediaInteractive && activeTitleLine === item.line}
             onActivate={() => {
               setActiveTitleLine(item.line)
-              setActiveImageId(null)
             }}
             onHeroChange={(key, val) => editor?.onHeroChange?.(key, val)}
             onLayoutChange={onMediaChange}
@@ -407,128 +487,15 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
           />
         ))}
 
-        {/* Multi-image layer */}
-        {canvasImages.length > 0 && mediaBlock && (
-          <div
-            className={cn("absolute inset-0", !editable && "pointer-events-none")}
-            onClick={
-              editable
-                ? (event) => {
-                    event.stopPropagation()
-                    editor?.onSelectBlock?.(canvas!.sectionId, mediaBlock.id)
-                    setActiveImageId(null)
-                    setActiveTitleLine(null)
-                  }
-                : undefined
-            }
-          >
-            {canvasImages.map((img) => (
-              <CanvasMultiImageItem
-                key={img.id}
-                item={img}
-                selected={mediaInteractive && activeImageId === img.id}
-                editable={mediaInteractive}
-                onSelect={() => {
-                  setActiveImageId(img.id)
-                  setActiveTitleLine(null)
-                  editor?.onSelectBlock?.(canvas!.sectionId, mediaBlock.id)
-                }}
-                onChange={(patch) => onMultiImageChange(img.id, patch)}
-              />
-            ))}
-          </div>
-        )}
+        <HeroBackground url={heroImageUrl} alt={titleLine1} zoom={heroImageZoom} />
 
-        {/* Fallback: single legacy image when images array is empty */}
-        {canvasImages.length === 0 && mediaBlock && (
-          <div
-            className={cn("absolute inset-0", !editable && "pointer-events-none")}
-            style={{ zIndex: Z_IMAGE }}
-            onClick={
-              editable
-                ? (event) => {
-                    event.stopPropagation()
-                    editor?.onSelectBlock?.(canvas!.sectionId, mediaBlock.id)
-                  }
-                : undefined
-            }
-          >
-            {(Boolean(image.url) || editable) && (
-              <CanvasImageFrame
-                image={image}
-                interactive={mediaInteractive}
-                onChange={onMediaChange}
-              />
-            )}
-          </div>
-        )}
-
-        {/* Gradient overlays */}
+        {/* Subtle left scrim for text legibility on bright skies */}
         {hasImage || editable ? (
-          <>
-            <div
-              className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/25"
-              style={{ zIndex: Z_OVERLAY }}
-            />
-            <div
-              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20"
-              style={{ zIndex: Z_OVERLAY }}
-            />
-          </>
-        ) : (
-          <>
-            <div
-              className="pointer-events-none absolute right-0 top-0 h-full w-2/3 bg-gradient-to-l from-[#0D4A3E]/30 via-transparent to-transparent"
-              style={{ zIndex: Z_OVERLAY }}
-            />
-            <div
-              className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-black/50 via-transparent to-transparent"
-              style={{ zIndex: Z_OVERLAY }}
-            />
-          </>
-        )}
-
-        {/* Dot pattern */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            zIndex: Z_DECOR,
-            backgroundImage:
-              "radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)",
-            backgroundSize: "28px 28px",
-          }}
-        />
-
-        {/* BOLD watermark */}
-        <div
-          className="pointer-events-none absolute inset-0 flex select-none items-center justify-center"
-          style={{ zIndex: Z_DECOR }}
-          aria-hidden="true"
-        >
-          <span
-            className="font-black uppercase text-white/[0.03]"
-            style={{
-              fontSize: `${Math.max(80, frameHeight * 0.55)}px`,
-              fontFamily: "var(--theme-heading-font)",
-              lineHeight: 0.85,
-              letterSpacing: "-0.02em",
-            }}
-          >
-            BOLD
-          </span>
-        </div>
-
-        {/* Left accent bar */}
-        <div
-          className="pointer-events-none absolute left-0 top-0 hidden h-full w-1 md:block"
-          style={{ zIndex: Z_DECOR, backgroundColor: "var(--theme-accent)" }}
-        />
-
-        {/* Bottom fade */}
-        <div
-          className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/65 to-transparent"
-          style={{ zIndex: Z_DECOR }}
-        />
+          <div
+            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/25 via-black/5 to-transparent"
+            style={{ zIndex: Z_OVERLAY }}
+          />
+        ) : null}
 
         {/* Front title labels */}
         {frontTitles.map((item) => (
@@ -542,7 +509,6 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
             lineSelected={mediaInteractive && activeTitleLine === item.line}
             onActivate={() => {
               setActiveTitleLine(item.line)
-              setActiveImageId(null)
             }}
             onHeroChange={(key, val) => editor?.onHeroChange?.(key, val)}
             onLayoutChange={onMediaChange}
@@ -551,42 +517,23 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
             }
           />
         ))}
+      </div>
 
-        {/* Static CTAs */}
-        <div
-          className={cn(
-            "absolute bottom-0 left-0 right-0 flex flex-col gap-4 px-6 pb-10",
-            editable && "pointer-events-none",
-          )}
-          style={{ zIndex: 20 }}
-        >
-          <div className="flex items-center gap-3">
-            <span className="h-px w-8" style={{ backgroundColor: "var(--theme-accent)" }} />
-            <span
-              className="text-[10px] font-black uppercase tracking-[0.28em]"
-              style={{ color: "var(--theme-accent)" }}
-            >
-              {config?.storeName ?? "MOMENTUM BOLD"}
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href={editable ? "#" : ctaHref}
-              className="inline-flex h-10 items-center px-6 text-xs font-black uppercase tracking-[0.12em] text-zinc-900 transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "var(--theme-accent)" }}
-              onClick={editable ? (e) => e.preventDefault() : undefined}
-            >
-              {ctaLabel}
-            </Link>
-            <Link
-              href={editable ? "#" : "/about"}
-              className="inline-flex h-10 items-center border border-white/40 px-6 text-xs font-bold uppercase tracking-[0.12em] text-white transition-colors hover:border-white"
-              onClick={editable ? (e) => e.preventDefault() : undefined}
-            >
-              OUR STORY
-            </Link>
-          </div>
-        </div>
+      <div className="pointer-events-none absolute inset-0 z-[25]">
+        <CanvasHeroCta
+          cta={cta}
+          href={ctaHref}
+          editable={editable}
+          selected={ctaInteractive}
+          scale={scale}
+          designWidth={designWidth}
+          frameRef={frameRef}
+          variant={ctaVariant}
+          onSelect={() =>
+            ctaBlock && editor?.onSelectBlock?.(canvas!.sectionId, ctaBlock.id)
+          }
+          onChange={onCtaChange}
+        />
       </div>
 
       {/* Title resize handles — outside overflow-hidden so they can overflow */}
@@ -616,7 +563,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
 
       {editable && !editor?.selectedBlockId && (
         <p className="pointer-events-none absolute bottom-3 left-0 right-0 z-[30] text-center text-[10px] text-white/70">
-          Klik judul atau gambar untuk edit
+          Klik judul atau tombol CTA untuk edit · ganti foto lewat panel kiri
         </p>
       )}
       {editable && mediaInteractive && (

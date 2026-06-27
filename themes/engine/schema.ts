@@ -58,6 +58,9 @@ export const themeConfigSchema = z.object({
   logoDisplay: z.enum(["logo", "text", "both"]).optional(),
   heroImageUrl: z.string().optional(),
   hero: heroConfigSchema.optional(),
+  contactPhone: z.string().optional(),
+  contactEmail: z.string().optional(),
+  contactAddress: z.string().optional(),
   /** Per-page section layouts; omitted configs fall back to theme defaults. */
   templates: themeTemplatesSchema,
 })

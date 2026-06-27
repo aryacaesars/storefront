@@ -291,18 +291,77 @@ const FASHION_BLOCK_DEFS: Record<string, Record<string, BlockDefinition>> = {
   },
 }
 
+const BOLD_HERO_CTA_BLOCK: BlockDefinition = {
+  type: "hero-cta",
+  label: "Tombol CTA",
+  defaultSettings: {
+    label: "SHOP NOW",
+    xPct: 5,
+    wPct: 22,
+    yPx: 430,
+    hPx: 48,
+    ctaBgColor: "transparent",
+    ctaTextColor: "#ffffff",
+    ctaVariant: "outline",
+  },
+  fields: [
+    { key: "label", label: "Teks Tombol", type: "text", placeholder: "SHOP NOW" },
+    { key: "ctaBgColor", label: "Warna Latar", type: "color" },
+    { key: "ctaTextColor", label: "Warna Teks", type: "color" },
+  ],
+}
+
 const BOLD_BLOCK_DEFS: Record<string, Record<string, BlockDefinition>> = {
   hero: {
     "hero-media": {
       type: "hero-media",
       label: "Gambar Hero",
-      defaultSettings: { imageUrl: "", imgScale: 100, imgX: 0, imgY: 0 },
+      defaultSettings: {
+        imageUrl: "/themes/bold/hero-athlete.png",
+        imgScale: 100,
+        imgX: 0,
+        imgY: 0,
+      },
       fields: [
         {
           key: "imageUrl",
           label: "Gambar Hero",
           type: "image",
           placeholder: "Upload Gambar Hero",
+        },
+      ],
+    },
+    "hero-cta": BOLD_HERO_CTA_BLOCK,
+  },
+  "category-grid": {
+    "category-card": {
+      type: "category-card",
+      label: "Kartu Kategori",
+      defaultSettings: {
+        label: "Category",
+        slug: "category",
+        cardBgColor: "#18181b",
+        imageUrl: "",
+        imgScale: 100,
+        imgX: 0,
+        imgY: 0,
+        labelLayer: "front",
+        labelScale: 100,
+      },
+      fields: [
+        { key: "label", label: "Judul", type: "text", placeholder: "Performance" },
+        { key: "slug", label: "Slug", type: "text", placeholder: "performance" },
+        {
+          key: "cardBgColor",
+          label: "Warna Kartu",
+          type: "color",
+          hint: "Latar belakang kartu.",
+        },
+        {
+          key: "imageUrl",
+          label: "Gambar",
+          type: "image",
+          placeholder: "Upload Gambar Kategori",
         },
       ],
     },

@@ -11,13 +11,13 @@ interface AboutPageProps { config?: ThemeConfig }
 export function AboutPage({ config }: AboutPageProps) {
   return (
     <div className="min-h-screen bg-white">
-      <ContactHeader />
+      <ContactHeader config={config} />
 
       {/* 2-col: form + channels */}
       <section className="mx-auto max-w-7xl px-6 pb-16">
         <div className="grid gap-6 md:grid-cols-[1fr_400px]">
           <ContactFormClient />
-          <DirectChannels />
+          <DirectChannels config={config} />
         </div>
       </section>
 

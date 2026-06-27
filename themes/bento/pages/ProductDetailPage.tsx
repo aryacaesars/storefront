@@ -1,12 +1,30 @@
 import Link from "next/link"
-import { TRENDING_PRODUCTS } from "@/themes/bento/data/mock"
+import { mockProductToCatalog, TRENDING_PRODUCTS } from "@/themes/bento/data/mock"
 import { ProductCard } from "@/themes/bento/sections/ProductCard"
 import type { ThemePageProps } from "@/themes/engine/page-props"
+import { formatIdr } from "@/features/storefront/catalog-types"
+import { ProductNotFound } from "@/features/storefront/ProductNotFound"
+import { resolveProductDetail } from "@/features/storefront/resolve-catalog-product"
 
-export function ProductDetailPage({ slug = "1" }: ThemePageProps) {
-  const product =
-    TRENDING_PRODUCTS.find((item) => item.id === slug) ?? TRENDING_PRODUCTS[0]
-  const displayPrice = product.salePrice ?? product.price
+const MOCK_CATALOG = TRENDING_PRODUCTS.map(mockProductToCatalog)
+
+export function ProductDetailPage({
+  slug = "1",
+  product,
+  products = [],
+}: ThemePageProps) {
+  const { product: resolved, related, isLiveCatalog } = resolveProductDetail(
+    slug,
+    product,
+    products,
+    MOCK_CATALOG,
+  )
+
+  if (!resolved) {
+    return <ProductNotFound />
+  }
+
+  const displayPrice = resolved.salePrice ?? resolved.price
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-12 @2xl:px-6">
@@ -15,21 +33,30 @@ export function ProductDetailPage({ slug = "1" }: ThemePageProps) {
           Products
         </Link>
         {" / "}
-        {product.name}
+        {resolved.name}
       </p>
 
       <div className="mt-8 grid gap-10 @3xl:grid-cols-2">
         <div className="relative aspect-[3/4] overflow-hidden rounded-[27px] bg-white shadow-[0px_0px_19px_rgba(0,0,0,0.12)]">
-          <div className={`h-full w-full ${product.imageClass}`} />
-          {product.badge && (
+          {resolved.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={resolved.imageUrl}
+              alt={resolved.name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className={`h-full w-full ${resolved.imageClass}`} />
+          )}
+          {resolved.badge && (
             <span
               className="absolute left-4 top-4 rounded-full px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-white"
               style={{
                 backgroundColor:
-                  product.badge === "SALE" ? "#e07a5f" : "var(--theme-primary)",
+                  resolved.badge === "SALE" ? "#e07a5f" : "var(--theme-primary)",
               }}
             >
-              {product.badge}
+              {resolved.badge}
             </span>
           )}
         </div>
@@ -39,29 +66,34 @@ export function ProductDetailPage({ slug = "1" }: ThemePageProps) {
             className="text-3xl font-bold text-[#1a1c1b] @2xl:text-4xl"
             style={{ fontFamily: "var(--theme-heading-font)" }}
           >
-            {product.name}
+            {resolved.name}
           </h1>
-          <p className="mt-2 text-sm text-[#515160]">{product.subtitle}</p>
+          {resolved.subtitle && (
+            <p className="mt-2 text-sm text-[#515160]">{resolved.subtitle}</p>
+          )}
           <div className="mt-6 flex items-center gap-3">
             <span className="text-2xl font-bold text-[var(--theme-primary)]">
-              ${displayPrice.toFixed(0)}
+              {formatIdr(displayPrice)}
             </span>
-            {product.salePrice && (
+            {resolved.salePrice != null && (
               <span className="text-sm text-[#515160] line-through">
-                ${product.price.toFixed(0)}
+                {formatIdr(resolved.price)}
               </span>
             )}
           </div>
-          <p className="mt-6 text-sm leading-relaxed text-[#515160]">
-            Bold form, sharp finish — designed to stand out as much as it performs.
-          </p>
+          {resolved.description && (
+            <p className="mt-6 text-sm leading-relaxed text-[#515160]">
+              {resolved.description}
+            </p>
+          )}
           <div className="mt-8 flex flex-wrap gap-3">
             <button
               type="button"
-              className="h-12 rounded-full px-8 text-sm font-bold text-white transition-opacity hover:opacity-90"
+              disabled={!resolved.inStock}
+              className="h-12 rounded-full px-8 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               style={{ backgroundColor: "var(--theme-primary)" }}
             >
-              Add to Cart
+              {resolved.inStock ? "Add to Cart" : "Stok habis"}
             </button>
             <Link
               href="/cart"
@@ -70,27 +102,35 @@ export function ProductDetailPage({ slug = "1" }: ThemePageProps) {
               View Cart
             </Link>
           </div>
+          {isLiveCatalog && (
+            <p className="mt-4 text-[10px] font-bold uppercase tracking-wider text-[#515160]">
+              Katalog Scalev
+            </p>
+          )}
         </div>
       </div>
 
-      <div className="mt-20">
-        <div className="mb-8 flex items-end justify-between gap-4">
-          <h2
-            className="text-2xl font-bold capitalize leading-none text-[#1a1c1b] @2xl:text-3xl"
-            style={{ fontFamily: "var(--theme-heading-font)" }}
-          >
-            You May Also Like
-          </h2>
-          <span className="h-1.5 w-16 shrink-0 rounded-full" style={{ backgroundColor: "var(--theme-primary)" }} />
-        </div>
-        <div className="grid grid-cols-2 gap-6 @3xl:grid-cols-4">
-          {TRENDING_PRODUCTS.filter((item) => item.id !== product.id)
-            .slice(0, 4)
-            .map((item) => (
-              <ProductCard key={item.id} product={item} />
+      {related.length > 0 && (
+        <div className="mt-20">
+          <div className="mb-8 flex items-end justify-between gap-4">
+            <h2
+              className="text-2xl font-bold capitalize leading-none text-[#1a1c1b] @2xl:text-3xl"
+              style={{ fontFamily: "var(--theme-heading-font)" }}
+            >
+              You May Also Like
+            </h2>
+            <span
+              className="h-1.5 w-16 shrink-0 rounded-full"
+              style={{ backgroundColor: "var(--theme-primary)" }}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-6 @3xl:grid-cols-4">
+            {related.slice(0, 4).map((item) => (
+              <ProductCard key={item.slug} product={item} />
             ))}
+          </div>
         </div>
-      </div>
+      )}
     </section>
   )
 }

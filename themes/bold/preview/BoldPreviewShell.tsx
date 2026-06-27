@@ -18,12 +18,13 @@ interface BoldPreviewShellProps {
 
 export function BoldPreviewShell({ children, activeKey }: BoldPreviewShellProps) {
   return (
-    <div className={`${barlow.variable} min-h-full font-sans`}>
+    <div className={`${barlow.variable} relative min-h-full font-sans`}>
       <ThemeProvider config={DEFAULT_BOLD_CONFIG}>
         <Navbar
           config={DEFAULT_BOLD_CONFIG}
           basePath={BOLD_PREVIEW_BASE}
           activeKey={activeKey}
+          transparent
         />
         {children}
       </ThemeProvider>

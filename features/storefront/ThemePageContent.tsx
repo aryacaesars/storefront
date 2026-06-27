@@ -27,14 +27,16 @@ export async function ThemePageContent({
   let products: Awaited<ReturnType<typeof getCatalogProductsForTenant>> = []
   let product: Awaited<ReturnType<typeof getCatalogProductBySlug>> = null
 
-  if (pageType === "productList" || pageType === "allProducts" || pageType === "shop") {
+  if (pageType === "productList" || pageType === "allProducts" || pageType === "shop" || pageType === "newArrivals") {
     products = await getCatalogProductsForTenant(tenantSlug)
   }
   if (pageType === "productDetail" && slug) {
-    product = await getCatalogProductBySlug(tenantSlug, slug)
-    if (!product) {
-      products = await getCatalogProductsForTenant(tenantSlug)
-    }
+    const [detail, catalog] = await Promise.all([
+      getCatalogProductBySlug(tenantSlug, slug),
+      getCatalogProductsForTenant(tenantSlug),
+    ])
+    product = detail
+    products = catalog
   }
 
   if (!PageComponent) {

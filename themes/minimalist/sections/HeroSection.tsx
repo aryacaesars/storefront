@@ -66,13 +66,6 @@ function isLabelHandleTarget(target: EventTarget | null): boolean {
   )
 }
 
-function isTextEditTarget(target: EventTarget | null): boolean {
-  return (
-    target instanceof HTMLElement &&
-    Boolean(target.closest('[contenteditable="true"]'))
-  )
-}
-
 interface MinimalistTitleLineProps {
   line: HeroTitleLine
   value: string
@@ -170,6 +163,10 @@ function MinimalistTitleLine({
         if (!dragging && Math.abs(dx) + Math.abs(dy) < LABEL_DRAG_THRESHOLD) return
         dragging = true
         moveEvent.preventDefault()
+        const active = document.activeElement
+        if (active instanceof HTMLElement && active.isContentEditable) {
+          active.blur()
+        }
         const metrics = getLabelMetrics(frameRef.current)
         onLayoutChange(heroTitleLayoutToPatch(line, labelMoveFromDelta(dx, dy, metrics, origin)))
       }
@@ -195,7 +192,8 @@ function MinimalistTitleLine({
   function handleLabelPointerDown(event: React.PointerEvent<HTMLElement>) {
     if (!editable || isLabelHandleTarget(event.target)) return
     onActivate()
-    if (!labelMovable || isTextEditTarget(event.target)) return
+    onSelectMedia()
+    if (!labelMovable) return
     startLabelMove(event)
   }
 

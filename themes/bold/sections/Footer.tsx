@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { X, Share2, Mail } from "lucide-react"
 import type { ThemeConfig } from "@/themes/engine/schema"
 
@@ -9,92 +8,30 @@ interface FooterProps {
 export function Footer({ config }: FooterProps) {
   return (
     <footer className="border-t border-white/10 bg-zinc-950">
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-4">
+      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-2">
         {/* Brand */}
         <div>
-          <p
-            className="font-black uppercase text-white"
-            style={{ fontFamily: "var(--theme-heading-font)" }}
-          >
+          <p className="font-black uppercase text-white" style={{ fontFamily: "var(--theme-heading-font)" }}>
             {config.storeName}
           </p>
           <p className="mt-3 text-sm text-white/40">{config.tagline}</p>
           <div className="mt-5 flex gap-4">
-            <a
-              href="#"
-              className="text-white/40 transition-colors hover:text-white"
-              aria-label="Twitter"
-            >
+            <span className="text-white/40">
               <X className="h-4 w-4" strokeWidth={1.5} />
-            </a>
-            <a
-              href="#"
-              className="text-white/40 transition-colors hover:text-white"
-              aria-label="Share"
-            >
+            </span>
+            <span className="text-white/40">
               <Share2 className="h-4 w-4" strokeWidth={1.5} />
-            </a>
-            <a
-              href="#"
-              className="text-white/40 transition-colors hover:text-white"
-              aria-label="Email"
-            >
+            </span>
+            <span className="text-white/40">
               <Mail className="h-4 w-4" strokeWidth={1.5} />
-            </a>
+            </span>
           </div>
-        </div>
-
-        {/* Brand links */}
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/50">
-            BRAND
-          </p>
-          <ul className="mt-4 space-y-2.5">
-            {["Our Story", "Sustainability", "Lab Reports", "Careers"].map((label) => (
-              <li key={label}>
-                <Link
-                  href="/about"
-                  className="text-sm text-white/40 transition-colors hover:text-white"
-                >
-                  {label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Support links */}
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/50">
-            SUPPORT
-          </p>
-          <ul className="mt-4 space-y-2.5">
-            {[
-              "Contact Support",
-              "Shipping & Returns",
-              "Privacy Policy",
-              "Terms of Service",
-            ].map((label) => (
-              <li key={label}>
-                <Link
-                  href="/contact"
-                  className="text-sm text-white/40 transition-colors hover:text-white"
-                >
-                  {label}
-                </Link>
-              </li>
-            ))}
-          </ul>
         </div>
 
         {/* Newsletter */}
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/50">
-            NEWSLETTER
-          </p>
-          <p className="mt-4 text-sm text-white/40">
-            Access early release drops and technical insights.
-          </p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/50">NEWSLETTER</p>
+          <p className="mt-4 text-sm text-white/40">Access early release drops and technical insights.</p>
           <form className="mt-4 flex">
             <input
               type="email"

@@ -1,4 +1,4 @@
-import { TRENDING_PRODUCTS } from "@/themes/bento/data/mock"
+import { mockProductToCatalog, TRENDING_PRODUCTS } from "@/themes/bento/data/mock"
 import { getStringSetting } from "@/themes/engine/section-settings-schema"
 import type { SectionProps } from "@/themes/engine/section-registry"
 import { ProductCard } from "./ProductCard"
@@ -19,7 +19,7 @@ export function ProductGrid({ title, settings }: SectionProps & { title?: string
       </div>
       <div className="grid grid-cols-2 gap-5 @3xl:grid-cols-4 @3xl:gap-6">
         {TRENDING_PRODUCTS.map((product) => (
-          <ProductCard key={product.id} product={product} />
+          <ProductCard key={product.id} product={mockProductToCatalog(product)} />
         ))}
       </div>
     </section>

@@ -1,3 +1,5 @@
+import type { CatalogProduct } from "@/features/storefront/catalog-types"
+
 export interface MockProduct {
   id: string
   name: string
@@ -41,6 +43,14 @@ export const TRENDING_PRODUCTS: MockProduct[] = [
     imageClass: "bg-gradient-to-br from-[#bcc8dc] to-[#8a9ab8]",
   },
 ]
+
+export function mockProductToCatalog(mock: MockProduct): CatalogProduct {
+  return {
+    ...mock,
+    slug: mock.id,
+    inStock: true,
+  }
+}
 
 export const CATEGORIES = [
   {

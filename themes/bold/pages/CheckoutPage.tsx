@@ -4,7 +4,7 @@ import type { ThemePageProps } from "@/themes/engine/page-props"
 
 export function CheckoutPage({ config }: ThemePageProps) {
   return (
-    <>
+    <div className="bg-white min-h-screen">
       <section className="mx-auto max-w-5xl px-6 py-12">
         <h1
           className="text-4xl font-black uppercase text-zinc-900"
@@ -51,6 +51,6 @@ export function CheckoutPage({ config }: ThemePageProps) {
         </div>
       </section>
       <PerformanceFooter config={config} />
-    </>
+    </div>
   )
 }

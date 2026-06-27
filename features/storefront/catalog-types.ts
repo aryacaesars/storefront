@@ -96,7 +96,7 @@ export function mapStorefrontProductDetail(
     subtitle:
       firstVariant?.fullname?.trim() ||
       firstVariant?.name?.trim() ||
-      base.subtitle,
+      base.name,
     price: variantPrice || base.price,
     salePrice: undefined,
     imageUrl: base.imageUrl ?? firstVariant?.images?.[0],

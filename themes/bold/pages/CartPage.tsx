@@ -9,7 +9,7 @@ export function CartPage({ config }: ThemePageProps) {
   const subtotal = CART_ITEMS.reduce((sum, item) => sum + item.price, 0)
 
   return (
-    <>
+    <div className="bg-white min-h-screen">
       <section className="mx-auto max-w-4xl px-6 py-12">
         <h1
           className="text-4xl font-black uppercase text-zinc-900"
@@ -49,6 +49,6 @@ export function CartPage({ config }: ThemePageProps) {
         </div>
       </section>
       <PerformanceFooter config={config} />
-    </>
+    </div>
   )
 }

@@ -1,10 +1,18 @@
+import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import type { CatalogProduct } from "@/features/storefront/catalog-types"
+import { formatIdr } from "@/features/storefront/catalog-types"
 import { RELATED_PRODUCTS } from "@/themes/bold/data/mock"
 
-export function RelatedProducts() {
+interface RelatedProductsProps {
+  products?: CatalogProduct[]
+}
+
+export function RelatedProducts({ products }: RelatedProductsProps) {
+  const useLive = products != null && products.length > 0
+
   return (
     <div>
-      {/* Header */}
       <div className="mb-6 flex items-end justify-between">
         <div>
           <p
@@ -36,25 +44,45 @@ export function RelatedProducts() {
         </div>
       </div>
 
-      {/* Grid */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {RELATED_PRODUCTS.map((p) => (
-          <div key={p.id} className="cursor-pointer">
-            <div className={`aspect-square overflow-hidden rounded-sm ${p.imageClass}`} />
-            <p className="mt-3 text-[9px] font-semibold uppercase tracking-[0.12em] text-zinc-400">
-              {p.category}
-            </p>
-            <p
-              className="mt-0.5 text-sm font-black uppercase text-zinc-900"
-              style={{ fontFamily: "var(--theme-heading-font)" }}
-            >
-              {p.name}
-            </p>
-            <p className="mt-1 text-sm font-bold" style={{ color: "var(--theme-primary)" }}>
-              ${p.price.toFixed(2)}
-            </p>
-          </div>
-        ))}
+        {useLive
+          ? products!.slice(0, 4).map((p) => (
+              <Link key={p.slug} href={`/products/${p.slug}`} className="group">
+                {p.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={p.imageUrl}
+                    alt={p.name}
+                    className="aspect-square w-full rounded-sm object-cover"
+                  />
+                ) : (
+                  <div className={`aspect-square overflow-hidden rounded-sm ${p.imageClass}`} />
+                )}
+                <p
+                  className="mt-3 text-sm font-black uppercase text-zinc-900 group-hover:underline"
+                  style={{ fontFamily: "var(--theme-heading-font)" }}
+                >
+                  {p.name}
+                </p>
+                <p className="mt-1 text-sm font-bold" style={{ color: "var(--theme-primary)" }}>
+                  {formatIdr(p.salePrice ?? p.price)}
+                </p>
+              </Link>
+            ))
+          : RELATED_PRODUCTS.map((p) => (
+              <div key={p.id} className="cursor-pointer">
+                <div className={`aspect-square overflow-hidden rounded-sm ${p.imageClass}`} />
+                <p
+                  className="mt-3 text-sm font-black uppercase text-zinc-900"
+                  style={{ fontFamily: "var(--theme-heading-font)" }}
+                >
+                  {p.name}
+                </p>
+                <p className="mt-1 text-sm font-bold" style={{ color: "var(--theme-primary)" }}>
+                  ${p.price.toFixed(2)}
+                </p>
+              </div>
+            ))}
       </div>
     </div>
   )
