@@ -7,38 +7,218 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// Platform merchant / store (1:1 with Scalev connected business).
-model Tenant {
-  id               String   @id @default(cuid())
-  scalevBusinessId String   @unique @map("scalev_business_id")
-  slug             String   @unique
-  name             String
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
-
-  /// Scalev store binding for storefront catalog (per-tenant, not global env).
-  scalevStoreNumericId    Int?      @map("scalev_store_numeric_id")
-  scalevStoreUniqueId     String?   @map("scalev_store_unique_id")
-  scalevStoreName         String?   @map("scalev_store_name")
-  scalevStorefrontApiKey  String?   @map("scalev_storefront_api_key")
-  catalogConnectedAt      DateTime? @map("catalog_connected_at")
-  catalogProductCount     Int?      @map("catalog_product_count")
-
-  theme ThemeConfig?
-
-  @@map("tenants")
+enum Role {
+  OWNER
+  ADMIN
 }
 
-/// Branding + template config per tenant. Commerce data stays on Scalev.
-model ThemeConfig {
-  id          String   @id @default(cuid())
-  tenantId    String   @unique @map("tenant_id")
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  templateId  String   @map("template_id")
-  config      Json
-  isPublished Boolean  @default(false) @map("is_published")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+enum PurchaseStatus {
+  PENDING
+  PAID
+  FAILED
+}
 
-  @@map("theme_configs")
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DONE
+  CANCELLED
+}
+
+// NextAuth v5 — required by @auth/prisma-adapter
+model Account {
+  id                String   @id @default(cuid())
+  userId            String   @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String   @map("provider_account_id")
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?  @db.Text
+  session_state     String?
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// Platform models
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime? @map("email_verified")
+  name          String?
+  image         String?
+  role          Role      @default(OWNER)
+  accounts      Account[]
+  stores        Store[]
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@map("users")
+}
+
+model Store {
+  id          String             @id @default(cuid())
+  name        String
+  slug        String             @unique
+  ownerId     String             @map("owner_id")
+  owner       User               @relation(fields: [ownerId], references: [id])
+  products    Product[]
+  categories  Category[]
+  orders      Order[]
+  customers   Customer[]
+  themeConfig StoreThemeConfig?
+  purchases   TemplatePurchase[]
+  createdAt   DateTime           @default(now()) @map("created_at")
+
+  @@map("stores")
+}
+
+model Template {
+  id          String             @id @default(cuid())
+  name        String
+  slug        String             @unique
+  description String?
+  price       Int
+  previewUrl  String?            @map("preview_url")
+  published   Boolean            @default(false)
+  purchases   TemplatePurchase[]
+
+  @@map("templates")
+}
+
+model TemplatePurchase {
+  id              String         @id @default(cuid())
+  storeId         String         @map("store_id")
+  store           Store          @relation(fields: [storeId], references: [id])
+  templateId      String         @map("template_id")
+  template        Template       @relation(fields: [templateId], references: [id])
+  stripePaymentId String?        @map("stripe_payment_id")
+  status          PurchaseStatus @default(PENDING)
+  paidAt          DateTime?      @map("paid_at")
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  @@map("template_purchases")
+}
+
+model StoreThemeConfig {
+  storeId    String   @id @map("store_id")
+  store      Store    @relation(fields: [storeId], references: [id])
+  templateId String   @map("template_id")
+  configJson Json     @map("config_json")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("store_theme_configs")
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String
+  slug     String
+  storeId  String    @map("store_id")
+  store    Store     @relation(fields: [storeId], references: [id])
+  products Product[]
+
+  @@unique([storeId, slug])
+  @@map("categories")
+}
+
+model Product {
+  id          String         @id @default(cuid())
+  name        String
+  slug        String
+  description String?
+  price       Int
+  stock       Int            @default(0)
+  published   Boolean        @default(false)
+  storeId     String         @map("store_id")
+  store       Store          @relation(fields: [storeId], references: [id])
+  categoryId  String?        @map("category_id")
+  category    Category?      @relation(fields: [categoryId], references: [id])
+  images      ProductImage[]
+  orderItems  OrderItem[]
+
+  @@unique([storeId, slug])
+  @@map("products")
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  url       String
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id])
+  order     Int     @default(0)
+
+  @@map("product_images")
+}
+
+model Customer {
+  id        String    @id @default(cuid())
+  email     String
+  name      String?
+  image     String?
+  storeId   String    @map("store_id")
+  store     Store     @relation(fields: [storeId], references: [id])
+  orders    Order[]
+  addresses Address[]
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@unique([storeId, email])
+  @@map("customers")
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  customerId String   @map("customer_id")
+  customer   Customer @relation(fields: [customerId], references: [id])
+  label      String?
+  street     String
+  city       String
+  province   String
+  postalCode String   @map("postal_code")
+  isDefault  Boolean  @default(false) @map("is_default")
+
+  @@map("addresses")
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  storeId         String      @map("store_id")
+  store           Store       @relation(fields: [storeId], references: [id])
+  customerId      String      @map("customer_id")
+  customer        Customer    @relation(fields: [customerId], references: [id])
+  status          OrderStatus @default(PENDING)
+  total           Int
+  stripePaymentId String?     @map("stripe_payment_id")
+  items           OrderItem[]
+  createdAt       DateTime    @default(now()) @map("created_at")
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String  @map("order_id")
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Int
+
+  @@map("order_items")
 }
