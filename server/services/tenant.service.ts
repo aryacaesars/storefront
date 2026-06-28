@@ -27,3 +27,22 @@ export function slugify(input: string): string {
     .replace(/(^-|-$)/g, "")
     .slice(0, 63)
 }
+
+export async function createStore(input: {
+  name: string
+  slug: string
+  ownerId: string
+}): Promise<Store> {
+  return prisma.store.create({
+    data: {
+      name: input.name,
+      slug: input.slug,
+      ownerId: input.ownerId,
+    },
+  })
+}
+
+export async function slugExists(slug: string): Promise<boolean> {
+  const count = await prisma.store.count({ where: { slug } })
+  return count > 0
+}
