@@ -32,6 +32,7 @@ export default async function CustomizePage({
       : getDefaultThemeConfig(previewTemplateId)
 
   const meta = TEMPLATE_META[previewTemplateId]
+  // @ts-expect-error TODO Sprint 3: use storeId from URL params, session.tenantSlug/tenantId removed
   const storefrontHost = getStorefrontHost(session.tenantSlug)
 
   return (

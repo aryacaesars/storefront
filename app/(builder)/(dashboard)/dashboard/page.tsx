@@ -1,39 +1,49 @@
 import { requireSession } from "@/features/auth/dal"
-import { LiveEnvironmentCard } from "@/features/builder/components/LiveEnvironmentCard"
-import { ActiveThemeCard } from "@/features/builder/components/ActiveThemeCard"
-import { OrderFulfillmentCard } from "@/features/builder/components/OrderFulfillmentCard"
-import { CatalogStatusCard } from "@/features/builder/components/CatalogStatusCard"
-import { getStorefrontHost } from "@/lib/tenant/storefront-url"
-// TODO Sprint 2: reconnect to Prisma data source — getTenantById removed; use getStoreById
-// import { getTenantById } from "@/server/services/tenant.service"
+import { getStoresByOwnerId } from "@/server/services/tenant.service"
+import Link from "next/link"
 
-export const metadata = { title: "Dashboard — Storefront Builder" }
+export const metadata = { title: "Dashboard — Etalase" }
 
 export default async function DashboardPage() {
   const session = await requireSession()
-  // TODO Sprint 2: reconnect to Prisma — use session.storeId with getStoreById
-  const tenant = null
-  // @ts-expect-error TODO Sprint 2: session.tenantSlug not in new SessionData shape
-  const storefrontHost = getStorefrontHost(session.tenantSlug ?? "")
+  const stores = await getStoresByOwnerId(session.userId)
 
   return (
-    <div className="p-6 h-full">
-      <div className="grid grid-cols-[1fr_320px] gap-5 h-full max-h-[600px]">
-        <div className="flex flex-col justify-start">
-          <LiveEnvironmentCard
-            // @ts-expect-error TODO Sprint 2: session.tenantSlug not in new SessionData shape
-            tenantSlug={session.tenantSlug ?? ""}
-            storefrontHost={storefrontHost}
-          />
-        </div>
-
-        <div className="flex flex-col gap-5">
-          {/* @ts-expect-error TODO Sprint 2: session.tenantSlug not in new SessionData shape */}
-          <CatalogStatusCard tenant={tenant} tenantSlug={session.tenantSlug ?? ""} />
-          <ActiveThemeCard />
-          <OrderFulfillmentCard />
-        </div>
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-semibold text-gray-900">Store Saya</h1>
+        <Link
+          href="/stores/new"
+          className="px-4 py-2 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+        >
+          + Buat Store
+        </Link>
       </div>
+
+      {stores.length === 0 ? (
+        <div className="text-center py-20 text-gray-500">
+          <p className="mb-4 text-base">Belum ada store. Buat store pertama kamu.</p>
+          <Link
+            href="/stores/new"
+            className="px-4 py-2 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+          >
+            Buat Store Sekarang
+          </Link>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {stores.map((store) => (
+            <Link
+              key={store.id}
+              href={`/stores/${store.id}/dashboard`}
+              className="p-5 bg-white border border-gray-200 rounded-xl hover:border-gray-400 hover:shadow-sm transition-all"
+            >
+              <p className="font-semibold text-gray-900">{store.name}</p>
+              <p className="text-sm text-gray-400 mt-1">{store.slug}.etalase.com</p>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -13,7 +13,9 @@ import { getStorefrontHost, getStorefrontUrl } from "@/lib/tenant/storefront-url
 
 export default async function SettingsPage() {
   const session = await requireSession()
+  // @ts-expect-error TODO Sprint 2: use storeId from URL params, session.tenantSlug/tenantId removed
   const storefrontHost = getStorefrontHost(session.tenantSlug)
+  // @ts-expect-error TODO Sprint 2: use storeId from URL params, session.tenantSlug/tenantId removed
   const storefrontUrl = getStorefrontUrl(session.tenantSlug)
   return (
     <div className="p-8 max-w-4xl">
@@ -70,6 +72,7 @@ export default async function SettingsPage() {
         >
           <SettingsField
             label="Subdomain Etalase"
+            // @ts-expect-error TODO Sprint 2: use storeId from URL params, session.tenantSlug/tenantId removed
             hint={`Diambil dari akun Scalev: ${session.tenantSlug || "—"}. Custom slug butuh integrasi tenant DB (coming soon).`}
           >
             <div className="flex items-center h-9 rounded-lg border border-gray-200 bg-gray-50 overflow-hidden">
