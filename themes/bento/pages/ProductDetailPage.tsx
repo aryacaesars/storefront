@@ -5,6 +5,7 @@ import type { ThemePageProps } from "@/themes/engine/page-props"
 import { formatIdr } from "@/features/storefront/catalog-types"
 import { ProductNotFound } from "@/features/storefront/ProductNotFound"
 import { resolveProductDetail } from "@/features/storefront/resolve-catalog-product"
+import { AddToCartButton } from "@/features/storefront/AddToCartButton"
 
 const MOCK_CATALOG = TRENDING_PRODUCTS.map(mockProductToCatalog)
 
@@ -87,14 +88,26 @@ export function ProductDetailPage({
             </p>
           )}
           <div className="mt-8 flex flex-wrap gap-3">
-            <button
-              type="button"
-              disabled={!resolved.inStock}
-              className="h-12 rounded-full px-8 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-              style={{ backgroundColor: "var(--theme-primary)" }}
-            >
-              {resolved.inStock ? "Add to Cart" : "Stok habis"}
-            </button>
+            {resolved.inStock && isLiveCatalog ? (
+              <AddToCartButton
+                productId={resolved.id}
+                slug={resolved.slug}
+                name={resolved.name}
+                price={resolved.price}
+                imageUrl={resolved.imageUrl}
+                className="h-12 rounded-full px-8 text-sm font-bold text-white transition-opacity hover:opacity-90"
+                style={{ backgroundColor: "var(--theme-primary)" }}
+              />
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="h-12 rounded-full px-8 text-sm font-bold text-white cursor-not-allowed opacity-50"
+                style={{ backgroundColor: "var(--theme-primary)" }}
+              >
+                {resolved.inStock ? "Add to Cart" : "Stok habis"}
+              </button>
+            )}
             <Link
               href="/cart"
               className="inline-flex h-12 items-center rounded-full border border-gray-200 px-8 text-sm font-semibold text-[#1a1c1b] transition-colors hover:border-[var(--theme-primary)]"
@@ -102,11 +115,6 @@ export function ProductDetailPage({
               View Cart
             </Link>
           </div>
-          {isLiveCatalog && (
-            <p className="mt-4 text-[10px] font-bold uppercase tracking-wider text-[#515160]">
-              Katalog Scalev
-            </p>
-          )}
         </div>
       </div>
 

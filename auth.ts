@@ -34,20 +34,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return Boolean(user.email)
     },
     async jwt({ token, user }) {
-      if (user?.id && user.email) {
-        const role: Role = ADMIN_EMAILS.includes(user.email) ? "ADMIN" : "OWNER"
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { role },
-        })
-        token.id = user.id
-        token.role = role
+      // Kunci Prisma user id + role ke JWT, reconcile lewat email.
+      // `user.email` ada saat sign-in; `token.email` di request berikutnya.
+      // Email DIKUNCI ke token supaya reconcile tak pernah ke-skip — akar bug
+      // 404 dashboard: token tanpa email → id jatuh ke OAuth `sub` → owner
+      // check (store.ownerId === session.userId) gagal → notFound().
+      const email = (user?.email ?? token.email) as string | undefined
+      if (email) {
+        const dbUser = await prisma.user.findUnique({ where: { email } })
+        if (dbUser) {
+          const role: Role = ADMIN_EMAILS.includes(dbUser.email) ? "ADMIN" : "OWNER"
+          if (dbUser.role !== role) {
+            await prisma.user.update({ where: { id: dbUser.id }, data: { role } })
+          }
+          token.id = dbUser.id
+          token.role = role
+          token.email = dbUser.email
+        }
       }
       return token
     },
-    session({ session, token }) {
-      session.user.id = token.id as string
-      session.user.role = token.role as Role
+    async session({ session, token }) {
+      if (token.id) session.user.id = token.id as string
+      if (token.role) session.user.role = token.role as Role
       return session
     },
   },

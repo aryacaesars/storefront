@@ -15,9 +15,9 @@ const NAV_LINKS = [
 ];
 
 export default async function LoginPage() {
-  // Already signed in? Skip the form.
+  // Already signed in? Skip the form. Admin → admin panel, owner → dashboard.
   const session = await getSession();
-  if (session) redirect("/dashboard");
+  if (session) redirect(session.role === "ADMIN" ? "/admin" : "/dashboard");
 
   return (
     <div className="flex min-h-dvh flex-col bg-white">

@@ -31,7 +31,7 @@ const SF_CUSTOMER_COOKIE = "sf_customer_session";
 // Path builder yang wajib login.
 const PROTECTED = ["/dashboard", "/templates", "/customize", "/stores", "/admin"];
 // Path storefront yang wajib login end user.
-const PROTECTED_STOREFRONT = ["/account", "/checkout"];
+const PROTECTED_STOREFRONT = ["/account"];
 
 /** Ambil hostname tanpa port. Tangani juga preview Vercel & localhost. */
 function getHostname(request: NextRequest): string {
@@ -112,14 +112,14 @@ export function proxy(request: NextRequest) {
     }
   }
 
-  // Auth gate storefront: /account dan /checkout wajib login end user.
+  // Auth gate storefront: /account wajib login end user.
   if (context === "storefront") {
     const needsAuth = PROTECTED_STOREFRONT.some(
       (p) => pathname === p || pathname.startsWith(`${p}/`),
     );
     if (needsAuth && !request.cookies.has(SF_CUSTOMER_COOKIE)) {
       const url = request.nextUrl.clone();
-      url.pathname = "/login";
+      url.pathname = "/signin";
       return NextResponse.redirect(url);
     }
   }

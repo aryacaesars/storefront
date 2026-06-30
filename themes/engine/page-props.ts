@@ -1,14 +1,29 @@
 import type { ThemeConfig } from "./schema"
 import type { CatalogProduct } from "@/features/storefront/catalog-types"
+import type { CartItem } from "@/lib/storefront/cart"
 
 /** Props passed to every theme page component from the storefront / builder. */
 export type ThemePageProps = {
   config: ThemeConfig
   /** Route param for product detail, collection, order, etc. */
   slug?: string
-  /** Live Scalev catalog (empty when tenant not connected). */
+  /** Live catalog products. */
   products?: CatalogProduct[]
   product?: CatalogProduct | null
+  /** Cart items (for cart and checkout pages). */
+  cart?: CartItem[]
+  /** Store ID (for checkout action binding). */
+  storeId?: string
+  /** Checkout prefill from the logged-in customer + saved address. */
+  checkoutPrefill?: {
+    name: string
+    email: string
+    phone: string
+    street: string
+    city: string
+    province: string
+    postalCode: string
+  } | null
 }
 
 /** Default slug used in builder preview for parametric pages. */

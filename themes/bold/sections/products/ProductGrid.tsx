@@ -10,7 +10,7 @@ export function ProductGrid({ products, liveCatalog = false }: ProductGridProps)
   if (products.length === 0) {
     return (
       <p className="text-sm text-zinc-500">
-        Belum ada produk visible di katalog Scalev.
+        Belum ada produk visible di katalog.
       </p>
     )
   }

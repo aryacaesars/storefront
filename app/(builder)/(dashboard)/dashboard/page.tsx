@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation"
 import { requireSession } from "@/features/auth/dal"
 import { getStoresByOwnerId } from "@/server/services/tenant.service"
 import Link from "next/link"
@@ -6,6 +7,8 @@ export const metadata = { title: "Dashboard — Etalase" }
 
 export default async function DashboardPage() {
   const session = await requireSession()
+  // Admin platform tak punya store sendiri — langsung ke admin panel.
+  if (session.role === "ADMIN") redirect("/admin")
   const stores = await getStoresByOwnerId(session.userId)
 
   return (

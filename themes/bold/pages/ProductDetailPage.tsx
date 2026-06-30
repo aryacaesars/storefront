@@ -36,7 +36,10 @@ export function ProductDetailPage({
   return (
     <div className="min-h-screen bg-white">
       <section className="mx-auto max-w-7xl px-6 py-10">
-        <ProductGalleryClient product={galleryProduct} />
+        <ProductGalleryClient
+          product={galleryProduct}
+          catalogProductId={isLiveCatalog ? resolved?.id : undefined}
+        />
       </section>
       <section className="mx-auto max-w-7xl px-6 pb-16">
         <RelatedProducts products={isLiveCatalog ? related : undefined} />

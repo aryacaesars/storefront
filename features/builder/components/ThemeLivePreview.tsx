@@ -14,7 +14,7 @@ import type { PageType } from "@/themes/engine/resolve-page"
 import { resolveThemePage } from "@/themes/engine/resolve-page"
 import { hrefToPageType } from "@/themes/engine/route-map"
 import { PREVIEW_PAGE_SLUGS } from "@/themes/engine/page-props"
-import { ThemeChrome } from "@/themes/engine/ThemeChrome"
+import { ThemeChromeView } from "@/themes/engine/ThemeChromeView"
 
 interface ThemeLivePreviewProps {
   templateId: TemplateId
@@ -109,7 +109,7 @@ export function ThemeLivePreview({
               <ThemeFontScope templateId={templateId}>
                 <ThemeProvider config={config} forcedDevice={device}>
                   {PageComponent ? (
-                    <ThemeChrome config={config}>
+                    <ThemeChromeView config={config}>
                       <PageComponent
                         config={config}
                         slug={
@@ -120,7 +120,7 @@ export function ThemeLivePreview({
                             : undefined
                         }
                       />
-                    </ThemeChrome>
+                    </ThemeChromeView>
                   ) : (
                     <div className="flex min-h-[480px] flex-col items-center justify-center gap-2 px-8 text-center">
                       <p className="text-sm font-semibold text-gray-900">Halaman belum tersedia</p>

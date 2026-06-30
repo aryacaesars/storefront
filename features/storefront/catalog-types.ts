@@ -30,7 +30,7 @@ function parsePrice(value: unknown): number {
   return 0;
 }
 
-function gradientForId(id: string): string {
+export function gradientForId(id: string): string {
   let hash = 0;
   for (let i = 0; i < id.length; i++) hash = (hash + id.charCodeAt(i)) % 997;
   return FALLBACK_GRADIENTS[hash % FALLBACK_GRADIENTS.length];
@@ -65,7 +65,7 @@ export function mapStorefrontProductCard(
     id,
     slug: item.slug,
     name: item.name,
-    subtitle: item.description?.trim() || "Scalev catalog",
+    subtitle: item.description?.trim() || "",
     price: hasSale ? max : min || max,
     salePrice: hasSale ? min : undefined,
     imageUrl: item.images?.[0] ?? undefined,

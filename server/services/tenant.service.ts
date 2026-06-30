@@ -46,3 +46,7 @@ export async function slugExists(slug: string): Promise<boolean> {
   const count = await prisma.store.count({ where: { slug } })
   return count > 0
 }
+
+export async function updateStoreName(id: string, name: string): Promise<Store> {
+  return prisma.store.update({ where: { id }, data: { name } })
+}

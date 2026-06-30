@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { HelpCircle } from "lucide-react";
 import { getSession } from "@/features/auth/dal";
+import { getStoresByOwnerId } from "@/server/services/tenant.service";
 import { SidebarNavLinks } from "@/features/builder/components/SidebarNavLinks";
 import { SidebarAccountMenu } from "@/features/builder/components/SidebarAccountMenu";
 import EtalaseMark from "@/features/builder/landing/EtalaseMark";
@@ -14,6 +15,7 @@ import EtalaseMark from "@/features/builder/landing/EtalaseMark";
  */
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const session = await getSession();
+  const stores = session ? await getStoresByOwnerId(session.userId) : [];
 
   return (
     <div className="h-screen flex overflow-hidden bg-gray-50">
@@ -23,7 +25,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         </div>
 
         <div className="flex-1 pt-4">
-          <SidebarNavLinks />
+          <SidebarNavLinks stores={stores} isAdmin={session?.role === "ADMIN"} />
         </div>
 
         <div className="pb-4 px-2 border-t border-gray-100 pt-4">

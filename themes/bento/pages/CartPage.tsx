@@ -1,14 +1,10 @@
 import Link from "next/link"
-import { TRENDING_PRODUCTS } from "@/themes/bento/data/mock"
 import type { ThemePageProps } from "@/themes/engine/page-props"
+import { formatIdr } from "@/features/storefront/catalog-types"
+import { removeFromCart } from "@/app/(storefront)/cart/actions"
 
-const CART_ITEMS = TRENDING_PRODUCTS.slice(0, 2)
-
-export function CartPage({ config: _config }: ThemePageProps) {
-  const subtotal = CART_ITEMS.reduce(
-    (sum, item) => sum + (item.salePrice ?? item.price),
-    0,
-  )
+export function CartPage({ cart = [] }: ThemePageProps) {
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
   return (
     <section className="mx-auto max-w-4xl px-4 py-12 @2xl:px-6">
@@ -20,41 +16,67 @@ export function CartPage({ config: _config }: ThemePageProps) {
           Your Cart
         </h1>
         <p className="mt-2 text-sm text-[#515160]">
-          {CART_ITEMS.length} item{CART_ITEMS.length !== 1 ? "s" : ""}
+          {cart.length} item{cart.length !== 1 ? "s" : ""}
         </p>
 
-        <ul className="mt-10 space-y-4">
-          {CART_ITEMS.map((item) => (
-            <li key={item.id} className="flex gap-5 rounded-2xl border border-gray-100 p-4">
-              <div className={`h-24 w-20 shrink-0 rounded-xl ${item.imageClass}`} />
-              <div className="flex flex-1 flex-col justify-between">
-                <div>
-                  <p className="text-sm font-bold text-[#1a1c1b]">{item.name}</p>
-                  <p className="text-xs text-[#515160]">{item.subtitle}</p>
-                </div>
-                <p className="text-sm font-bold text-[var(--theme-primary)]">
-                  ${(item.salePrice ?? item.price).toFixed(0)}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-8 flex flex-col items-end gap-4">
-          <div className="flex w-full max-w-xs justify-between text-sm">
-            <span className="text-[#515160]">Subtotal</span>
-            <span className="font-bold text-[#1a1c1b]">
-              ${subtotal.toFixed(0)}
-            </span>
+        {cart.length === 0 ? (
+          <div className="mt-10 py-12 text-center">
+            <p className="text-[#515160] text-sm">Cart kamu kosong.</p>
+            <Link
+              href="/products"
+              className="mt-4 inline-block text-sm font-bold"
+              style={{ color: "var(--theme-primary)" }}
+            >
+              Lihat Produk
+            </Link>
           </div>
-          <Link
-            href="/checkout"
-            className="inline-flex h-12 w-full max-w-xs items-center justify-center rounded-full text-sm font-bold text-white transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "var(--theme-primary)" }}
-          >
-            Proceed to Checkout
-          </Link>
-        </div>
+        ) : (
+          <>
+            <ul className="mt-10 space-y-4">
+              {cart.map((item) => (
+                <li key={item.slug} className="flex gap-5 rounded-2xl border border-gray-100 p-4">
+                  <div className="h-24 w-20 shrink-0 rounded-xl overflow-hidden bg-gray-100">
+                    {item.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="h-full w-full bg-gray-200" />
+                    )}
+                  </div>
+                  <div className="flex flex-1 flex-col justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-[#1a1c1b]">{item.name}</p>
+                      <p className="text-xs text-[#515160]">Qty: {item.quantity}</p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-bold" style={{ color: "var(--theme-primary)" }}>
+                        {formatIdr(item.price * item.quantity)}
+                      </p>
+                      <form action={removeFromCart.bind(null, item.slug)}>
+                        <button type="submit" className="text-xs text-[#515160] hover:text-red-500 transition-colors">
+                          Hapus
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8 flex flex-col items-end gap-4">
+              <div className="flex w-full max-w-xs justify-between text-sm">
+                <span className="text-[#515160]">Subtotal</span>
+                <span className="font-bold text-[#1a1c1b]">{formatIdr(subtotal)}</span>
+              </div>
+              <Link
+                href="/checkout"
+                className="inline-flex h-12 w-full max-w-xs items-center justify-center rounded-full text-sm font-bold text-white transition-opacity hover:opacity-90"
+                style={{ backgroundColor: "var(--theme-primary)" }}
+              >
+                Proceed to Checkout
+              </Link>
+            </div>
+          </>
+        )}
       </div>
     </section>
   )

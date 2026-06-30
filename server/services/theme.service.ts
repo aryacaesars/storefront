@@ -1,8 +1,5 @@
 import "server-only"
 
-// TODO Sprint 2: reconnect to Prisma data source — prisma.themeConfig does not exist in new schema
-// Rewrite using prisma.store or a new ThemeConfig model when schema is updated.
-
 import type { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/db/prisma"
 import {
@@ -11,61 +8,94 @@ import {
   type ThemeConfig,
   type TemplateId,
 } from "@/themes/engine/schema"
-
-// Suppress unused import warning during Sprint 1 stub
-void prisma
-
-function parseThemeConfig(json: unknown): ThemeConfig | null {
-  const result = themeConfigSchema.safeParse(json)
-  return result.success ? result.data : null
-}
+import { getDefaultThemeConfig } from "@/lib/themes/defaults"
 
 function toJsonConfig(config: ThemeConfig): Prisma.InputJsonValue {
   return JSON.parse(JSON.stringify(config)) as Prisma.InputJsonValue
 }
 
-// TODO Sprint 2: reconnect to Prisma data source
 export async function getPublishedThemeBySlug(
-  _slug: string,
+  slug: string,
 ): Promise<ThemeConfig | null> {
-  // prisma.themeConfig removed — needs new schema
-  return null
+  const store = await prisma.store.findUnique({
+    where: { slug },
+    include: { themeConfig: true },
+  })
+  if (!store?.themeConfig) return null
+
+  const parsedTemplateId = templateIdSchema.safeParse(store.themeConfig.templateId)
+  if (!parsedTemplateId.success) return null
+
+  const templateId = parsedTemplateId.data
+  const configJson = store.themeConfig.configJson
+
+  const merged = {
+    templateId,
+    storeName: store.name,
+    ...(typeof configJson === "object" && configJson !== null ? configJson : {}),
+  }
+  const parsed = themeConfigSchema.safeParse(merged)
+  return parsed.success ? parsed.data : getDefaultThemeConfig(templateId)
 }
 
-// TODO Sprint 2: reconnect to Prisma data source
 export async function getThemeForTenant(
-  _tenantId: string,
+  storeId: string,
 ): Promise<{ config: ThemeConfig; isPublished: boolean } | null> {
-  // prisma.themeConfig removed — needs new schema
-  return null
+  const themeConfig = await prisma.storeThemeConfig.findUnique({
+    where: { storeId },
+    include: { store: { select: { name: true } } },
+  })
+  if (!themeConfig) return null
+
+  const parsedTemplateId = templateIdSchema.safeParse(themeConfig.templateId)
+  if (!parsedTemplateId.success) return null
+
+  const templateId = parsedTemplateId.data
+  const configJson = themeConfig.configJson
+
+  const merged = {
+    templateId,
+    storeName: themeConfig.store.name,
+    ...(typeof configJson === "object" && configJson !== null ? configJson : {}),
+  }
+  const parsed = themeConfigSchema.safeParse(merged)
+  const config = parsed.success ? parsed.data : getDefaultThemeConfig(templateId)
+
+  return { config, isPublished: true }
 }
 
-// TODO Sprint 2: reconnect to Prisma data source
 export async function getActiveTemplateIdForTenant(
-  _tenantId: string,
+  storeId: string,
 ): Promise<TemplateId | null> {
-  // prisma.themeConfig removed — needs new schema
-  return null
+  const config = await prisma.storeThemeConfig.findUnique({
+    where: { storeId },
+    select: { templateId: true },
+  })
+  if (!config) return null
+  const parsed = templateIdSchema.safeParse(config.templateId)
+  return parsed.success ? parsed.data : null
 }
 
-// TODO Sprint 2: reconnect to Prisma data source
 export async function saveThemeDraft(
-  _tenantId: string,
+  storeId: string,
   config: ThemeConfig,
 ): Promise<void> {
-  // prisma.themeConfig removed — needs new schema
-  const _parsed = themeConfigSchema.parse(config)
-  const _json = toJsonConfig(_parsed)
-  return
+  const parsed = themeConfigSchema.parse(config)
+  const json = toJsonConfig(parsed)
+  await prisma.storeThemeConfig.update({
+    where: { storeId },
+    data: { configJson: json },
+  })
 }
 
-// TODO Sprint 2: reconnect to Prisma data source
 export async function publishTheme(
-  _tenantId: string,
+  storeId: string,
   config: ThemeConfig,
 ): Promise<void> {
-  // prisma.themeConfig removed — needs new schema
-  const _parsed = themeConfigSchema.parse(config)
-  const _json = toJsonConfig(_parsed)
-  return
+  const parsed = themeConfigSchema.parse(config)
+  const json = toJsonConfig(parsed)
+  await prisma.storeThemeConfig.update({
+    where: { storeId },
+    data: { configJson: json, templateId: parsed.templateId },
+  })
 }

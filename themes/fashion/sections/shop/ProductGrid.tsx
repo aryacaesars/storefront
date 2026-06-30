@@ -14,7 +14,7 @@ export function ProductGrid({ products = [] }: ProductGridProps) {
   if (items.length === 0) {
     return (
       <p className="text-sm text-[var(--theme-muted)]">
-        Belum ada produk visible di katalog Scalev.
+        Belum ada produk visible di katalog.
       </p>
     )
   }
@@ -23,7 +23,7 @@ export function ProductGrid({ products = [] }: ProductGridProps) {
     <div className="flex-1 min-w-0">
       {isLive && (
         <p className="mb-6 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--theme-muted)]">
-          Katalog Scalev · {items.length} produk
+          Katalog · {items.length} produk
         </p>
       )}
       <div className="grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-3">

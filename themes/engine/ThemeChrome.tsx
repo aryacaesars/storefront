@@ -1,47 +1,33 @@
 import type { ReactNode } from "react"
-import { Header, Footer as MinimalistFooter } from "@/themes/minimalist"
-import { Header as BentoHeader, Footer as BentoFooter } from "@/themes/bento"
-import { Navbar as BoldNavbar } from "@/themes/bold"
-import { Navbar as FashionNavbar } from "@/themes/fashion/sections/Navbar"
+import { cookies } from "next/headers"
+import type { CartItem } from "@/lib/storefront/cart"
 import type { ThemeConfig } from "./schema"
+import { ThemeChromeView } from "./ThemeChromeView"
 
 interface ThemeChromeProps {
   config: ThemeConfig
   children: ReactNode
 }
 
-/** Header/nav + optional footer untuk halaman storefront non-home. */
-export function ThemeChrome({ config, children }: ThemeChromeProps) {
-  switch (config.templateId) {
-    case "bold":
-      return (
-        <>
-          <BoldNavbar config={config} />
-          {children}
-        </>
-      )
-    case "fashion":
-      return (
-        <>
-          <FashionNavbar config={config} />
-          {children}
-        </>
-      )
-    case "bento":
-      return (
-        <>
-          <BentoHeader config={config} />
-          {children}
-          <BentoFooter config={config} />
-        </>
-      )
-    default:
-      return (
-        <>
-          <Header config={config} />
-          {children}
-          <MinimalistFooter config={config} />
-        </>
-      )
+async function getCartCount(): Promise<number> {
+  const store = await cookies()
+  const raw = store.get("sf_cart")?.value
+  if (!raw) return 0
+  try {
+    const items = JSON.parse(raw) as CartItem[]
+    return items.reduce((sum, item) => sum + item.quantity, 0)
+  } catch {
+    return 0
   }
+}
+
+/** Header/nav + optional footer untuk halaman storefront non-home. */
+export async function ThemeChrome({ config, children }: ThemeChromeProps) {
+  const cartCount = await getCartCount()
+
+  return (
+    <ThemeChromeView config={config} cartCount={cartCount}>
+      {children}
+    </ThemeChromeView>
+  )
 }

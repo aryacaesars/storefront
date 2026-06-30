@@ -53,25 +53,32 @@ function collectImageUrls(config: ThemeConfig): string[] {
 }
 
 interface CustomizeWorkspaceProps {
+  storeId?: string
   templateId: TemplateId
   templateName: string
   initialConfig: ThemeConfig
   storefrontHost: string
   initialMode?: "edit" | "preview"
+  onSaveDraft?: (config: ThemeConfig) => Promise<void>
+  onPublish?: (config: ThemeConfig) => Promise<void>
 }
 
 export function CustomizeWorkspace({
+  storeId,
   templateId,
   templateName,
   initialConfig,
   storefrontHost,
   initialMode = "edit",
+  onSaveDraft,
+  onPublish,
 }: CustomizeWorkspaceProps) {
   const [mode, setMode] = useState<"edit" | "preview">(initialMode)
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop")
   const [config, setConfig] = useState<ThemeConfig>(initialConfig)
   const [isSaving, setIsSaving] = useState(false)
   const [status, setStatus] = useState<string | null>(null)
+  const [paymentRequired, setPaymentRequired] = useState(false)
   const [selectedPage, setSelectedPage] = useState<PageType>("home")
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>("sections")
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null)
@@ -83,14 +90,14 @@ export function CustomizeWorkspace({
   const persistDraft = useCallback(async (next: ThemeConfig) => {
     setIsSaving(true)
     try {
-      await saveThemeDraft(next)
+      await (onSaveDraft ?? saveThemeDraft)(next)
       setStatus("Gambar tersimpan ke database.")
     } catch {
       setStatus("Gagal menyimpan gambar — coba Save Draft manual.")
     } finally {
       setIsSaving(false)
     }
-  }, [])
+  }, [onSaveDraft])
 
   const handleConfigChange = useCallback(
     (next: ThemeConfig) => {
@@ -254,7 +261,7 @@ export function CustomizeWorkspace({
     setIsSaving(true)
     setStatus(null)
     try {
-      await saveThemeDraft(config)
+      await (onSaveDraft ?? saveThemeDraft)(config)
       setStatus("Draft tersimpan.")
     } catch {
       setStatus("Gagal menyimpan draft.")
@@ -266,11 +273,17 @@ export function CustomizeWorkspace({
   async function handlePublish() {
     setIsSaving(true)
     setStatus(null)
+    setPaymentRequired(false)
     try {
-      await publishTheme(config)
+      await (onPublish ?? publishTheme)(config)
       setStatus("Perubahan dipublish ke storefront live.")
-    } catch {
-      setStatus("Gagal publish perubahan.")
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : ""
+      if (msg === "PAYMENT_REQUIRED") {
+        setPaymentRequired(true)
+      } else {
+        setStatus("Gagal publish perubahan.")
+      }
     } finally {
       setIsSaving(false)
     }
@@ -278,6 +291,33 @@ export function CustomizeWorkspace({
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
+      {paymentRequired && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Beli Template untuk Publish</h2>
+            <p className="text-sm text-gray-500 mb-5">
+              Kamu bisa edit template ini gratis, tapi untuk publish ke storefront perlu membeli lisensinya terlebih dahulu.
+            </p>
+            <div className="flex gap-3">
+              {storeId && (
+                <a
+                  href={`/stores/${storeId}/templates`}
+                  className="flex-1 py-2 px-4 bg-black text-white text-sm font-medium rounded-lg text-center hover:bg-gray-800 transition-colors"
+                >
+                  Beli Template
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={() => setPaymentRequired(false)}
+                className="flex-1 py-2 px-4 border border-gray-200 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Nanti
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <EditorTopbar
         templateName={templateName}
         mode={mode}
@@ -380,7 +420,7 @@ export function CustomizeWorkspace({
                         Halaman dikontrol katalog
                       </p>
                       <p className="mt-0.5 text-[11px] text-amber-700">
-                        Data produk, harga, dan inventori ditarik dari API Scalev — tidak diedit di builder.
+                        Data produk, harga, dan inventori ditarik dari katalog toko — tidak diedit di builder.
                       </p>
                     </div>
                   )}

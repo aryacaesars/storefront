@@ -19,12 +19,12 @@ export function ProductListPage({ config: _config, products = [] }: ThemePagePro
       </h1>
       <p className="mt-2 max-w-xl text-sm text-[var(--theme-muted)]">
         {products.length > 0
-          ? "Produk langsung dari katalog Scalev toko Anda."
+          ? "Produk langsung dari katalog toko Anda."
           : "Belum ada katalog terhubung — menampilkan contoh produk."}
       </p>
       {items.length === 0 ? (
         <p className="mt-10 text-sm text-[var(--theme-muted)]">
-          Belum ada produk visible di storefront Scalev.
+          Belum ada produk visible di storefront.
         </p>
       ) : (
         <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-8 @3xl:grid-cols-4 @3xl:gap-x-6 @3xl:gap-y-10">

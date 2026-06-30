@@ -1,14 +1,10 @@
 import "server-only";
 
-// TODO Sprint 2: reconnect to Prisma data source — Scalev storefront API removed
-// import { cache } from "react";
-// import { getTenantBySlug } from "@/server/services/tenant.service";
-// import { getStorefrontProductBySlug, listStorefrontItems, listStorefrontCategories } from "@/lib/scalev/endpoints/storefront";
-// import { StorefrontProductCardSchema } from "@/lib/scalev/schemas-storefront";
-// import type { StorefrontCategory } from "@/lib/scalev/schemas-storefront";
-import type {
-  CatalogProduct,
-} from "@/features/storefront/catalog-types";
+import { cache } from "react";
+import { prisma } from "@/lib/db/prisma";
+import { getStoreBySlug } from "@/server/services/tenant.service";
+import type { CatalogProduct } from "@/features/storefront/catalog-types";
+import { gradientForId } from "@/features/storefront/catalog-types";
 
 export type TenantCatalogContext = {
   storeUniqueId: string;
@@ -16,37 +12,93 @@ export type TenantCatalogContext = {
   storeName: string | null;
 };
 
-// TODO Sprint 2: reconnect to Prisma data source
-export async function getTenantCatalogContext(
-  _tenantSlug: string | null,
-): Promise<TenantCatalogContext | null> {
-  return null;
-}
-
-export async function getCatalogProductsForTenant(
-  _tenantSlug: string | null,
-): Promise<CatalogProduct[]> {
-  // TODO Sprint 2: reconnect to Prisma data source
-  return [];
-}
-
-// TODO Sprint 2: reconnect to Prisma data source
 export type StorefrontCategory = {
   id: string | number;
   name: string;
 };
 
-export async function getCatalogCategoriesForTenant(
-  _tenantSlug: string | null,
-): Promise<StorefrontCategory[]> {
-  // TODO Sprint 2: reconnect to Prisma data source
-  return [];
+async function getStoreIdBySlug(tenantSlug: string | null): Promise<string | null> {
+  if (!tenantSlug) return null;
+  const store = await getStoreBySlug(tenantSlug);
+  return store?.id ?? null;
 }
 
-export async function getCatalogProductBySlug(
-  _tenantSlug: string | null,
-  _slug: string,
-): Promise<CatalogProduct | null> {
-  // TODO Sprint 2: reconnect to Prisma data source
-  return null;
+// Not used by themes yet, kept for future
+export async function getTenantCatalogContext(
+  tenantSlug: string | null,
+): Promise<TenantCatalogContext | null> {
+  if (!tenantSlug) return null;
+  const store = await getStoreBySlug(tenantSlug);
+  if (!store) return null;
+  return {
+    storeUniqueId: store.id,
+    storefrontApiKey: "",
+    storeName: store.name,
+  };
 }
+
+export const getCatalogProductsForTenant = cache(async function (
+  tenantSlug: string | null,
+): Promise<CatalogProduct[]> {
+  const storeId = await getStoreIdBySlug(tenantSlug);
+  if (!storeId) return [];
+
+  const products = await prisma.product.findMany({
+    where: { storeId, published: true },
+    include: { images: { orderBy: { order: "asc" } } },
+    orderBy: { name: "asc" },
+  });
+
+  return products.map((p) => ({
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    subtitle: p.description?.trim() || p.name,
+    price: p.price,
+    imageUrl: p.images[0]?.url || undefined,
+    imageClass: gradientForId(p.id),
+    description: p.description ?? undefined,
+    inStock: p.stock > 0,
+  }));
+});
+
+export const getCatalogCategoriesForTenant = cache(async function (
+  tenantSlug: string | null,
+): Promise<StorefrontCategory[]> {
+  const storeId = await getStoreIdBySlug(tenantSlug);
+  if (!storeId) return [];
+
+  const categories = await prisma.category.findMany({
+    where: { storeId },
+    orderBy: { name: "asc" },
+  });
+
+  return categories.map((c) => ({ id: c.id, name: c.name }));
+});
+
+export const getCatalogProductBySlug = cache(async function (
+  tenantSlug: string | null,
+  slug: string,
+): Promise<CatalogProduct | null> {
+  const storeId = await getStoreIdBySlug(tenantSlug);
+  if (!storeId) return null;
+
+  const p = await prisma.product.findFirst({
+    where: { storeId, slug, published: true },
+    include: { images: { orderBy: { order: "asc" } } },
+  });
+
+  if (!p) return null;
+
+  return {
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    subtitle: p.description?.trim() || p.name,
+    price: p.price,
+    imageUrl: p.images[0]?.url || undefined,
+    imageClass: gradientForId(p.id),
+    description: p.description ?? undefined,
+    inStock: p.stock > 0,
+  };
+});

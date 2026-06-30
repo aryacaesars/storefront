@@ -25,7 +25,7 @@ export function ProductListPage({ config, products = [] }: ThemePageProps) {
                   className="mt-1 text-2xl font-black uppercase text-zinc-900"
                   style={{ fontFamily: "var(--theme-heading-font)" }}
                 >
-                  Scalev Products
+                  Products
                 </h2>
               </div>
               <Link

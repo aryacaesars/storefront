@@ -19,7 +19,7 @@ export function AllProductsPage({ products = [] }: AllProductsPageProps) {
         totalCount={items.length}
         subtitle={
           isLive
-            ? "Produk langsung dari katalog Scalev toko Anda."
+            ? "Produk langsung dari katalog toko Anda."
             : "Precision engineered for the high-endurance athlete."
         }
       />

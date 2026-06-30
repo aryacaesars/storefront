@@ -1,10 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import type { MockProductDetail } from "@/themes/bold/data/mock"
+import { addToCart } from "@/app/(storefront)/cart/actions"
 
 interface ProductGalleryClientProps {
   product: MockProductDetail
+  catalogProductId?: string
 }
 
 function StarRating({ rating }: { rating: number }) {
@@ -47,9 +50,22 @@ function GalleryImage({
   return <div className={`${imageClass} ${className ?? "h-full w-full"}`} />
 }
 
-export function ProductGalleryClient({ product }: ProductGalleryClientProps) {
+export function ProductGalleryClient({ product, catalogProductId }: ProductGalleryClientProps) {
+  const router = useRouter()
   const [activeThumb, setActiveThumb] = useState(0)
   const [activeSize, setActiveSize] = useState(product.defaultSize)
+  const [addPending, startAddTransition] = useTransition()
+  const [justAdded, setJustAdded] = useState(false)
+
+  function handleAddToCart() {
+    if (!catalogProductId) return
+    startAddTransition(async () => {
+      await addToCart(catalogProductId, product.id, product.name, product.price, product.imageUrl)
+      router.refresh()
+      setJustAdded(true)
+      setTimeout(() => setJustAdded(false), 2000)
+    })
+  }
 
   const activeThumbData = product.thumbnails[activeThumb]
   const mainImageUrl = activeThumbData?.imageUrl ?? product.imageUrl
@@ -184,11 +200,12 @@ export function ProductGalleryClient({ product }: ProductGalleryClientProps) {
         <div className="space-y-2">
           <button
             type="button"
-            disabled={outOfStock}
+            onClick={catalogProductId ? handleAddToCart : undefined}
+            disabled={outOfStock || addPending || !catalogProductId}
             className="h-12 w-full text-xs font-black uppercase tracking-[0.15em] text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             style={{ backgroundColor: "var(--theme-primary)" }}
           >
-            {outOfStock ? "OUT OF STOCK" : "ADD TO CART"}
+            {addPending ? "..." : justAdded ? "DITAMBAHKAN ✓" : outOfStock ? "OUT OF STOCK" : "ADD TO CART"}
           </button>
           <button
             type="button"

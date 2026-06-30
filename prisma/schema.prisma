@@ -169,10 +169,11 @@ model ProductImage {
 
 model Customer {
   id        String    @id @default(cuid())
-  email     String
-  name      String?
-  image     String?
-  storeId   String    @map("store_id")
+  email        String
+  name         String?
+  image        String?
+  passwordHash String?   @map("password_hash")
+  storeId      String    @map("store_id")
   store     Store     @relation(fields: [storeId], references: [id])
   orders    Order[]
   addresses Address[]
@@ -204,6 +205,7 @@ model Order {
   customer        Customer    @relation(fields: [customerId], references: [id])
   status          OrderStatus @default(PENDING)
   total           Int
+  stockDeducted   Boolean     @default(false) @map("stock_deducted")
   stripePaymentId String?     @map("stripe_payment_id")
   items           OrderItem[]
   createdAt       DateTime    @default(now()) @map("created_at")

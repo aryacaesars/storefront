@@ -1,4 +1,4 @@
-import { Copy, Upload, ExternalLink, Crown, Check } from "lucide-react"
+import { Upload, ExternalLink, Crown, Check } from "lucide-react"
 import { requireSession } from "@/features/auth/dal"
 import {
   SettingsSection,
@@ -9,14 +9,9 @@ import {
 } from "@/features/builder/components/SettingsSection"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { getStorefrontHost, getStorefrontUrl } from "@/lib/tenant/storefront-url"
 
 export default async function SettingsPage() {
-  const session = await requireSession()
-  // @ts-expect-error TODO Sprint 2: use storeId from URL params, session.tenantSlug/tenantId removed
-  const storefrontHost = getStorefrontHost(session.tenantSlug)
-  // @ts-expect-error TODO Sprint 2: use storeId from URL params, session.tenantSlug/tenantId removed
-  const storefrontUrl = getStorefrontUrl(session.tenantSlug)
+  await requireSession()
   return (
     <div className="p-8 max-w-4xl">
       {/* Page header */}
@@ -68,23 +63,18 @@ export default async function SettingsPage() {
         {/* ── 2. Domain & URL ───────────────────────────────── */}
         <SettingsSection
           title="Domain & URL"
-          description="Subdomain otomatis dari username bisnis Scalev saat login. Belum bisa diubah manual di MVP ini."
+          description="Setiap toko punya subdomain sendiri, ditentukan saat membuat toko. Kelola lewat pengaturan masing-masing toko."
         >
           <SettingsField
             label="Subdomain Etalase"
-            // @ts-expect-error TODO Sprint 2: use storeId from URL params, session.tenantSlug/tenantId removed
-            hint={`Diambil dari akun Scalev: ${session.tenantSlug || "—"}. Custom slug butuh integrasi tenant DB (coming soon).`}
+            hint="Format: namatoko.etalase.com — diatur per toko."
           >
-            <div className="flex items-center h-9 rounded-lg border border-gray-200 bg-gray-50 overflow-hidden">
-              <span className="px-3 text-sm text-gray-400 border-r border-gray-200 bg-gray-100 h-full flex items-center shrink-0">
-                https://
-              </span>
-              <span className="px-3 text-sm text-indigo-600 font-medium flex-1">
-                {storefrontHost}
-              </span>
-              <button className="px-3 h-full border-l border-gray-200 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
-                <Copy className="w-3.5 h-3.5" />
-              </button>
+            <div className="flex items-center gap-1.5 text-sm text-gray-500">
+              <span>Pilih toko di</span>
+              <a href="/dashboard" className="text-indigo-600 font-medium hover:underline">
+                Dashboard
+              </a>
+              <span>untuk lihat & kelola subdomain-nya.</span>
             </div>
           </SettingsField>
 
@@ -116,12 +106,10 @@ export default async function SettingsPage() {
               <p className="text-[11px] text-green-600">Sertifikat HTTPS valid · Diperbarui otomatis</p>
             </div>
             <a
-              href={storefrontUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/dashboard"
               className="flex items-center gap-1 text-xs text-green-700 font-medium hover:underline shrink-0"
             >
-              Buka <ExternalLink className="w-3 h-3" />
+              Kelola <ExternalLink className="w-3 h-3" />
             </a>
           </div>
         </SettingsSection>

@@ -15,7 +15,7 @@ export function ProductNotFound({
         Produk tidak ditemukan
       </h1>
       <p className="mt-2 text-sm text-[var(--theme-muted)]">
-        Produk ini tidak ada di katalog Scalev atau sudah tidak tersedia.
+        Produk ini tidak ada di katalog atau sudah tidak tersedia.
       </p>
       <Link
         href={backHref}

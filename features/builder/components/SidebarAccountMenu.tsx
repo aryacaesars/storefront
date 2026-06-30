@@ -9,11 +9,13 @@ import { cn } from "@/lib/utils";
 type Props = {
   displayName?: string;
   subtitle?: string;
+  showProfile?: boolean;
 };
 
 export function SidebarAccountMenu({
   displayName = "Account",
   subtitle = "Pro Merchant",
+  showProfile = true,
 }: Props) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -70,15 +72,17 @@ export function SidebarAccountMenu({
           role="menu"
           className="absolute bottom-full left-2 right-2 mb-1.5 rounded-xl border border-gray-200 bg-white py-1 shadow-lg shadow-gray-900/10 z-50"
         >
-          <Link
-            href="/profile"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            <User className="w-4 h-4 text-gray-400 shrink-0" />
-            Profile
-          </Link>
+          {showProfile && (
+            <Link
+              href="/profile"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <User className="w-4 h-4 text-gray-400 shrink-0" />
+              Profile
+            </Link>
+          )}
 
           <form action={logoutAction}>
             <button
