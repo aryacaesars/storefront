@@ -19,6 +19,7 @@ import { getImplementedPages } from "@/themes/engine/registry"
 import { previewSectionDomId } from "@/themes/engine/section-editor"
 import {
   applyPageTemplate,
+  hasDefaultPageTemplate,
   materializePageTemplate,
 } from "@/themes/engine/page-template"
 import { updateSectionBlocks } from "@/themes/engine/section-page-utils"
@@ -115,7 +116,9 @@ export function CustomizeWorkspace({
     [templateId],
   )
 
-  const showSectionsTab = (sectionPageTypeSchema.options as readonly string[]).includes(selectedPage)
+  const showSectionsTab =
+    (sectionPageTypeSchema.options as readonly string[]).includes(selectedPage) &&
+    hasDefaultPageTemplate(templateId, selectedPage as SectionPageType)
   const isMarketingPage = MARKETING_PAGE_TYPES.includes(selectedPage)
   const isCatalogPage = !showSectionsTab && !isMarketingPage
 

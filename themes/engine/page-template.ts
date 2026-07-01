@@ -22,6 +22,13 @@ const DEFAULT_PAGE_TEMPLATES: Record<
   bento: { home: DEFAULT_BENTO_HOME, about: DEFAULT_BENTO_ABOUT },
 }
 
+export function hasDefaultPageTemplate(
+  templateId: TemplateId,
+  pageType: SectionPageType,
+): boolean {
+  return Boolean(DEFAULT_PAGE_TEMPLATES[templateId]?.[pageType])
+}
+
 export function getDefaultPageTemplate(
   templateId: TemplateId,
   pageType: SectionPageType,
