@@ -19,7 +19,6 @@ import { cn } from "@/lib/utils"
 
 const TOP_NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/settings", label: "Settings", icon: Settings },
 ]
 
 const STORE_NAV = [
@@ -28,7 +27,7 @@ const STORE_NAV = [
   { href: "products", label: "Produk", icon: Package },
   { href: "categories", label: "Kategori", icon: Tag },
   { href: "orders", label: "Order", icon: ShoppingCart },
-  { href: "customers", label: "Customer", icon: Users },
+  { href: "customers", label: "Pelanggan", icon: Users },
   { href: "customize", label: "Kustomisasi", icon: Palette },
   { href: "settings", label: "Pengaturan", icon: Settings },
 ]

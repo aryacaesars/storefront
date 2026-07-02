@@ -201,7 +201,7 @@ export interface MockProductDetail {
   rating: number
   reviewCount: number
   price: number
-  /** When set, shown instead of `$price.00` (e.g. IDR from Scalev). */
+  /** When set, shown instead of `$price.00` (e.g. IDR from live catalog). */
   priceLabel?: string
   badge?: string
   colors: Array<{ name: string; hex: string }>

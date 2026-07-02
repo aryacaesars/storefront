@@ -18,12 +18,45 @@ export async function getCategories(storeId: string): Promise<Category[]> {
   })
 }
 
+export type CategoryWithProductCount = Category & { _count: { products: number } }
+
+export async function getCategoriesWithCounts(
+  storeId: string,
+): Promise<CategoryWithProductCount[]> {
+  return prisma.category.findMany({
+    where: { storeId },
+    include: { _count: { select: { products: true } } },
+    orderBy: { name: "asc" },
+  })
+}
+
+export async function getCategoryById(
+  id: string,
+  storeId: string,
+): Promise<CategoryWithProductCount | null> {
+  return prisma.category.findFirst({
+    where: { id, storeId },
+    include: { _count: { select: { products: true } } },
+  })
+}
+
 export async function createCategory(input: {
   name: string
   slug: string
   storeId: string
 }): Promise<Category> {
   return prisma.category.create({ data: input })
+}
+
+export async function updateCategory(
+  id: string,
+  storeId: string,
+  input: { name: string; slug: string },
+): Promise<Category> {
+  return prisma.category.update({
+    where: { id },
+    data: { name: input.name, slug: input.slug },
+  })
 }
 
 export async function deleteCategory(id: string, storeId: string): Promise<void> {
@@ -33,8 +66,11 @@ export async function deleteCategory(id: string, storeId: string): Promise<void>
 export async function categorySlugExists(
   storeId: string,
   slug: string,
+  excludeId?: string,
 ): Promise<boolean> {
-  const count = await prisma.category.count({ where: { storeId, slug } })
+  const count = await prisma.category.count({
+    where: { storeId, slug, ...(excludeId ? { NOT: { id: excludeId } } : {}) },
+  })
   return count > 0
 }
 

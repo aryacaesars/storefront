@@ -2,7 +2,7 @@ import type { CatalogProduct } from "@/features/storefront/catalog-types"
 import { formatIdr } from "@/features/storefront/catalog-types"
 import type { MockProductDetail } from "@/themes/bold/data/mock"
 
-/** Maps live Scalev catalog data into the bold tech-series gallery shape. */
+/** Maps live catalog data into the bold tech-series gallery shape. */
 export function catalogToBoldDetail(product: CatalogProduct): MockProductDetail {
   const imageClass = product.imageClass
   return {

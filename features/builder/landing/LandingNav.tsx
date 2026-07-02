@@ -25,10 +25,10 @@ export default function LandingNav() {
         </ul>
 
         <a
-          href="#contact"
+          href="/login"
           className="rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-dark"
         >
-          Get Yours Now!
+          Login
         </a>
       </nav>
     </header>

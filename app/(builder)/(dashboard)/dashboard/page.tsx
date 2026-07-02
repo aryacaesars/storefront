@@ -1,52 +1,50 @@
+import Link from "next/link"
 import { redirect } from "next/navigation"
 import { requireSession } from "@/features/auth/dal"
 import { getStoresByOwnerId } from "@/server/services/tenant.service"
-import Link from "next/link"
+import { DashboardShell } from "@/features/builder/components/DashboardShell"
+import { StoreOverviewCard } from "@/features/builder/components/StoreOverviewCard"
+import { dashboardBtnPrimary, dashboardCard, getDashboardDisplayName } from "@/features/builder/components/dashboard-ui"
 
 export const metadata = { title: "Dashboard — Etalase" }
 
 export default async function DashboardPage() {
   const session = await requireSession()
-  // Admin platform tak punya store sendiri — langsung ke admin panel.
   if (session.role === "ADMIN") redirect("/admin")
+
   const stores = await getStoresByOwnerId(session.userId)
+  const displayName = getDashboardDisplayName(session.name)
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Store Saya</h1>
-        <Link
-          href="/stores/new"
-          className="px-4 py-2 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
-        >
+    <DashboardShell
+      showGreeting
+      displayName={displayName}
+      greetingSubtitle="Kelola semua store kamu di satu tempat."
+      action={
+        <Link href="/stores/new" className={dashboardBtnPrimary}>
           + Buat Store
         </Link>
-      </div>
-
+      }
+    >
       {stores.length === 0 ? (
-        <div className="text-center py-20 text-gray-500">
-          <p className="mb-4 text-base">Belum ada store. Buat store pertama kamu.</p>
-          <Link
-            href="/stores/new"
-            className="px-4 py-2 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
-          >
+        <div className={`${dashboardCard} mx-auto max-w-lg p-10 text-center`}>
+          <p className="text-base text-gray-500">Belum ada store. Buat store pertama kamu.</p>
+          <Link href="/stores/new" className={`${dashboardBtnPrimary} mt-6`}>
             Buat Store Sekarang
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
           {stores.map((store) => (
-            <Link
+            <StoreOverviewCard
               key={store.id}
-              href={`/stores/${store.id}/dashboard`}
-              className="p-5 bg-white border border-gray-200 rounded-xl hover:border-gray-400 hover:shadow-sm transition-all"
-            >
-              <p className="font-semibold text-gray-900">{store.name}</p>
-              <p className="text-sm text-gray-400 mt-1">{store.slug}.etalase.com</p>
-            </Link>
+              id={store.id}
+              name={store.name}
+              slug={store.slug}
+            />
           ))}
         </div>
       )}
-    </div>
+    </DashboardShell>
   )
 }

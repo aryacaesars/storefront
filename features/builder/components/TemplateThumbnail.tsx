@@ -99,7 +99,7 @@ interface TemplateThumbnailProps {
 export function TemplateThumbnail({ id, className }: TemplateThumbnailProps) {
   const Thumbnail = thumbnails[id]
   return (
-    <div className={cn("relative aspect-[4/3] overflow-hidden", className)}>
+    <div className={cn("relative overflow-hidden", className ?? "aspect-[4/3]")}>
       <Thumbnail />
     </div>
   )

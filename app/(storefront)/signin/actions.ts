@@ -1,6 +1,5 @@
 "use server"
 
-import { redirect } from "next/navigation"
 import { z } from "zod"
 import { authenticateCustomer, CustomerAuthError } from "@/server/services/customer.service"
 import { createCustomerSession } from "@/lib/storefront/customer-session"
@@ -11,7 +10,9 @@ const SignInInput = z.object({
   password: z.string().min(1, "Password wajib diisi."),
 })
 
-export type SignInState = { error: string } | undefined
+// Sengaja TIDAK redirect() dari server action: redirect di storefront buang
+// subdomain → theme resolve ke default = flip. Client nav via window.location.
+export type SignInState = { error: string } | { success: true } | undefined
 
 export async function signInAction(_prev: SignInState, formData: FormData): Promise<SignInState> {
   const storeId = await getCurrentStoreId()
@@ -35,5 +36,5 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
     throw err
   }
 
-  redirect("/account")
+  return { success: true }
 }

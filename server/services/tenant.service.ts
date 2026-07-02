@@ -50,3 +50,17 @@ export async function slugExists(slug: string): Promise<boolean> {
 export async function updateStoreName(id: string, name: string): Promise<Store> {
   return prisma.store.update({ where: { id }, data: { name } })
 }
+
+export async function slugExistsForOtherStore(
+  slug: string,
+  excludeStoreId: string,
+): Promise<boolean> {
+  const count = await prisma.store.count({
+    where: { slug, NOT: { id: excludeStoreId } },
+  })
+  return count > 0
+}
+
+export async function updateStoreSlug(id: string, slug: string): Promise<Store> {
+  return prisma.store.update({ where: { id }, data: { slug } })
+}

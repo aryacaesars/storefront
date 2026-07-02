@@ -4,6 +4,11 @@ import { requireSession } from "@/features/auth/dal"
 import { getStoreById } from "@/server/services/tenant.service"
 import { getCategories } from "@/server/services/product.service"
 import { ProductForm } from "@/features/builder/components/ProductForm"
+import { DashboardShell } from "@/features/builder/components/DashboardShell"
+import {
+  DashboardPanel,
+  dashboardBackLink,
+} from "@/features/builder/components/dashboard-ui"
 import { createProductAction } from "./actions"
 
 export const metadata = { title: "Tambah Produk" }
@@ -22,25 +27,23 @@ export default async function NewProductPage({
   const action = createProductAction.bind(null, storeId)
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <Link
-          href={`/stores/${storeId}/products`}
-          className="text-sm text-gray-400 hover:text-gray-700"
-        >
-          ← Produk
+    <DashboardShell
+      pageTitle="Tambah Produk"
+      pageSubtitle="Isi detail produk lalu tentukan apakah langsung tampil di storefront"
+    >
+      <div className="flex flex-col gap-4">
+        <Link href={`/stores/${storeId}/products`} className={dashboardBackLink}>
+          ← Kembali ke daftar produk
         </Link>
-        <h1 className="text-2xl font-semibold text-gray-900 mt-2">Tambah Produk</h1>
+        <DashboardPanel className="p-6 lg:p-8">
+          <ProductForm
+            storeId={storeId}
+            categories={categories}
+            action={action}
+            submitLabel="Tambah Produk"
+          />
+        </DashboardPanel>
       </div>
-
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
-        <ProductForm
-          storeId={storeId}
-          categories={categories}
-          action={action}
-          submitLabel="Tambah Produk"
-        />
-      </div>
-    </div>
+    </DashboardShell>
   )
 }

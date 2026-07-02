@@ -1,6 +1,5 @@
 "use server"
 
-import { redirect } from "next/navigation"
 import { z } from "zod"
 import { revalidatePath } from "next/cache"
 import { requireSession } from "@/features/auth/dal"
@@ -75,11 +74,18 @@ export async function updateProductAction(
   return { success: true }
 }
 
+export type DeleteProductResult = { ok: true } | { ok: false; error: string }
+
 export async function deleteProductAction(
   storeId: string,
   productId: string,
-): Promise<void> {
+): Promise<DeleteProductResult> {
   await requireOwner(storeId)
-  await deleteProduct(productId, storeId)
-  redirect(`/stores/${storeId}/products`)
+  try {
+    await deleteProduct(productId, storeId)
+    revalidatePath(`/stores/${storeId}/products`)
+    return { ok: true }
+  } catch {
+    return { ok: false, error: "Gagal menghapus produk." }
+  }
 }

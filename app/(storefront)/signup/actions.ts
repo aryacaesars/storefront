@@ -1,6 +1,5 @@
 "use server"
 
-import { redirect } from "next/navigation"
 import { z } from "zod"
 import { registerCustomer, CustomerAuthError } from "@/server/services/customer.service"
 import { createCustomerSession } from "@/lib/storefront/customer-session"
@@ -12,7 +11,8 @@ const SignUpInput = z.object({
   password: z.string().min(6, "Password minimal 6 karakter."),
 })
 
-export type SignUpState = { error: string } | undefined
+// Jangan redirect() dari server action storefront: buang subdomain → theme flip.
+export type SignUpState = { error: string } | { success: true } | undefined
 
 export async function signUpAction(_prev: SignUpState, formData: FormData): Promise<SignUpState> {
   const storeId = await getCurrentStoreId()
@@ -40,5 +40,5 @@ export async function signUpAction(_prev: SignUpState, formData: FormData): Prom
     throw err
   }
 
-  redirect("/account")
+  return { success: true }
 }

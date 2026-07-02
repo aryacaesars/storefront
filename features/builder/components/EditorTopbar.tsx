@@ -4,13 +4,11 @@ import Link from "next/link"
 import { ArrowLeft, Monitor, Smartphone } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import type { PageType } from "@/themes/engine/resolve-page"
-import { PAGE_LABELS } from "@/themes/engine/manifest"
-
 export type EditorMode = "edit" | "preview"
 export type PreviewDevice = "desktop" | "mobile"
 
 interface EditorTopbarProps {
+  storeId?: string
   templateName: string
   mode: EditorMode
   device: PreviewDevice
@@ -19,12 +17,10 @@ interface EditorTopbarProps {
   onSaveDraft: () => void
   onPublish: () => void
   isSaving?: boolean
-  availablePages: PageType[]
-  selectedPage: PageType
-  onPageChange: (page: PageType) => void
 }
 
 export function EditorTopbar({
+  storeId,
   templateName,
   mode,
   device,
@@ -33,15 +29,12 @@ export function EditorTopbar({
   onSaveDraft,
   onPublish,
   isSaving = false,
-  availablePages,
-  selectedPage,
-  onPageChange,
 }: EditorTopbarProps) {
   return (
     <header className="h-14 flex items-center shrink-0 bg-white border-b border-gray-200 px-4 gap-4 z-10">
       <div className="flex items-center gap-3 shrink-0 min-w-0">
         <Link
-          href="/dashboard"
+          href={storeId ? `/stores/${storeId}/dashboard` : "/dashboard"}
           className={cn(
             // Samakan dengan <Button size="sm"> (variant default/Publish).
             "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl font-semibold transition-colors",
@@ -55,22 +48,6 @@ export function EditorTopbar({
         <div className="w-px h-5 bg-gray-200" />
         <p className="text-sm font-semibold text-gray-900 truncate">{templateName}</p>
       </div>
-
-      {availablePages.length > 1 && (
-        <div className="flex items-center gap-2 shrink-0">
-          <select
-            value={selectedPage}
-            onChange={(e) => onPageChange(e.target.value as PageType)}
-            className="h-8 rounded-lg border border-gray-200 bg-white px-2 text-xs text-gray-700 outline-none focus:ring-2 focus:ring-indigo-500/30 transition"
-          >
-            {availablePages.map((page) => (
-              <option key={page} value={page}>
-                {PAGE_LABELS[page]}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
 
       <div className="flex-1 flex justify-center">
         <div className="flex items-center gap-1 rounded-lg bg-gray-100 p-1">

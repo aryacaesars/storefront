@@ -18,10 +18,10 @@ export default async function StoreCustomizePage({
   searchParams,
 }: {
   params: Promise<{ storeId: string }>
-  searchParams: Promise<{ template?: string }>
+  searchParams: Promise<{ template?: string; mode?: string }>
 }) {
   const { storeId } = await params
-  const { template: templateParam } = await searchParams
+  const { template: templateParam, mode } = await searchParams
   const session = await requireSession()
   const store = await getStoreById(storeId)
 
@@ -48,6 +48,8 @@ export default async function StoreCustomizePage({
   const saveDraft = saveThemeDraftForStore.bind(null, storeId)
   const publish = publishThemeForStore.bind(null, storeId)
 
+  const initialMode = mode === "preview" ? "preview" : "edit"
+
   return (
     <CustomizeWorkspace
       storeId={storeId}
@@ -55,6 +57,7 @@ export default async function StoreCustomizePage({
       templateName={meta.name}
       initialConfig={initialConfig}
       storefrontHost={storefrontHost}
+      initialMode={initialMode}
       onSaveDraft={saveDraft}
       onPublish={publish}
     />

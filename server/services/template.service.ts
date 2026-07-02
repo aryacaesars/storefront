@@ -1,9 +1,22 @@
 import "server-only"
 import { prisma } from "@/lib/db/prisma"
+import { templateIdSchema } from "@/themes/engine/schema"
 import type { Template, TemplatePurchase } from "@prisma/client"
+import type { TemplateId } from "@/themes/engine/schema"
 
 export type { Template, TemplatePurchase }
 export type PurchaseWithTemplate = TemplatePurchase & { template: Template }
+
+/** DB slug → theme engine id (mis. seed lama pakai "minimal"). */
+const THEME_SLUG_ALIASES: Record<string, TemplateId> = {
+  minimal: "minimalist",
+}
+
+export function normalizeThemeSlug(slug: string): TemplateId | null {
+  const candidate = (THEME_SLUG_ALIASES[slug] ?? slug) as TemplateId
+  const parsed = templateIdSchema.safeParse(candidate)
+  return parsed.success ? parsed.data : null
+}
 
 export async function getPublishedTemplates(): Promise<Template[]> {
   return prisma.template.findMany({
@@ -87,7 +100,7 @@ export async function activateTemplate(storeId: string, templateId: string): Pro
     where: { id: templateId },
     select: { slug: true },
   })
-  const themeSlug = template?.slug ?? templateId
+  const themeSlug = normalizeThemeSlug(template?.slug ?? templateId) ?? template?.slug ?? templateId
   await prisma.storeThemeConfig.upsert({
     where: { storeId },
     update: { templateId: themeSlug },

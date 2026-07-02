@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { LogOut, User2, User } from "lucide-react";
+import { ChevronUp, LogOut, User2, User } from "lucide-react";
 import { logoutAction } from "@/features/auth/actions";
 import { cn } from "@/lib/utils";
 
@@ -52,34 +52,40 @@ export function SidebarAccountMenu({
         aria-expanded={open}
         aria-haspopup="menu"
         className={cn(
-          "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left",
-          open ? "bg-gray-100" : "hover:bg-gray-100",
+          "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors",
+          open ? "bg-brand/8 ring-1 ring-brand/15" : "hover:bg-gray-100",
         )}
       >
-        <span className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
-          <User2 className="w-3.5 h-3.5 text-gray-500" />
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand/10">
+          <User2 className="h-4 w-4 text-brand" />
         </span>
-        <div className="flex flex-col min-w-0">
-          <span className="text-xs font-semibold text-gray-800 leading-tight truncate">
+        <div className="min-w-0 flex-1">
+          <span className="block truncate text-xs font-semibold text-gray-800 leading-tight">
             {displayName}
           </span>
-          <span className="text-[10px] text-gray-400 leading-tight">{subtitle}</span>
+          <span className="block text-[10px] text-gray-400 leading-tight">{subtitle}</span>
         </div>
+        <ChevronUp
+          className={cn(
+            "h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200",
+            open && "rotate-180 text-brand",
+          )}
+        />
       </button>
 
       {open && (
         <div
           role="menu"
-          className="absolute bottom-full left-2 right-2 mb-1.5 rounded-xl border border-gray-200 bg-white py-1 shadow-lg shadow-gray-900/10 z-50"
+          className="absolute bottom-full left-0 right-0 mb-2 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg ring-1 ring-black/5 z-50"
         >
           {showProfile && (
             <Link
               href="/profile"
               role="menuitem"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
             >
-              <User className="w-4 h-4 text-gray-400 shrink-0" />
+              <User className="h-4 w-4 shrink-0 text-gray-400" />
               Profile
             </Link>
           )}
@@ -88,9 +94,9 @@ export function SidebarAccountMenu({
             <button
               type="submit"
               role="menuitem"
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors text-left"
+              className="flex w-full items-center gap-2.5 border-t border-gray-100 px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
             >
-              <LogOut className="w-4 h-4 shrink-0" />
+              <LogOut className="h-4 w-4 shrink-0" />
               Logout
             </button>
           </form>

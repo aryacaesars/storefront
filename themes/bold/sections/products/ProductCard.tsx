@@ -4,7 +4,7 @@ import { formatIdr } from "@/features/storefront/catalog-types"
 
 interface ProductCardProps {
   product: CatalogProduct
-  /** Use IDR formatting for live Scalev catalog; USD for mock preview. */
+  /** Use IDR formatting for live catalog; USD for mock preview. */
   liveCatalog?: boolean
 }
 

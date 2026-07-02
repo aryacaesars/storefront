@@ -24,7 +24,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           <SidebarAccountMenu displayName={session.name ?? "Admin"} subtitle="Admin" showProfile={false} />
         </div>
       </aside>
-      <main className="flex-1 min-h-0 overflow-auto">{children}</main>
+      <main className="flex-1 min-h-0 overflow-auto bg-[#eceaf3]">{children}</main>
     </div>
   )
 }

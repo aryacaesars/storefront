@@ -1,4 +1,4 @@
-/** View model shared between storefront themes and Scalev catalog mapper. */
+/** View model shared between storefront themes and the catalog mapper. */
 export type CatalogProduct = {
   id: string;
   slug: string;
@@ -8,7 +8,7 @@ export type CatalogProduct = {
   salePrice?: number;
   badge?: "NEW" | "SALE";
   imageUrl?: string;
-  /** CSS gradient fallback when no image from Scalev. */
+  /** CSS gradient fallback when product has no image. */
   imageClass: string;
   description?: string;
   inStock: boolean;

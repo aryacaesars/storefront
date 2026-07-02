@@ -33,7 +33,7 @@ export async function updateTemplateAction(
   await updateTemplate(id, {
     name: parsed.data.name,
     description: parsed.data.description ?? null,
-    price: Math.round(parsed.data.price * 100),
+    price: Math.round(parsed.data.price),
     previewUrl: parsed.data.previewUrl ?? null,
     published: parsed.data.published,
   })

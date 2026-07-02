@@ -2,7 +2,7 @@ import Link from "next/link"
 import { requireCustomer } from "@/features/storefront/customer-dal"
 import { getCustomerWithOrders } from "@/server/services/customer.service"
 import { formatIdr } from "@/features/storefront/catalog-types"
-import { logoutAction } from "./actions"
+import { LogoutButton } from "./LogoutButton"
 
 export const metadata = { title: "Akun Saya" }
 
@@ -42,14 +42,7 @@ export default async function AccountPage() {
           </h1>
           <p className="mt-1 text-sm text-[var(--theme-muted)]">{customer.email}</p>
         </div>
-        <form action={logoutAction}>
-          <button
-            type="submit"
-            className="rounded-full border border-black/10 px-5 py-2 text-sm font-semibold text-[var(--theme-text)] transition-colors hover:bg-black/5"
-          >
-            Keluar
-          </button>
-        </form>
+        <LogoutButton />
       </div>
 
       <div className="rounded-[27px] bg-white p-8 shadow-[0px_0px_19px_rgba(0,0,0,0.12)]">

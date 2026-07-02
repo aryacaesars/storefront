@@ -3,13 +3,19 @@
 import { useActionState } from "react"
 import { updateStoreSettingsAction } from "./actions"
 import type { SettingsState } from "./actions"
+import { useDashboardActionNotice } from "@/features/builder/hooks/useDashboardActionNotice"
+import { dashboardBtnPrimary, dashboardInput, dashboardLabel } from "@/features/builder/components/dashboard-ui"
 
 export function SettingsForm({
   storeId,
   defaultName,
+  defaultSlug,
+  rootDomain,
 }: {
   storeId: string
   defaultName: string
+  defaultSlug: string
+  rootDomain: string
 }) {
   const action = updateStoreSettingsAction.bind(null, storeId)
   const [state, formAction, pending] = useActionState<SettingsState, FormData>(
@@ -17,34 +23,47 @@ export function SettingsForm({
     undefined,
   )
 
-  return (
-    <form action={formAction} className="flex flex-col gap-4">
-      {state && "error" in state && (
-        <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{state.error}</p>
-      )}
-      {state && "success" in state && (
-        <p className="text-sm text-green-700 bg-green-50 px-3 py-2 rounded-lg">
-          Pengaturan berhasil disimpan.
-        </p>
-      )}
+  useDashboardActionNotice(state, {
+    successMessage: "Pengaturan toko berhasil disimpan.",
+  })
 
+  return (
+    <form action={formAction} className="flex max-w-xl flex-col gap-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Nama Store
-        </label>
+        <label className={dashboardLabel}>Nama Store</label>
         <input
           name="name"
           type="text"
           required
           defaultValue={defaultName}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black"
+          className={dashboardInput}
         />
+      </div>
+
+      <div>
+        <label className={dashboardLabel}>Subdomain</label>
+        <div className="flex items-stretch">
+          <input
+            name="slug"
+            type="text"
+            required
+            defaultValue={defaultSlug}
+            pattern="[a-zA-Z0-9\-]+"
+            className={`${dashboardInput} rounded-r-none`}
+          />
+          <span className="inline-flex items-center rounded-r-lg border border-l-0 border-gray-200 bg-gray-50 px-3 text-sm text-gray-500">
+            .{rootDomain}
+          </span>
+        </div>
+        <p className="mt-1.5 text-xs text-gray-400">
+          Huruf, angka, dan tanda hubung. Alamat storefront kamu akan berubah.
+        </p>
       </div>
 
       <button
         type="submit"
         disabled={pending}
-        className="px-4 py-2 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors w-fit"
+        className={dashboardBtnPrimary}
       >
         {pending ? "Menyimpan..." : "Simpan"}
       </button>

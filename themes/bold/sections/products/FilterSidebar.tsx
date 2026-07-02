@@ -1,8 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-// TODO Sprint 2: reconnect to Prisma data source — StorefrontCategory from Scalev removed
-// import type { StorefrontCategory } from "@/lib/scalev/schemas-storefront"
 import type { StorefrontCategory } from "@/features/storefront/catalog"
 
 function FilterLabel({ children }: { children: React.ReactNode }) {

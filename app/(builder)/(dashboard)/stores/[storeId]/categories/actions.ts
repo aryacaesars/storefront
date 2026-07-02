@@ -15,7 +15,9 @@ const CategoryInput = z.object({
   name: z.string().trim().min(1, "Nama kategori wajib diisi.").max(100),
 })
 
-export type CategoryState = { error: string } | undefined
+export type CategoryState = { error: string } | { success: true } | undefined
+
+export type DeleteCategoryResult = { ok: true } | { ok: false; error: string }
 
 async function requireOwner(storeId: string) {
   const session = await requireSession()
@@ -43,13 +45,19 @@ export async function createCategoryAction(
 
   await createCategory({ name: parsed.data.name, slug, storeId })
   revalidatePath(`/stores/${storeId}/categories`)
+  return { success: true }
 }
 
 export async function deleteCategoryAction(
   storeId: string,
   categoryId: string,
-): Promise<void> {
+): Promise<DeleteCategoryResult> {
   await requireOwner(storeId)
-  await deleteCategory(categoryId, storeId)
-  revalidatePath(`/stores/${storeId}/categories`)
+  try {
+    await deleteCategory(categoryId, storeId)
+    revalidatePath(`/stores/${storeId}/categories`)
+    return { ok: true }
+  } catch {
+    return { ok: false, error: "Gagal menghapus kategori." }
+  }
 }

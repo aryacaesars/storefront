@@ -2,6 +2,11 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { requireAdmin } from "@/features/auth/dal"
 import { getTemplateById } from "@/server/services/template.service"
+import { DashboardShell } from "@/features/builder/components/DashboardShell"
+import {
+  DashboardPanel,
+  dashboardBackLink,
+} from "@/features/builder/components/dashboard-ui"
 import { TemplateForm } from "../TemplateForm"
 import { updateTemplateAction, deleteTemplateAction } from "./actions"
 
@@ -23,33 +28,48 @@ export default async function EditTemplatePage({
   const update = updateTemplateAction.bind(null, id)
 
   return (
-    <div className="p-6 max-w-lg">
-      <Link href="/admin/templates" className="text-sm text-gray-400 hover:text-gray-700">← Kembali</Link>
-      <h1 className="mt-4 mb-6 text-2xl font-semibold text-gray-900">Edit Template</h1>
+    <DashboardShell
+      pageTitle="Edit Template"
+      pageSubtitle={template.name}
+    >
+      <div className="flex flex-col gap-4">
+        <Link href="/admin/templates" className={dashboardBackLink}>
+          ← Kembali ke daftar template
+        </Link>
 
-      {error && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
+        {error && (
+          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+        )}
 
-      <TemplateForm
-        action={update}
-        submitLabel="Simpan Perubahan"
-        defaultValues={{
-          name: template.name,
-          description: template.description ?? "",
-          priceDollars: (template.price / 100).toFixed(2),
-          previewUrl: template.previewUrl ?? "",
-          published: template.published,
-        }}
-      />
+        <DashboardPanel className="p-6 lg:p-8">
+          <TemplateForm
+            action={update}
+            submitLabel="Simpan Perubahan"
+            defaultValues={{
+              name: template.name,
+              description: template.description ?? "",
+              price: template.price,
+              previewUrl: template.previewUrl ?? "",
+              published: template.published,
+            }}
+          />
+        </DashboardPanel>
 
-      <div className="mt-8 pt-5 border-t border-gray-100">
-        <p className="text-sm font-medium text-gray-700 mb-3">Zona Berbahaya</p>
-        <form action={deleteTemplateAction.bind(null, id)}>
-          <button type="submit" className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
-            Hapus Template
-          </button>
-        </form>
-        <p className="mt-2 text-xs text-gray-400">Template yang sudah pernah dibeli tidak bisa dihapus.</p>
+        <DashboardPanel className="p-6">
+          <p className="mb-3 text-sm font-semibold text-red-600">Zona Berbahaya</p>
+          <form action={deleteTemplateAction.bind(null, id)}>
+            <button
+              type="submit"
+              className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+            >
+              Hapus Template
+            </button>
+          </form>
+          <p className="mt-2 text-xs text-gray-400">
+            Template yang sudah pernah dibeli tidak bisa dihapus.
+          </p>
+        </DashboardPanel>
       </div>
-    </div>
+    </DashboardShell>
   )
 }

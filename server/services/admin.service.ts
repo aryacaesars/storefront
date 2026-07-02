@@ -8,7 +8,7 @@ export type AdminOverview = {
   totalTemplates: number
   publishedTemplates: number
   totalPurchases: number
-  revenueTotal: number // dalam sen (cents), jumlah harga template yang PAID
+  revenueTotal: number // dalam rupiah, jumlah harga template yang PAID
 }
 
 /** Ringkasan platform untuk dashboard admin. */
@@ -132,7 +132,7 @@ async function uniqueTemplateSlug(name: string, excludeId?: string): Promise<str
 export type TemplateInput = {
   name: string
   description: string | null
-  price: number // dalam sen
+  price: number // dalam rupiah
   previewUrl: string | null
   published: boolean
 }

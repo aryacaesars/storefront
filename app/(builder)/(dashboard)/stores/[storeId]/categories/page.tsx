@@ -1,8 +1,25 @@
 import { notFound } from "next/navigation"
 import { requireSession } from "@/features/auth/dal"
 import { getStoreById } from "@/server/services/tenant.service"
-import { getCategories } from "@/server/services/product.service"
-import { CategoryPageClient } from "./CategoryPageClient"
+import { getCategoriesWithCounts } from "@/server/services/product.service"
+import { DashboardShell } from "@/features/builder/components/DashboardShell"
+import {
+  DashboardTable,
+  DashboardTableActionLink,
+  DashboardTableAvatarCell,
+  DashboardTableBody,
+  DashboardTableCell,
+  DashboardTableElement,
+  DashboardTableFooter,
+  DashboardTableHead,
+  DashboardTableHeadCell,
+  DashboardTableHeadRow,
+  DashboardTableRow,
+} from "@/features/builder/components/DashboardTable"
+import { DashboardPanel } from "@/features/builder/components/dashboard-ui"
+import { CategoryAddForm } from "./CategoryAddForm"
+import { CategoryDeleteButton } from "@/features/builder/components/CategoryDeleteButton"
+import { deleteCategoryAction } from "./actions"
 
 export async function generateMetadata({
   params,
@@ -24,20 +41,68 @@ export default async function CategoriesPage({
   const store = await getStoreById(storeId)
   if (!store || store.ownerId !== session.userId) notFound()
 
-  const categories = await getCategories(storeId)
+  const categories = await getCategoriesWithCounts(storeId)
+  const total = categories.length
 
   return (
-    <div className="p-6 max-w-2xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Kategori</h1>
-        <p className="text-sm text-gray-400 mt-1">
-          Kelola kategori produk untuk {store.name}
-        </p>
-      </div>
+    <DashboardShell
+      pageTitle="Kategori"
+      pageSubtitle={`Total: ${total} kategori`}
+    >
+      <DashboardPanel className="mb-6 p-6">
+        <p className="mb-3 text-sm font-medium text-ink">Tambah Kategori</p>
+        <CategoryAddForm storeId={storeId} />
+      </DashboardPanel>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-5">
-        <CategoryPageClient categories={categories} storeId={storeId} />
-      </div>
-    </div>
+      {total === 0 ? (
+        <DashboardPanel className="p-12 text-center">
+          <p className="text-sm text-gray-400">Belum ada kategori.</p>
+        </DashboardPanel>
+      ) : (
+        <DashboardTable>
+          <DashboardTableElement>
+            <DashboardTableHead>
+              <DashboardTableHeadRow>
+                <DashboardTableHeadCell>Kategori</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">Produk</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="center">Aksi</DashboardTableHeadCell>
+              </DashboardTableHeadRow>
+            </DashboardTableHead>
+            <DashboardTableBody>
+              {categories.map((category, index) => (
+                <DashboardTableRow key={category.id} index={index}>
+                  <DashboardTableCell>
+                    <DashboardTableAvatarCell
+                      name={category.name}
+                      subtitle={category.slug}
+                    />
+                  </DashboardTableCell>
+                  <DashboardTableCell align="right" className="text-gray-600">
+                    {category._count.products}
+                  </DashboardTableCell>
+                  <DashboardTableCell align="center">
+                    <div className="flex items-center justify-center gap-1">
+                      <DashboardTableActionLink
+                        href={`/stores/${storeId}/categories/${category.id}`}
+                        label="Edit kategori"
+                      />
+                      <CategoryDeleteButton
+                        categoryName={category.name}
+                        deleteAction={deleteCategoryAction.bind(
+                          null,
+                          storeId,
+                          category.id,
+                        )}
+                      />
+                    </div>
+                  </DashboardTableCell>
+                </DashboardTableRow>
+              ))}
+            </DashboardTableBody>
+          </DashboardTableElement>
+          <DashboardTableFooter from={1} to={total} total={total} />
+        </DashboardTable>
+      )}
+    </DashboardShell>
   )
 }

@@ -36,13 +36,6 @@ export default async function LoginPage() {
               </li>
             ))}
           </ul>
-
-          <Link
-            href="/login"
-            className="rounded-full bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-dark"
-          >
-            Free Trial
-          </Link>
         </nav>
       </header>
 

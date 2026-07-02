@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useEffect } from "react"
 import { signInAction, type SignInState } from "./actions"
 
 const inputClass =
@@ -9,9 +9,17 @@ const inputClass =
 export function SignInForm() {
   const [state, action, pending] = useActionState<SignInState, FormData>(signInAction, undefined)
 
+  useEffect(() => {
+    if (state && "success" in state) {
+      // Full nav (bukan redirect server action) supaya subdomain tetap → theme
+      // ke-SSR benar, tidak flip ke default.
+      window.location.assign("/account")
+    }
+  }, [state])
+
   return (
     <form action={action} className="mt-6 space-y-4">
-      {state?.error && (
+      {state && "error" in state && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{state.error}</p>
       )}
       <input name="email" type="email" required placeholder="Email" className={inputClass} />

@@ -4,6 +4,21 @@ import { Plus } from "lucide-react"
 import { requireSession } from "@/features/auth/dal"
 import { getStoreById } from "@/server/services/tenant.service"
 import { getProducts } from "@/server/services/product.service"
+import { DashboardShell } from "@/features/builder/components/DashboardShell"
+import {
+  DashboardTable,
+  DashboardTableActionLink,
+  DashboardTableAvatarCell,
+  DashboardTableBody,
+  DashboardTableCell,
+  DashboardTableElement,
+  DashboardTableFooter,
+  DashboardTableHead,
+  DashboardTableHeadCell,
+  DashboardTableHeadRow,
+  DashboardTableRow,
+} from "@/features/builder/components/DashboardTable"
+import { DashboardPanel, dashboardBtnPrimary } from "@/features/builder/components/dashboard-ui"
 
 export async function generateMetadata({
   params,
@@ -26,90 +41,81 @@ export default async function ProductsPage({
   if (!store || store.ownerId !== session.userId) notFound()
 
   const products = await getProducts(storeId)
+  const total = products.length
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Produk</h1>
-          <p className="text-sm text-gray-400 mt-1">
-            {products.length} produk di {store.name}
-          </p>
-        </div>
-        <Link
-          href={`/stores/${storeId}/products/new`}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
+    <DashboardShell
+      pageTitle="Produk"
+      pageSubtitle={`Total: ${total}`}
+      action={
+        <Link href={`/stores/${storeId}/products/new`} className={dashboardBtnPrimary}>
+          <Plus className="h-4 w-4" />
           Tambah Produk
         </Link>
-      </div>
-
-      {products.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
-          <p className="text-gray-400 text-sm mb-4">Belum ada produk.</p>
-          <Link
-            href={`/stores/${storeId}/products/new`}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
+      }
+    >
+      {total === 0 ? (
+        <DashboardPanel className="p-12 text-center">
+          <p className="mb-4 text-sm text-gray-400">Belum ada produk.</p>
+          <Link href={`/stores/${storeId}/products/new`} className={dashboardBtnPrimary}>
+            <Plus className="h-4 w-4" />
             Tambah Produk Pertama
           </Link>
-        </div>
+        </DashboardPanel>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Produk</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Kategori</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Harga</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Stok</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {products.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-gray-900">{product.name}</p>
-                    <p className="text-xs text-gray-400">{product.slug}</p>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">
+        <DashboardTable>
+          <DashboardTableElement>
+            <DashboardTableHead>
+              <DashboardTableHeadRow>
+                <DashboardTableHeadCell>Produk</DashboardTableHeadCell>
+                <DashboardTableHeadCell>Kategori</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">Harga</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">Stok</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="center">Status</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="center">
+                  Aksi
+                </DashboardTableHeadCell>
+              </DashboardTableHeadRow>
+            </DashboardTableHead>
+            <DashboardTableBody>
+              {products.map((product, index) => (
+                <DashboardTableRow key={product.id} index={index}>
+                  <DashboardTableCell>
+                    <DashboardTableAvatarCell name={product.name} subtitle={product.slug} />
+                  </DashboardTableCell>
+                  <DashboardTableCell className="text-gray-600">
                     {product.category?.name ?? "—"}
-                  </td>
-                  <td className="px-4 py-3 text-right text-gray-900">
+                  </DashboardTableCell>
+                  <DashboardTableCell align="right" className="font-medium text-ink">
                     Rp {product.price.toLocaleString("id-ID")}
-                  </td>
-                  <td className="px-4 py-3 text-right text-gray-500">
+                  </DashboardTableCell>
+                  <DashboardTableCell align="right" className="text-gray-600">
                     {product.stock}
-                  </td>
-                  <td className="px-4 py-3 text-center">
+                  </DashboardTableCell>
+                  <DashboardTableCell align="center">
                     <span
-                      className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
+                      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                         product.published
-                          ? "bg-green-50 text-green-700"
+                          ? "bg-emerald-50 text-emerald-700"
                           : "bg-gray-100 text-gray-500"
                       }`}
                     >
                       {product.published ? "Aktif" : "Draft"}
                     </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <Link
+                  </DashboardTableCell>
+                  <DashboardTableCell align="center">
+                    <DashboardTableActionLink
                       href={`/stores/${storeId}/products/${product.id}`}
-                      className="text-indigo-600 hover:text-indigo-800 text-xs font-medium"
-                    >
-                      Edit
-                    </Link>
-                  </td>
-                </tr>
+                      label="Edit produk"
+                    />
+                  </DashboardTableCell>
+                </DashboardTableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </DashboardTableBody>
+          </DashboardTableElement>
+          <DashboardTableFooter from={1} to={total} total={total} />
+        </DashboardTable>
       )}
-    </div>
+    </DashboardShell>
   )
 }

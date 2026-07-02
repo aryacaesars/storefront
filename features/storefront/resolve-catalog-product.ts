@@ -3,12 +3,12 @@ import type { CatalogProduct } from "@/features/storefront/catalog-types"
 export type ResolvedProductDetail = {
   product: CatalogProduct | null
   related: CatalogProduct[]
-  /** True when tenant has a live Scalev catalog (not builder mock preview). */
+  /** True when tenant has a live catalog (not builder mock preview). */
   isLiveCatalog: boolean
 }
 
 /**
- * Resolves product detail from Scalev live data with safe fallbacks:
+ * Resolves product detail from live catalog data with safe fallbacks:
  * 1. Detail API result (`product`)
  * 2. Match slug in catalog list (`products`)
  * 3. Mock preview items when catalog is not connected

@@ -40,8 +40,10 @@ export async function buyTemplate(storeId: string, templateId: string): Promise<
     line_items: [
       {
         price_data: {
-          currency: "usd",
-          unit_amount: template.price,
+          currency: "idr",
+          // Stripe IDR pakai 2 desimal (bukan zero-decimal): harga disimpan
+          // rupiah utuh, unit_amount = rupiah × 100.
+          unit_amount: template.price * 100,
           product_data: { name: template.name },
         },
         quantity: 1,

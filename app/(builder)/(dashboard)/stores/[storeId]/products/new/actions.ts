@@ -61,5 +61,5 @@ export async function createProductAction(
     imageUrl: parsed.data.imageUrl || null,
   })
 
-  redirect(`/stores/${storeId}/products/${product.id}`)
+  redirect(`/stores/${storeId}/products/${product.id}?toast=created`)
 }

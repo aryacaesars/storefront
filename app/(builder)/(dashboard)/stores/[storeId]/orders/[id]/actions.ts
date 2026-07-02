@@ -24,10 +24,12 @@ export async function updateStatusAction(
   const result = await updateOrderStatus(orderId, storeId, status)
 
   if (!result.ok) {
-    redirect(`/stores/${storeId}/orders/${orderId}?error=${encodeURIComponent(result.error)}`)
+    redirect(
+      `/stores/${storeId}/orders/${orderId}?notice=error&message=${encodeURIComponent(result.error)}`,
+    )
   }
 
   revalidatePath(`/stores/${storeId}/orders/${orderId}`)
   revalidatePath(`/stores/${storeId}/orders`)
-  redirect(`/stores/${storeId}/orders/${orderId}`)
+  redirect(`/stores/${storeId}/orders/${orderId}?notice=success`)
 }

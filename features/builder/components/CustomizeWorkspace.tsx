@@ -322,6 +322,7 @@ export function CustomizeWorkspace({
         </div>
       )}
       <EditorTopbar
+        storeId={storeId}
         templateName={templateName}
         mode={mode}
         device={device}
@@ -330,9 +331,6 @@ export function CustomizeWorkspace({
         onSaveDraft={handleSaveDraft}
         onPublish={handlePublish}
         isSaving={isSaving}
-        availablePages={availablePages}
-        selectedPage={selectedPage}
-        onPageChange={setSelectedPage}
       />
 
       {status && (

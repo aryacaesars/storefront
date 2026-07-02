@@ -1,5 +1,11 @@
 import { requireAdmin } from "@/features/auth/dal"
 import { getAllPurchasesAdmin } from "@/server/services/admin.service"
+import { DashboardShell } from "@/features/builder/components/DashboardShell"
+import {
+  dashboardCard,
+  dashboardTableHeadCell,
+  dashboardTableHeadRow,
+} from "@/features/builder/components/dashboard-ui"
 
 export const metadata = { title: "Admin — Transaksi" }
 
@@ -14,47 +20,59 @@ export default async function AdminOrdersPage() {
   const purchases = await getAllPurchasesAdmin()
 
   return (
-    <div className="p-6 max-w-5xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Transaksi Template</h1>
-        <p className="text-sm text-gray-400 mt-1">{purchases.length} transaksi</p>
-      </div>
-
+    <DashboardShell
+      pageTitle="Transaksi Template"
+      pageSubtitle={`${purchases.length} transaksi`}
+    >
       {purchases.length === 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-12 text-center text-sm text-gray-400">Belum ada transaksi.</div>
+        <div className={`${dashboardCard} p-12 text-center text-sm text-gray-400`}>
+          Belum ada transaksi.
+        </div>
       ) : (
-        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Store</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Template</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Harga</th>
-                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tanggal</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {purchases.map((p) => (
-                <tr key={p.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-gray-900">{p.storeName}</p>
-                    <p className="text-xs text-gray-400">{p.storeSlug}</p>
-                  </td>
-                  <td className="px-4 py-3 text-gray-700">{p.templateName}</td>
-                  <td className="px-4 py-3 text-right font-medium text-gray-900">${(p.price / 100).toFixed(2)}</td>
-                  <td className="px-4 py-3 text-center">
-                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_CLASS[p.status] ?? "bg-gray-100 text-gray-600"}`}>{p.status}</span>
-                  </td>
-                  <td className="px-4 py-3 text-right text-xs text-gray-400">
-                    {(p.paidAt ?? p.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
-                  </td>
+        <div className={`${dashboardCard} overflow-hidden`}>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className={dashboardTableHeadRow}>
+                  <th className={`${dashboardTableHeadCell} text-left`}>Store</th>
+                  <th className={`${dashboardTableHeadCell} text-left`}>Template</th>
+                  <th className={`${dashboardTableHeadCell} text-right`}>Harga</th>
+                  <th className={`${dashboardTableHeadCell} text-center`}>Status</th>
+                  <th className={`${dashboardTableHeadCell} text-right`}>Tanggal</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {purchases.map((p) => (
+                  <tr key={p.id} className="transition-colors hover:bg-gray-50/70">
+                    <td className="px-5 py-3.5">
+                      <p className="font-semibold text-ink">{p.storeName}</p>
+                      <p className="text-xs text-brand/70">{p.storeSlug}</p>
+                    </td>
+                    <td className="px-5 py-3.5 text-gray-700">{p.templateName}</td>
+                    <td className="px-5 py-3.5 text-right font-medium text-ink">
+                      Rp {p.price.toLocaleString("id-ID")}
+                    </td>
+                    <td className="px-5 py-3.5 text-center">
+                      <span
+                        className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLASS[p.status] ?? "bg-gray-100 text-gray-600"}`}
+                      >
+                        {p.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 text-right text-xs text-gray-400">
+                      {(p.paidAt ?? p.createdAt).toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
-    </div>
+    </DashboardShell>
   )
 }

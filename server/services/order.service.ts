@@ -50,7 +50,7 @@ export async function getOrders(storeId: string): Promise<OrderWithCustomer[]> {
 
 export async function getCustomers(storeId: string): Promise<CustomerWithStats[]> {
   const customers = await prisma.customer.findMany({
-    where: { storeId },
+    where: { storeId, passwordHash: { not: null } },
     include: { _count: { select: { orders: true } } },
     orderBy: { createdAt: "desc" },
   })
@@ -94,10 +94,10 @@ export async function getOrderById(orderId: string, storeId: string) {
   })
 }
 
-/** Detail customer: profil + alamat + riwayat order + ringkasan belanja. */
+/** Detail pelanggan terdaftar (punya akun storefront), bukan guest checkout. */
 export async function getCustomerById(customerId: string, storeId: string) {
   return prisma.customer.findFirst({
-    where: { id: customerId, storeId },
+    where: { id: customerId, storeId, passwordHash: { not: null } },
     include: {
       addresses: true,
       orders: {

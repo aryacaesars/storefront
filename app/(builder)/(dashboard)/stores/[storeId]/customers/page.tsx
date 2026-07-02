@@ -1,13 +1,27 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import { requireSession } from "@/features/auth/dal"
 import { getStoreById } from "@/server/services/tenant.service"
 import { getCustomers } from "@/server/services/order.service"
+import { DashboardShell } from "@/features/builder/components/DashboardShell"
+import {
+  DashboardTable,
+  DashboardTableActionLink,
+  DashboardTableAvatarCell,
+  DashboardTableBody,
+  DashboardTableCell,
+  DashboardTableElement,
+  DashboardTableFooter,
+  DashboardTableHead,
+  DashboardTableHeadCell,
+  DashboardTableHeadRow,
+  DashboardTableRow,
+} from "@/features/builder/components/DashboardTable"
+import { DashboardPanel } from "@/features/builder/components/dashboard-ui"
 
 export async function generateMetadata({ params }: { params: Promise<{ storeId: string }> }) {
   const { storeId } = await params
   const store = await getStoreById(storeId)
-  return { title: store ? `Customer — ${store.name}` : "Customer" }
+  return { title: store ? `Pelanggan — ${store.name}` : "Pelanggan" }
 }
 
 export default async function CustomersPage({
@@ -21,68 +35,69 @@ export default async function CustomersPage({
   if (!store || store.ownerId !== session.userId) notFound()
 
   const customers = await getCustomers(storeId)
+  const total = customers.length
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Customer</h1>
-        <p className="text-sm text-gray-400 mt-1">{customers.length} customer terdaftar</p>
-      </div>
-
-      {customers.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
-          <p className="text-gray-400 text-sm">Belum ada customer.</p>
-        </div>
+    <DashboardShell
+      pageTitle="Pelanggan"
+      pageSubtitle={`Total: ${total} user terdaftar di toko`}
+    >
+      {total === 0 ? (
+        <DashboardPanel className="p-12 text-center">
+          <p className="text-sm text-gray-400">
+            Belum ada user yang mendaftar di storefront toko ini.
+          </p>
+        </DashboardPanel>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Customer
-                </th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Total Order
-                </th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Total Belanja
-                </th>
-                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Bergabung
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {customers.map((customer) => (
-                <tr key={customer.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/stores/${storeId}/customers/${customer.id}`}
-                      className="font-medium text-gray-900 hover:text-indigo-600 hover:underline"
-                    >
-                      {customer.name ?? "—"}
-                    </Link>
-                    <p className="text-xs text-gray-400">{customer.email}</p>
-                  </td>
-                  <td className="px-4 py-3 text-right text-gray-500">
+        <DashboardTable>
+          <DashboardTableElement>
+            <DashboardTableHead>
+              <DashboardTableHeadRow>
+                <DashboardTableHeadCell>Pelanggan</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">Total Order</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">Total Belanja</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">Bergabung</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="center">
+                  Aksi
+                </DashboardTableHeadCell>
+              </DashboardTableHeadRow>
+            </DashboardTableHead>
+            <DashboardTableBody>
+              {customers.map((customer, index) => (
+                <DashboardTableRow key={customer.id} index={index}>
+                  <DashboardTableCell>
+                    <DashboardTableAvatarCell
+                      name={customer.name ?? "—"}
+                      subtitle={customer.email}
+                    />
+                  </DashboardTableCell>
+                  <DashboardTableCell align="right" className="text-gray-600">
                     {customer._count.orders}
-                  </td>
-                  <td className="px-4 py-3 text-right font-medium text-gray-900">
+                  </DashboardTableCell>
+                  <DashboardTableCell align="right" className="font-medium text-ink">
                     Rp {customer.totalSpent.toLocaleString("id-ID")}
-                  </td>
-                  <td className="px-4 py-3 text-right text-xs text-gray-400">
+                  </DashboardTableCell>
+                  <DashboardTableCell align="right" className="text-xs text-gray-500">
                     {customer.createdAt.toLocaleDateString("id-ID", {
                       day: "numeric",
                       month: "short",
                       year: "numeric",
                     })}
-                  </td>
-                </tr>
+                  </DashboardTableCell>
+                  <DashboardTableCell align="center">
+                    <DashboardTableActionLink
+                      href={`/stores/${storeId}/customers/${customer.id}`}
+                      label="Lihat customer"
+                      icon="eye"
+                    />
+                  </DashboardTableCell>
+                </DashboardTableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </DashboardTableBody>
+          </DashboardTableElement>
+          <DashboardTableFooter from={1} to={total} total={total} />
+        </DashboardTable>
       )}
-    </div>
+    </DashboardShell>
   )
 }
