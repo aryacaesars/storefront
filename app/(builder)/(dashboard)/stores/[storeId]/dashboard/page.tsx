@@ -60,17 +60,17 @@ export default async function StoreDashboardPage({
         </div>
 
         {stats.activeTemplate && (
-          <article className={`${dashboardCard} flex flex-wrap items-center justify-between gap-4 p-6`}>
+          <article className={`${dashboardCard} flex flex-wrap items-center justify-between gap-4 p-5 md:p-6`}>
             <div className="flex items-center gap-4">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-brand/15 to-brand/5 text-brand">
-                <Palette className="h-5 w-5" strokeWidth={1.75} />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-dash-primary/10 text-dash-primary">
+                <Palette className="h-6 w-6" strokeWidth={1.75} />
               </div>
               <div>
-                <p className="text-base font-bold text-ink">
+                <p className="text-base font-semibold text-gray-800">
                   Template aktif:{" "}
-                  <span className="capitalize text-brand">{stats.activeTemplate}</span>
+                  <span className="capitalize text-dash-primary">{stats.activeTemplate}</span>
                 </p>
-                <p className="mt-0.5 text-sm text-gray-400">
+                <p className="mt-0.5 text-sm text-gray-500">
                   Storefront kamu menggunakan template ini
                 </p>
               </div>

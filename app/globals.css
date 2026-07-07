@@ -9,6 +9,14 @@
   --brand-dark: #4a3ed0;
   --ink: #0e0e1a;
   --surface: #f4f2ef;
+
+  /* Dashboard shell — TailAdmin-inspired */
+  --dash-bg: #f1f5f9;
+  --dash-primary: #3c50e0;
+  --dash-primary-dark: #2f41c7;
+  --dash-primary-light: #eef2ff;
+  --dash-success: #22c55e;
+  --dash-danger: #ef4444;
 }
 
 @theme inline {
@@ -18,6 +26,12 @@
   --color-brand-dark: var(--brand-dark);
   --color-ink: var(--ink);
   --color-surface: var(--surface);
+  --color-dash-bg: var(--dash-bg);
+  --color-dash-primary: var(--dash-primary);
+  --color-dash-primary-dark: var(--dash-primary-dark);
+  --color-dash-primary-light: var(--dash-primary-light);
+  --color-dash-success: var(--dash-success);
+  --color-dash-danger: var(--dash-danger);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-display);

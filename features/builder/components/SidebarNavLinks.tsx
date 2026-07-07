@@ -17,9 +17,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const TOP_NAV = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-]
+const TOP_NAV = [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }]
 
 const STORE_NAV = [
   { href: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -34,6 +32,14 @@ const STORE_NAV = [
 
 type StoreItem = { id: string; name: string }
 
+const navItemClass = (active: boolean) =>
+  cn(
+    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+    active
+      ? "bg-dash-primary-light text-dash-primary"
+      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+  )
+
 export function SidebarNavLinks({
   stores = [],
   isAdmin = false,
@@ -42,84 +48,46 @@ export function SidebarNavLinks({
   isAdmin?: boolean
 }) {
   const pathname = usePathname()
-
   const storeMatch = pathname.match(/^\/stores\/([^/]+)/)
   const activeStoreId = storeMatch?.[1] ?? null
 
   return (
-    <nav className="flex flex-col gap-0.5 px-2">
+    <nav className="flex flex-col gap-1">
       {TOP_NAV.map(({ href, label, icon: Icon }) => {
         const active =
-          pathname === href ||
-          (href !== "/dashboard" && pathname.startsWith(href + "/"))
+          pathname === href || (href !== "/dashboard" && pathname.startsWith(href + "/"))
         return (
-          <Link
-            key={href}
-            href={href}
-            className={cn(
-              "group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-              active
-                ? "bg-indigo-50 text-indigo-700"
-                : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
-            )}
-          >
-            {active && (
-              <span className="absolute left-0 top-2 bottom-2 w-0.5 bg-indigo-600 rounded-r-full" />
-            )}
-            <Icon className="w-4 h-4 shrink-0" />
+          <Link key={href} href={href} className={navItemClass(active)}>
+            <Icon className="h-5 w-5 shrink-0" strokeWidth={1.75} />
             {label}
           </Link>
         )
       })}
 
       {isAdmin && (
-        <Link
-          href="/admin"
-          className={cn(
-            "group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-            pathname.startsWith("/admin")
-              ? "bg-indigo-50 text-indigo-700"
-              : "text-gray-500 hover:bg-gray-100 hover:text-gray-900",
-          )}
-        >
-          {pathname.startsWith("/admin") && (
-            <span className="absolute left-0 top-2 bottom-2 w-0.5 bg-indigo-600 rounded-r-full" />
-          )}
-          <Shield className="w-4 h-4 shrink-0" />
+        <Link href="/admin" className={navItemClass(pathname.startsWith("/admin"))}>
+          <Shield className="h-5 w-5 shrink-0" strokeWidth={1.75} />
           Admin Panel
         </Link>
       )}
 
       {stores.length > 0 && (
-        <div className="mt-3">
-          <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+        <div className="mt-6">
+          <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
             Toko Saya
           </p>
           {stores.map((store) => {
             const isActive = activeStoreId === store.id
             return (
-              <div key={store.id}>
-                <Link
-                  href={`/stores/${store.id}/dashboard`}
-                  className={cn(
-                    "relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-indigo-50 text-indigo-700"
-                      : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
-                  )}
-                >
-                  {isActive && (
-                    <span className="absolute left-0 top-2 bottom-2 w-0.5 bg-indigo-600 rounded-r-full" />
-                  )}
-                  <Store className="w-4 h-4 shrink-0" />
+              <div key={store.id} className="mb-1">
+                <Link href={`/stores/${store.id}/dashboard`} className={navItemClass(isActive)}>
+                  <Store className="h-5 w-5 shrink-0" strokeWidth={1.75} />
                   <span className="flex-1 truncate">{store.name}</span>
-                  {isActive && (
-                    <ChevronDown className="w-3 h-3 shrink-0 opacity-60" />
-                  )}
+                  {isActive && <ChevronDown className="h-4 w-4 shrink-0 opacity-60" />}
                 </Link>
 
                 {isActive && (
-                  <div className="ml-3 pl-3 border-l border-gray-200 mt-0.5 mb-1 flex flex-col gap-0.5">
+                  <div className="mt-1 flex flex-col gap-0.5 pl-4">
                     {STORE_NAV.map(({ href: sub, label, icon: Icon }) => {
                       const subPath = `/stores/${store.id}/${sub}`
                       const subActive =
@@ -129,13 +97,13 @@ export function SidebarNavLinks({
                           key={sub}
                           href={subPath}
                           className={cn(
-                            "flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm transition-colors",
+                            "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
                             subActive
-                              ? "text-indigo-700 font-medium bg-indigo-50"
-                              : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                              ? "bg-dash-primary-light font-medium text-dash-primary"
+                              : "text-gray-500 hover:bg-gray-50 hover:text-gray-900",
                           )}
                         >
-                          <Icon className="w-3.5 h-3.5 shrink-0" />
+                          <Icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />
                           {label}
                         </Link>
                       )

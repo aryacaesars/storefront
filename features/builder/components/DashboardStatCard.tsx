@@ -1,24 +1,45 @@
 import type { LucideIcon } from "lucide-react"
+import { TrendingDown, TrendingUp } from "lucide-react"
+import { dashboardCard } from "@/features/builder/components/dashboard-ui"
 
 interface DashboardStatCardProps {
   label: string
   value: string | number
   icon: LucideIcon
+  trend?: number
 }
 
-export function DashboardStatCard({ label, value, icon: Icon }: DashboardStatCardProps) {
+export function DashboardStatCard({ label, value, icon: Icon, trend }: DashboardStatCardProps) {
+  const trendUp = trend === undefined || trend >= 0
+
   return (
-    <article className="rounded-3xl bg-linear-to-b from-brand/25 to-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.10)]">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="truncate text-3xl font-extrabold leading-none tracking-tight text-brand">
-            {value}
-          </p>
-          <p className="mt-2 text-sm font-semibold text-brand/80">{label}</p>
+    <article className={`${dashboardCard} p-5 md:p-6`}>
+      <div className="flex items-center justify-center rounded-xl bg-dash-primary/10 p-3 w-fit">
+        <Icon className="h-6 w-6 text-dash-primary" strokeWidth={1.75} />
+      </div>
+
+      <div className="mt-5 flex items-end justify-between gap-3">
+        <div>
+          <h4 className="text-2xl font-bold text-gray-800 md:text-3xl">{value}</h4>
+          <p className="mt-1 text-sm text-gray-500">{label}</p>
         </div>
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand text-white shadow-lg shadow-brand/30">
-          <Icon className="h-6 w-6" strokeWidth={2} />
-        </div>
+
+        {trend !== undefined && (
+          <span
+            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+              trendUp
+                ? "bg-emerald-50 text-emerald-600"
+                : "bg-red-50 text-red-600"
+            }`}
+          >
+            {trendUp ? (
+              <TrendingUp className="h-3 w-3" />
+            ) : (
+              <TrendingDown className="h-3 w-3" />
+            )}
+            {Math.abs(trend)}%
+          </span>
+        )}
       </div>
     </article>
   )
