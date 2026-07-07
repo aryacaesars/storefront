@@ -116,6 +116,16 @@ export const DEFAULT_BOLD_HOME: PageTemplate = {
         },
       ],
     },
-    "call-to-action": { type: "call-to-action" },
+    "call-to-action": {
+      type: "call-to-action",
+      settings: {
+        title: "BECOME PART OF THE MOMENTUM.",
+        subtitle:
+          "Join the elite circle of athletes and innovators redefining the boundaries of the possible.",
+        primaryLabel: "SHOP THE SERIES",
+        secondaryLabel: "OUR STORY",
+      },
+      blocks: [],
+    },
   },
 }

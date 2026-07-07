@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
 import {
   LayoutDashboard,
   Store,
@@ -35,13 +36,38 @@ const STORE_NAV = [
 type StoreItem = { id: string; name: string }
 
 export function SidebarNavLinks({
-  stores = [],
+  stores: initialStores = [],
   isAdmin = false,
 }: {
   stores?: StoreItem[]
   isAdmin?: boolean
 }) {
   const pathname = usePathname()
+  const [stores, setStores] = useState(initialStores)
+
+  useEffect(() => {
+    setStores(initialStores)
+  }, [initialStores])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function refreshStores() {
+      try {
+        const res = await fetch("/api/stores", { cache: "no-store" })
+        if (!res.ok) return
+        const data = (await res.json()) as StoreItem[]
+        if (!cancelled) setStores(data)
+      } catch {
+        // keep last known list
+      }
+    }
+
+    void refreshStores()
+    return () => {
+      cancelled = true
+    }
+  }, [pathname])
 
   const storeMatch = pathname.match(/^\/stores\/([^/]+)/)
   const activeStoreId = storeMatch?.[1] ?? null

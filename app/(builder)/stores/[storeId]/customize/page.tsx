@@ -1,10 +1,9 @@
-import { redirect } from "next/navigation"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { requireSession } from "@/features/auth/dal"
 import { getStoreById } from "@/server/services/tenant.service"
 import { getThemeForTenant } from "@/server/services/theme.service"
-import { getActiveTemplateId } from "@/server/services/template.service"
-import { templateIdSchema } from "@/themes/engine/schema"
+import { getActiveTemplateId, normalizeThemeSlug } from "@/server/services/template.service"
+import { templateIdSchema, type TemplateId } from "@/themes/engine/schema"
 import { getDefaultThemeConfig } from "@/lib/themes/defaults"
 import { getStorefrontHost } from "@/lib/tenant/storefront-url"
 import { TEMPLATE_META } from "@/themes/engine/registry"
@@ -12,6 +11,15 @@ import { CustomizeWorkspace } from "@/features/builder/components/CustomizeWorks
 import { saveThemeDraftForStore, publishThemeForStore } from "./actions"
 
 export const metadata = { title: "Kustomisasi — Storefront Builder" }
+
+function resolveTemplateId(
+  templateParam: string | undefined,
+  activeTemplateId: string | null,
+): TemplateId {
+  const raw = templateParam ?? activeTemplateId ?? "minimalist"
+  const normalized = normalizeThemeSlug(raw) ?? templateIdSchema.parse("minimalist")
+  return normalized
+}
 
 export default async function StoreCustomizePage({
   params,
@@ -27,20 +35,21 @@ export default async function StoreCustomizePage({
 
   if (!store || store.ownerId !== session.userId) notFound()
 
-  // Prefer ?template= param, fall back to active template
-  const rawTemplateId = templateParam ?? (await getActiveTemplateId(storeId))
-  const parsedTemplateId = templateIdSchema.safeParse(rawTemplateId)
-
-  if (!parsedTemplateId.success) {
-    redirect(`/stores/${storeId}/templates`)
+  const activeTemplateId = await getActiveTemplateId(storeId)
+  if (!activeTemplateId && !templateParam) {
+    redirect(`/stores/${storeId}/templates?notice=pick-template`)
   }
 
-  const templateId = parsedTemplateId.data
+  const templateId = resolveTemplateId(templateParam, activeTemplateId)
   const fromDb = await getThemeForTenant(storeId)
+  const defaultConfig = {
+    ...getDefaultThemeConfig(templateId),
+    storeName: store.name,
+  }
   const initialConfig =
     fromDb?.config.templateId === templateId
-      ? fromDb.config
-      : getDefaultThemeConfig(templateId)
+      ? { ...fromDb.config, storeName: store.name }
+      : defaultConfig
 
   const meta = TEMPLATE_META[templateId]
   const storefrontHost = getStorefrontHost(store.slug)
