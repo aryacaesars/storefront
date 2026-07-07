@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { ChevronDown, ChevronUp, ImagePlus, Pencil, Plus, Trash2 } from "lucide-react"
 import { BlockSettingsFields } from "@/features/builder/components/BlockSettingsFields"
+import { HeroCtaColorFields } from "@/features/builder/components/HeroCtaColorFields"
 import { SettingsGroupsForm } from "@/features/builder/components/SettingsGroupsForm"
 import {
   SegmentedControl,
@@ -28,6 +29,7 @@ import {
   MAX_IMAGE_LAYERS,
 } from "@/themes/engine/image-layer-layout"
 import { applyDevicePatch, resolveDeviceSettings } from "@/themes/engine/device-settings"
+import { MAX_CTA_RADIUS, parseCtaRadius } from "@/themes/bento/sections/hero-cta-layout"
 import { parseHeroTitleLayout } from "@/themes/bento/sections/hero-title-layout"
 import {
   addImageToArray,
@@ -619,10 +621,143 @@ export function SectionInspector({
                     </p>
                   </>
                 )}
-                {selectedBlock.type === "hero-cta" && (
-                  <p className="text-[11px] text-gray-500">
-                    Posisi & ukuran tombol: tarik tepi/sudut di canvas.
-                  </p>
+                {selectedBlock.type === "hero-cta" && heroCtaDef && (
+                  <>
+                    <SettingsField label="Teks Tombol">
+                      <SettingsInput
+                        value={
+                          (typeof resolvedSettings?.label === "string"
+                            ? resolvedSettings.label
+                            : config.hero?.ctaLabel) ?? ""
+                        }
+                        placeholder="Shop Collection"
+                        onChange={(e) =>
+                          updateBlockSettings(selectedIdx, { label: e.target.value })
+                        }
+                      />
+                    </SettingsField>
+                    <HeroCtaColorFields
+                      settings={resolvedSettings}
+                      primaryColor={config.primaryColor}
+                      onChange={(patch) => updateBlockSettings(selectedIdx, patch)}
+                    />
+                    <p className="text-[11px] text-gray-500">
+                      Warna kosong = ikuti Theme Settings. Isi manual untuk override per
+                      tombol. Posisi & ukuran: tarik tepi/sudut di canvas.
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    )
+  }
+
+  if (instance.type === "call-to-action" && config.templateId === "minimalist") {
+    const ctaImageDef = blockDefs["cta-image"]
+    const ctaTitleDef = blockDefs["cta-title"]
+    const heroCtaDef = blockDefs["hero-cta"]
+    const selectedBlock = selectedBlockId
+      ? currentBlocks.find((block) => block.id === selectedBlockId)
+      : null
+    const selectedIdx = selectedBlock
+      ? currentBlocks.findIndex((block) => block.id === selectedBlock.id)
+      : -1
+    const selectedDef =
+      selectedBlock?.type === "cta-image"
+        ? ctaImageDef
+        : selectedBlock?.type === "cta-title"
+          ? ctaTitleDef
+          : selectedBlock?.type === "hero-cta"
+            ? heroCtaDef
+            : null
+    const resolvedSettings = selectedBlock
+      ? resolveDeviceSettings(selectedBlock.settings, device === "mobile")
+      : undefined
+
+    return (
+      <div className="border-t border-gray-200 p-4">
+        <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-indigo-600">
+          {label}
+        </h4>
+
+        {!selectedBlock ? (
+          <p className="text-[11px] leading-relaxed text-gray-500">
+            Klik judul, gambar, atau tombol di canvas untuk mengedit. Drag box untuk
+            geser posisi · handle biru/ungu untuk ubah ukuran.
+          </p>
+        ) : (
+          <>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
+                {device === "mobile" ? "Mobile" : "Desktop"}
+              </span>
+              <span className="text-xs font-medium text-gray-700">
+                {selectedBlock.id.includes("secondary")
+                  ? "Tombol Sekunder"
+                  : selectedBlock.id.includes("primary")
+                    ? "Tombol Utama"
+                    : (selectedDef?.label ?? selectedBlock.type)}
+              </span>
+            </div>
+            {selectedDef && selectedIdx >= 0 && (
+              <div className="space-y-3">
+                {selectedBlock.type === "cta-image" && (
+                  <>
+                    <BlockSettingsFields
+                      fields={selectedDef.fields}
+                      settings={resolvedSettings ?? {}}
+                      onChange={(patch) => updateBlockSettings(selectedIdx, patch)}
+                    />
+                    <p className="text-[11px] text-gray-500">
+                      Posisi & ukuran: drag box atau handle biru di canvas.
+                    </p>
+                  </>
+                )}
+                {selectedBlock.type === "cta-title" && (
+                  <>
+                    <SettingsField label="Judul">
+                      <SettingsInput
+                        value={
+                          typeof resolvedSettings?.label === "string"
+                            ? resolvedSettings.label
+                            : typeof instance.settings?.title === "string"
+                              ? instance.settings.title
+                              : ""
+                        }
+                        placeholder="Experience the Art of Less"
+                        onChange={(e) =>
+                          updateBlockSettings(selectedIdx, { label: e.target.value })
+                        }
+                      />
+                    </SettingsField>
+                    <p className="text-[11px] text-gray-500">
+                      Edit teks langsung di canvas atau ubah ukuran box dengan handle biru.
+                    </p>
+                  </>
+                )}
+                {selectedBlock.type === "hero-cta" && heroCtaDef && (
+                  <>
+                    <SettingsField label="Teks Tombol">
+                      <SettingsInput
+                        value={(typeof resolvedSettings?.label === "string" ? resolvedSettings.label : "") ?? ""}
+                        placeholder="Explore Collections"
+                        onChange={(e) =>
+                          updateBlockSettings(selectedIdx, { label: e.target.value })
+                        }
+                      />
+                    </SettingsField>
+                    <HeroCtaColorFields
+                      settings={resolvedSettings}
+                      primaryColor={config.primaryColor}
+                      onChange={(patch) => updateBlockSettings(selectedIdx, patch)}
+                    />
+                    <p className="text-[11px] text-gray-500">
+                      Posisi & ukuran tombol: tarik tepi/sudut di canvas.
+                    </p>
+                  </>
                 )}
               </div>
             )}
@@ -1209,8 +1344,37 @@ export function SectionInspector({
                         onChange={(e) => onHeroChange("ctaLabel", e.target.value)}
                       />
                     </SettingsField>
+                    <SettingsField
+                      label={`Rounded tombol (${parseCtaRadius(resolvedSettings) ?? "default"}${parseCtaRadius(resolvedSettings) != null ? "px" : ""})`}
+                      hint="Geser untuk atur lengkungan sudut tombol"
+                    >
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min={0}
+                          max={MAX_CTA_RADIUS}
+                          step={1}
+                          value={parseCtaRadius(resolvedSettings) ?? 24}
+                          onChange={(event) =>
+                            updateBlockSettings(selectedIdx, {
+                              ctaRadius: Number(event.target.value),
+                            })
+                          }
+                          className="h-1.5 flex-1 cursor-pointer accent-indigo-600"
+                        />
+                        {parseCtaRadius(resolvedSettings) != null && (
+                          <button
+                            type="button"
+                            onClick={() => updateBlockSettings(selectedIdx, { ctaRadius: "" })}
+                            className="shrink-0 rounded border border-gray-200 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                          >
+                            Reset
+                          </button>
+                        )}
+                      </div>
+                    </SettingsField>
                     <p className="text-[11px] text-gray-500">
-                      Posisi & ukuran tombol: tarik tepi/sudut di canvas.
+                      Posisi: drag tombol di canvas · ukuran: tarik tepi/sudut.
                     </p>
                   </>
                 )}
@@ -1571,6 +1735,26 @@ export function SectionInspector({
                       </span>
                       <button
                         type="button"
+                        onClick={() => moveBlock(idx, -1)}
+                        disabled={idx === 0}
+                        className="rounded p-0.5 text-gray-400 hover:bg-gray-200 disabled:opacity-30"
+                        aria-label="Ke belakang"
+                        title="Ke belakang"
+                      >
+                        <ChevronUp className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveBlock(idx, 1)}
+                        disabled={idx === currentBlocks.length - 1}
+                        className="rounded p-0.5 text-gray-400 hover:bg-gray-200 disabled:opacity-30"
+                        aria-label="Ke depan"
+                        title="Ke depan"
+                      >
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => removeBlock(idx)}
                         className="rounded p-0.5 text-gray-400 hover:bg-red-100 hover:text-red-600"
                         aria-label="Hapus gambar"
@@ -1616,7 +1800,29 @@ export function SectionInspector({
                 )}
               </div>
               <span className="text-xs font-medium text-gray-700">Gambar {selectedIdx + 1}</span>
-              <span className="ml-auto rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
+              <div className="ml-auto flex items-center gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => moveBlock(selectedIdx, -1)}
+                  disabled={selectedIdx === 0}
+                  className="rounded p-0.5 text-gray-400 hover:bg-gray-200 disabled:opacity-30"
+                  aria-label="Ke belakang"
+                  title="Ke belakang"
+                >
+                  <ChevronUp className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => moveBlock(selectedIdx, 1)}
+                  disabled={selectedIdx === currentBlocks.length - 1}
+                  className="rounded p-0.5 text-gray-400 hover:bg-gray-200 disabled:opacity-30"
+                  aria-label="Ke depan"
+                  title="Ke depan"
+                >
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
                 {device === "mobile" ? "Mobile" : "Desktop"}
               </span>
             </div>
@@ -1673,7 +1879,7 @@ export function SectionInspector({
                 </div>
               </SettingsField>
               <p className="text-[11px] text-gray-500">
-                Drag badge "pindah" di canvas untuk geser · handle biru untuk resize.
+                Drag box di canvas untuk geser · handle biru untuk resize.
               </p>
             </div>
           </>

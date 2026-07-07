@@ -296,6 +296,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
     ctaBlock?.settings as Record<string, unknown> | undefined,
     hero?.ctaLabel ?? "Get Yours Now!",
     isMobile,
+    { primaryColor: config?.primaryColor },
   )
   const cta = useMobileCtaSeed
     ? { ...parsedCta, layout: DEFAULT_CTA_LAYOUT_MOBILE }

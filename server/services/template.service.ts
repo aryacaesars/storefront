@@ -18,6 +18,28 @@ export function normalizeThemeSlug(slug: string): TemplateId | null {
   return parsed.success ? parsed.data : null
 }
 
+/** DB slug candidates for a theme engine id (e.g. minimalist → minimal, minimalist). */
+function themeSlugLookupCandidates(themeSlug: string): string[] {
+  const normalized = normalizeThemeSlug(themeSlug)
+  const candidates = new Set<string>([themeSlug])
+  if (normalized) {
+    candidates.add(normalized)
+    for (const [dbSlug, engineId] of Object.entries(THEME_SLUG_ALIASES)) {
+      if (engineId === normalized) candidates.add(dbSlug)
+    }
+  }
+  return [...candidates]
+}
+
+/** Resolve marketplace Template row from theme engine slug (handles aliases like minimal → minimalist). */
+export async function getTemplateByThemeSlug(themeSlug: string): Promise<Template | null> {
+  for (const slug of themeSlugLookupCandidates(themeSlug)) {
+    const template = await prisma.template.findUnique({ where: { slug } })
+    if (template) return template
+  }
+  return null
+}
+
 export async function getPublishedTemplates(): Promise<Template[]> {
   return prisma.template.findMany({
     where: { published: true },
@@ -82,10 +104,7 @@ export async function isTemplateAccessible(
   storeId: string,
   templateSlug: string,
 ): Promise<boolean> {
-  const template = await prisma.template.findUnique({
-    where: { slug: templateSlug },
-    select: { id: true, price: true },
-  })
+  const template = await getTemplateByThemeSlug(templateSlug)
   if (!template) return false
   if (template.price === 0) return true
   const purchase = await prisma.templatePurchase.findFirst({
