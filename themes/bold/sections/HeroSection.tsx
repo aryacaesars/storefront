@@ -68,12 +68,15 @@ function resolveHeroImageUrl(
   configUrl: string | undefined,
   mediaSettings: Record<string, unknown> | undefined,
 ): string | undefined {
+  // Same priority as bento/fashion Hero: a freshly uploaded image (images[])
+  // must win over the block's baked-in default imageUrl, otherwise uploads
+  // never appear because the default is always non-empty.
+  const canvasUrl = parseCanvasImages(mediaSettings).find((img) => img.src)?.src
   const blockUrl =
     typeof mediaSettings?.imageUrl === "string" && mediaSettings.imageUrl.trim()
       ? mediaSettings.imageUrl
       : undefined
-  const canvasUrl = parseCanvasImages(mediaSettings).find((img) => img.src)?.src
-  return configUrl ?? blockUrl ?? canvasUrl
+  return canvasUrl ?? blockUrl ?? configUrl
 }
 
 function parseHeroImageZoom(settings: Record<string, unknown> | undefined): number {

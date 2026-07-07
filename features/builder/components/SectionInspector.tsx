@@ -44,11 +44,12 @@ import type { BlockInstance, HeroConfig, SectionPageType, ThemeConfig } from "@/
 // ---------------------------------------------------------------------------
 
 interface HeroImageListPanelProps {
+  title?: string
   images: CanvasImageItem[]
   onChange: (images: CanvasImageItem[]) => void
 }
 
-function HeroImageListPanel({ images, onChange }: HeroImageListPanelProps) {
+function HeroImageListPanel({ title = "Gambar Hero", images, onChange }: HeroImageListPanelProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   function openFilePicker(onUrl: (url: string) => void) {
@@ -91,7 +92,7 @@ function HeroImageListPanel({ images, onChange }: HeroImageListPanelProps) {
   return (
     <div className="space-y-2">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-        Gambar ({images.length})
+        {title} ({images.length})
       </p>
 
       {images.length === 0 && (
@@ -451,6 +452,13 @@ export function SectionInspector({
   if (instance.type === "hero" && config.templateId === "minimalist") {
     const heroMediaDef = blockDefs["hero-media"]
     const heroCtaDef = blockDefs["hero-cta"]
+    const mediaBlockInstance = currentBlocks.find((block) => block.type === "hero-media")
+    const mediaIdx = mediaBlockInstance
+      ? currentBlocks.findIndex((block) => block.id === mediaBlockInstance.id)
+      : -1
+    const mediaSettings = mediaBlockInstance
+      ? resolveDeviceSettings(mediaBlockInstance.settings, device === "mobile")
+      : undefined
     const selectedBlock = selectedBlockId
       ? currentBlocks.find((block) => block.id === selectedBlockId)
       : null
@@ -483,11 +491,20 @@ export function SectionInspector({
           {label}
         </h4>
 
+        {mediaBlockInstance && mediaIdx >= 0 && (
+          <div className="mb-4 border-b border-gray-100 pb-4">
+            <HeroImageListPanel
+              images={parseCanvasImages(mediaSettings)}
+              onChange={(imgs) => updateBlockSettings(mediaIdx, { images: imgs })}
+            />
+          </div>
+        )}
+
         {!selectedBlock ? (
           <>
             <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
-              Klik gambar hero atau tombol CTA di canvas untuk mengedit. Ukuran & posisi CTA
-              diatur lewat handle resize di canvas.
+              Klik gambar hero atau tombol CTA di canvas untuk opsi lanjutan (layer judul, ukuran
+              font, posisi CTA).
             </p>
             <div className="space-y-3">
               <SettingsField label="Judul baris 1">
@@ -508,22 +525,17 @@ export function SectionInspector({
           </>
         ) : (
           <>
-            <div className="mb-3 flex items-center gap-2">
-              <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
-                {device === "mobile" ? "Mobile" : "Desktop"}
-              </span>
-              <span className="text-xs font-medium text-gray-700">
-                {selectedDef?.label ?? selectedBlock.type}
+            <div className="mb-3">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                {selectedBlock.type === "hero-media"
+                  ? "Opsi Lanjutan"
+                  : selectedDef?.label ?? selectedBlock.type}
               </span>
             </div>
             {selectedDef && selectedIdx >= 0 && (
               <div className="space-y-3">
                 {selectedBlock.type === "hero-media" && (
                   <>
-                    <HeroImageListPanel
-                      images={parseCanvasImages(resolvedSettings)}
-                      onChange={(imgs) => updateBlockSettings(selectedIdx, { images: imgs })}
-                    />
                     <div className="space-y-3 border-t border-gray-100 pt-3">
                       <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                         Judul
@@ -635,6 +647,13 @@ export function SectionInspector({
   if (instance.type === "hero" && config.templateId === "fashion") {
     const heroMediaDef = blockDefs["hero-media"]
     const heroCtaDef = blockDefs["hero-cta"]
+    const mediaBlockInstance = currentBlocks.find((block) => block.type === "hero-media")
+    const mediaIdx = mediaBlockInstance
+      ? currentBlocks.findIndex((block) => block.id === mediaBlockInstance.id)
+      : -1
+    const mediaSettings = mediaBlockInstance
+      ? resolveDeviceSettings(mediaBlockInstance.settings, device === "mobile")
+      : undefined
     const selectedBlock = selectedBlockId
       ? currentBlocks.find((block) => block.id === selectedBlockId)
       : null
@@ -667,11 +686,20 @@ export function SectionInspector({
           {label}
         </h4>
 
+        {mediaBlockInstance && mediaIdx >= 0 && (
+          <div className="mb-4 border-b border-gray-100 pb-4">
+            <HeroImageListPanel
+              images={parseCanvasImages(mediaSettings)}
+              onChange={(imgs) => updateBlockSettings(mediaIdx, { images: imgs })}
+            />
+          </div>
+        )}
+
         {!selectedBlock ? (
           <>
             <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
-              Klik gambar hero atau tombol CTA di canvas untuk mengedit. Ukuran & posisi CTA
-              diatur lewat handle resize di canvas.
+              Klik gambar hero atau tombol CTA di canvas untuk opsi lanjutan (layer judul, ukuran
+              font, posisi CTA).
             </p>
             <div className="space-y-3">
               <SettingsField label="Judul baris 1">
@@ -692,22 +720,17 @@ export function SectionInspector({
           </>
         ) : (
           <>
-            <div className="mb-3 flex items-center gap-2">
-              <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
-                {device === "mobile" ? "Mobile" : "Desktop"}
-              </span>
-              <span className="text-xs font-medium text-gray-700">
-                {selectedDef?.label ?? selectedBlock.type}
+            <div className="mb-3">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                {selectedBlock.type === "hero-media"
+                  ? "Opsi Lanjutan"
+                  : selectedDef?.label ?? selectedBlock.type}
               </span>
             </div>
             {selectedDef && selectedIdx >= 0 && (
               <div className="space-y-3">
                 {selectedBlock.type === "hero-media" && (
                   <>
-                    <HeroImageListPanel
-                      images={parseCanvasImages(resolvedSettings)}
-                      onChange={(imgs) => updateBlockSettings(selectedIdx, { images: imgs })}
-                    />
                     <div className="space-y-3 border-t border-gray-100 pt-3">
                       <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                         Judul
@@ -819,6 +842,13 @@ export function SectionInspector({
   if (instance.type === "hero" && config.templateId === "bento") {
     const heroMediaDef = blockDefs["hero-media"]
     const heroCtaDef = blockDefs["hero-cta"]
+    const mediaBlockInstance = currentBlocks.find((block) => block.type === "hero-media")
+    const mediaIdx = mediaBlockInstance
+      ? currentBlocks.findIndex((block) => block.id === mediaBlockInstance.id)
+      : -1
+    const mediaSettings = mediaBlockInstance
+      ? resolveDeviceSettings(mediaBlockInstance.settings, device === "mobile")
+      : undefined
     const selectedBlock = selectedBlockId
       ? currentBlocks.find((block) => block.id === selectedBlockId)
       : null
@@ -851,11 +881,20 @@ export function SectionInspector({
           {label}
         </h4>
 
+        {mediaBlockInstance && mediaIdx >= 0 && (
+          <div className="mb-4 border-b border-gray-100 pb-4">
+            <HeroImageListPanel
+              images={parseCanvasImages(mediaSettings)}
+              onChange={(imgs) => updateBlockSettings(mediaIdx, { images: imgs })}
+            />
+          </div>
+        )}
+
         {!selectedBlock ? (
           <>
             <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
-              Klik gambar hero atau tombol CTA di canvas untuk mengedit. Ukuran & posisi CTA
-              diatur lewat handle resize di canvas.
+              Klik gambar hero atau tombol CTA di canvas untuk opsi lanjutan (layer judul, ukuran
+              font, posisi CTA).
             </p>
             <div className="space-y-3">
               <SettingsField label="Judul baris 1">
@@ -876,22 +915,17 @@ export function SectionInspector({
           </>
         ) : (
           <>
-            <div className="mb-3 flex items-center gap-2">
-              <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
-                {device === "mobile" ? "Mobile" : "Desktop"}
-              </span>
-              <span className="text-xs font-medium text-gray-700">
-                {selectedDef?.label ?? selectedBlock.type}
+            <div className="mb-3">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                {selectedBlock.type === "hero-media"
+                  ? "Opsi Lanjutan"
+                  : selectedDef?.label ?? selectedBlock.type}
               </span>
             </div>
             {selectedDef && selectedIdx >= 0 && (
               <div className="space-y-3">
                 {selectedBlock.type === "hero-media" && (
                   <>
-                    <HeroImageListPanel
-                      images={parseCanvasImages(resolvedSettings)}
-                      onChange={(imgs) => updateBlockSettings(selectedIdx, { images: imgs })}
-                    />
                     <div className="space-y-3 border-t border-gray-100 pt-3">
                       <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                         Judul
@@ -1007,6 +1041,13 @@ export function SectionInspector({
   if (instance.type === "hero" && config.templateId === "bold") {
     const heroMediaDef = blockDefs["hero-media"]
     const heroCtaDef = blockDefs["hero-cta"]
+    const mediaBlockInstance = currentBlocks.find((block) => block.type === "hero-media")
+    const mediaIdx = mediaBlockInstance
+      ? currentBlocks.findIndex((block) => block.id === mediaBlockInstance.id)
+      : -1
+    const mediaSettings = mediaBlockInstance
+      ? resolveDeviceSettings(mediaBlockInstance.settings, device === "mobile")
+      : undefined
     const selectedBlock = selectedBlockId
       ? currentBlocks.find((block) => block.id === selectedBlockId)
       : null
@@ -1039,11 +1080,38 @@ export function SectionInspector({
           {label}
         </h4>
 
+        {mediaBlockInstance && mediaIdx >= 0 && (
+          <div className="mb-4 space-y-3 border-b border-gray-100 pb-4">
+            <HeroImageListPanel
+              images={parseCanvasImages(mediaSettings)}
+              onChange={(imgs) => updateBlockSettings(mediaIdx, { images: imgs })}
+            />
+            <SettingsField
+              label={`Zoom gambar (${Math.round(Number(mediaSettings?.imgScale ?? 100))}%)`}
+              hint="Perbesar foto hero dari tengah — tanpa drag di canvas"
+            >
+              <input
+                type="range"
+                min={100}
+                max={200}
+                step={5}
+                value={Number(mediaSettings?.imgScale ?? 100)}
+                onChange={(event) =>
+                  updateBlockSettings(mediaIdx, {
+                    imgScale: Number(event.target.value),
+                  })
+                }
+                className="h-1.5 w-full cursor-pointer accent-indigo-600"
+              />
+            </SettingsField>
+          </div>
+        )}
+
         {!selectedBlock ? (
           <>
             <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
-              Klik judul atau tombol CTA di canvas untuk mengedit. Ganti foto hero lewat panel
-              Gambar Hero. Drag box judul untuk pindah posisi.
+              Klik judul atau tombol CTA di canvas untuk opsi lanjutan (layer judul, ukuran font,
+              posisi CTA). Drag box judul untuk pindah posisi.
             </p>
             <div className="space-y-3">
               <SettingsField label="Judul baris 1">
@@ -1071,40 +1139,17 @@ export function SectionInspector({
           </>
         ) : (
           <>
-            <div className="mb-3 flex items-center gap-2">
-              <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
-                {device === "mobile" ? "Mobile" : "Desktop"}
-              </span>
-              <span className="text-xs font-medium text-gray-700">
-                {selectedDef?.label ?? selectedBlock.type}
+            <div className="mb-3">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                {selectedBlock.type === "hero-media"
+                  ? "Opsi Lanjutan"
+                  : selectedDef?.label ?? selectedBlock.type}
               </span>
             </div>
             {selectedDef && selectedIdx >= 0 && (
               <div className="space-y-3">
                 {selectedBlock.type === "hero-media" && (
                   <>
-                <HeroImageListPanel
-                  images={parseCanvasImages(resolvedSettings)}
-                  onChange={(imgs) => updateBlockSettings(selectedIdx, { images: imgs })}
-                />
-                <SettingsField
-                  label={`Zoom gambar (${Math.round(Number(resolvedSettings?.imgScale ?? 100))}%)`}
-                  hint="Perbesar foto hero dari tengah — tanpa drag di canvas"
-                >
-                  <input
-                    type="range"
-                    min={100}
-                    max={200}
-                    step={5}
-                    value={Number(resolvedSettings?.imgScale ?? 100)}
-                    onChange={(event) =>
-                      updateBlockSettings(selectedIdx, {
-                        imgScale: Number(event.target.value),
-                      })
-                    }
-                    className="h-1.5 w-full cursor-pointer accent-indigo-600"
-                  />
-                </SettingsField>
                 <div className="space-y-3 border-t border-gray-100 pt-3">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                     Judul
@@ -1262,11 +1307,8 @@ export function SectionInspector({
           <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-indigo-600">
             {label}
           </h4>
-          <div className="mb-3 flex items-center gap-2">
-            <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
-              {device === "mobile" ? "Mobile" : "Desktop"}
-            </span>
-            <span className="text-xs font-medium text-gray-700">
+          <div className="mb-3">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
               {getBlockDisplayName(selectedBlock)}
             </span>
           </div>
@@ -1457,11 +1499,8 @@ export function SectionInspector({
           <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-indigo-600">
             {label}
           </h4>
-          <div className="mb-3 flex items-center gap-2">
-            <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
-              {device === "mobile" ? "Mobile" : "Desktop"}
-            </span>
-            <span className="text-xs font-medium text-gray-700">
+          <div className="mb-3">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
               {getBlockDisplayName(selectedBlock)}
             </span>
           </div>
@@ -1677,6 +1716,44 @@ export function SectionInspector({
               </p>
             </div>
           </>
+        )}
+      </div>
+    )
+  }
+
+  if (
+    instance.type === "call-to-action" &&
+    (config.templateId === "minimalist" || config.templateId === "bento")
+  ) {
+    const imageBlockInstance = currentBlocks.find((block) => block.type === "cta-image")
+    const imageIdx = imageBlockInstance
+      ? currentBlocks.findIndex((block) => block.id === imageBlockInstance.id)
+      : -1
+    const imageSettings = imageBlockInstance
+      ? resolveDeviceSettings(imageBlockInstance.settings, device === "mobile")
+      : undefined
+
+    return (
+      <div className="border-t border-gray-200 p-4">
+        <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-indigo-600">
+          {label}
+        </h4>
+
+        <SectionSettingsFields
+          templateId={config.templateId}
+          sectionType={instance.type}
+          settings={instance.settings}
+          onChange={(settings) => onSectionSettingsChange(selectedSectionId, settings)}
+        />
+
+        {imageBlockInstance && imageIdx >= 0 && (
+          <div className="mt-4 border-t border-gray-100 pt-4">
+            <HeroImageListPanel
+              title="Gambar CTA"
+              images={parseCanvasImages(imageSettings)}
+              onChange={(imgs) => updateBlockSettings(imageIdx, { images: imgs })}
+            />
+          </div>
         )}
       </div>
     )

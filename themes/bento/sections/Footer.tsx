@@ -8,6 +8,7 @@ export function Footer({ config }: FooterProps) {
   const logoDisplay = config.logoDisplay ?? "logo"
   const showLogo = logoDisplay !== "text" && Boolean(config.logoUrl)
   const showText = logoDisplay === "text" || logoDisplay === "both" || !config.logoUrl
+  const logoScale = (config.logoScale ?? 100) / 100
 
   return (
     <footer className="px-4 pb-10 pt-6 @2xl:px-6">
@@ -22,7 +23,8 @@ export function Footer({ config }: FooterProps) {
               <img
                 src={config.logoUrl}
                 alt={showText ? "" : config.storeName}
-                className="h-6 w-auto max-w-[32px] object-contain"
+                className="w-auto object-contain"
+                style={{ height: 24 * logoScale, maxWidth: 32 * logoScale }}
               />
             )}
             {showText && config.storeName}
