@@ -56,6 +56,8 @@ export const themeConfigSchema = z.object({
   logoUrl: z.string().optional(),
   /** Tampilan brand di header: gambar logo, teks nama toko, atau keduanya. */
   logoDisplay: z.enum(["logo", "text", "both"]).optional(),
+  /** Skala tampilan logo, dalam persen dari ukuran dasar tema (100 = default). */
+  logoScale: z.number().min(50).max(200).optional(),
   heroImageUrl: z.string().optional(),
   hero: heroConfigSchema.optional(),
   contactPhone: z.string().optional(),

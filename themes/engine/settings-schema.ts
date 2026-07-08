@@ -8,6 +8,7 @@ export type SettingFieldType =
   | "segmented"
   | "font-heading"
   | "font-body"
+  | "slider"
 
 export interface SegmentedOption {
   value: string
@@ -23,6 +24,14 @@ export interface SettingFieldDef {
   placeholder?: string
   rows?: number
   options?: SegmentedOption[]
+  /** For type "slider". */
+  min?: number
+  max?: number
+  step?: number
+  /** Value used when the field is unset. */
+  defaultValue?: number
+  /** Suffix shown next to the current value, e.g. "%". */
+  unit?: string
 }
 
 export interface SettingsGroupDef {
@@ -71,6 +80,18 @@ export const THEME_SETTINGS_GROUPS: SettingsGroupDef[] = [
           { value: "text", label: "Teks" },
           { value: "both", label: "Keduanya" },
         ],
+      },
+      {
+        id: "logoScale",
+        scope: "config",
+        type: "slider",
+        label: "Skala Logo",
+        hint: "Perbesar atau perkecil logo di header & footer.",
+        min: 50,
+        max: 200,
+        step: 5,
+        defaultValue: 100,
+        unit: "%",
       },
     ],
   },

@@ -104,7 +104,7 @@ function CategoryCard({
   const labelStyle: React.CSSProperties = {
     textShadow: "0px 0px 24px rgba(0,0,0,0.25)",
     fontFamily: "var(--theme-heading-font)",
-    fontSize: `${Math.max(14, labelBoxHeightPx * 0.72)}px`,
+    fontSize: `${Math.max(14, Math.min(96, labelBoxHeightPx * 0.72))}px`,
     lineHeight: 1.05,
   }
 

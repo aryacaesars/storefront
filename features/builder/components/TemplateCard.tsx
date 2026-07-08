@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { activateTemplate } from "@/features/builder/actions/theme-actions"
 import { TemplateThumbnail } from "@/features/builder/components/TemplateThumbnail"
+import { getTemplatePreviewHref } from "@/themes/engine/registry"
 import type { TemplateId } from "@/themes/engine/schema"
 
 export interface TemplateCardProps {
@@ -67,7 +68,8 @@ export function TemplateCard({
               Kelola
             </Link>
             <Link
-              href="/customize?mode=preview"
+              href={getTemplatePreviewHref(id)}
+              target="_blank"
               className="flex-1 inline-flex items-center justify-center h-9 rounded-xl border border-gray-300 bg-white text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors"
             >
               Preview
@@ -83,7 +85,8 @@ export function TemplateCard({
             </form>
             {previewReady ? (
               <Link
-                href={`/customize?template=${id}&mode=preview`}
+                href={getTemplatePreviewHref(id)}
+                target="_blank"
                 className="flex-1 inline-flex items-center justify-center h-9 rounded-xl border border-gray-300 bg-white text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors"
               >
                 Preview

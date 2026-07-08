@@ -26,6 +26,7 @@ export function Header({ config, cartCount = 0, basePath }: HeaderProps) {
   const logoDisplay = config.logoDisplay ?? "logo"
   const showLogo = logoDisplay !== "text" && Boolean(config.logoUrl)
   const showText = logoDisplay === "text" || logoDisplay === "both" || !config.logoUrl
+  const logoScale = (config.logoScale ?? 100) / 100
   const visibleLinks = NAV_LINKS.filter((link) =>
     isNavHrefAvailable(config.templateId, link.href),
   )
@@ -53,7 +54,8 @@ export function Header({ config, cartCount = 0, basePath }: HeaderProps) {
               <img
                 src={config.logoUrl}
                 alt={showText ? "" : config.storeName}
-                className="h-6 w-auto max-w-[32px] object-contain"
+                className="w-auto object-contain"
+                style={{ height: 24 * logoScale, maxWidth: 32 * logoScale }}
               />
             )}
             {showText && (
