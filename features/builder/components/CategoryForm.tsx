@@ -33,7 +33,7 @@ export function CategoryForm({
   })
 
   return (
-    <form action={formAction} className="flex max-w-lg flex-col gap-5">
+    <form action={formAction} className="flex w-full flex-col gap-5">
       <div>
         <label className={dashboardLabel}>
           Nama Kategori <span className="text-red-500">*</span>

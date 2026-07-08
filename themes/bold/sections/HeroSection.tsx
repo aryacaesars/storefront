@@ -73,8 +73,7 @@ function resolveHeroImageUrl(
       ? mediaSettings.imageUrl
       : undefined
   const canvasUrl = parseCanvasImages(mediaSettings).find((img) => img.src)?.src
-  // Block-level uploads override the theme's default config image.
-  return canvasUrl ?? blockUrl ?? configUrl
+  return configUrl ?? blockUrl ?? canvasUrl
 }
 
 function parseHeroImageZoom(settings: Record<string, unknown> | undefined): number {
@@ -370,13 +369,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   )
   const useMobileCtaSeed = isMobile && !ctaHasMobileOverride
 
-  const parsedCta = parseHeroCta(
-    ctaSettings,
-    hero?.ctaLabel ?? "SHOP NOW",
-    isMobile,
-    { primaryColor: config?.primaryColor },
-    BOLD_HERO_DESIGN_HEIGHT,
-  )
+  const parsedCta = parseHeroCta(ctaSettings, hero?.ctaLabel ?? "SHOP NOW", isMobile)
   const ctaLayout = ctaBlock
     ? useMobileCtaSeed
       ? BOLD_DEFAULT_CTA_MOBILE

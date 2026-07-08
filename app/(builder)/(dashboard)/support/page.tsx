@@ -14,7 +14,7 @@ export default async function SupportPage() {
       pageTitle="Support"
       pageSubtitle="Butuh bantuan? Hubungi tim Etalase lewat channel di bawah."
     >
-      <div className="grid max-w-2xl gap-4">
+      <div className="grid w-full gap-4 md:grid-cols-2 xl:grid-cols-3">
         <DashboardPanel className="flex items-start gap-4 p-6">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
             <Mail className="h-5 w-5" />

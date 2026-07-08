@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import EtalaseMark from "@/features/builder/landing/EtalaseMark"
 import { DashboardHeader } from "@/features/builder/components/DashboardHeader"
 import { DashboardProviders } from "@/features/builder/components/DashboardProviders"
+import { dashboardSectionTitle } from "@/features/builder/components/dashboard-ui"
 
 interface DashboardLayoutShellProps {
   children: ReactNode
@@ -29,40 +30,38 @@ export function DashboardLayoutShell({
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
-    <div className="flex h-screen overflow-hidden bg-dash-bg">
+    <div className="flex h-dvh overflow-hidden bg-dash-bg">
       {mobileOpen && (
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
-          aria-label="Close menu"
+          className="fixed inset-0 z-40 bg-dash-ink/40 backdrop-blur-[2px] lg:hidden"
+          aria-label="Tutup menu"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[290px] shrink-0 flex-col border-r border-gray-200 bg-white transition-transform duration-200 lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-[252px] shrink-0 flex-col border-r border-dash-border bg-dash-surface transition-transform duration-200 ease-out xl:w-[260px] lg:static lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
+        <div className="flex items-center justify-between border-b border-dash-border/80 px-5 py-5">
           <EtalaseMark />
           {sidebarBadge}
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 py-6" onClick={() => setMobileOpen(false)}>
-          <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
-            Menu
-          </p>
+        <div className="flex-1 overflow-y-auto px-3 py-5" onClick={() => setMobileOpen(false)}>
+          <p className={cn(dashboardSectionTitle, "mb-2 px-3")}>Menu</p>
           {sidebar}
         </div>
 
-        <div className="border-t border-gray-100 px-4 py-4">
+        <div className="border-t border-dash-border/80 px-3 py-4">
           <Link
             href="/support"
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-900"
+            className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-dash-muted transition-colors duration-200 hover:bg-dash-bg hover:text-dash-ink"
           >
-            <HelpCircle className="h-5 w-5 shrink-0" />
+            <HelpCircle className="h-5 w-5 shrink-0" strokeWidth={1.75} />
             Support
           </Link>
         </div>
@@ -76,7 +75,7 @@ export function DashboardLayoutShell({
           onMenuClick={() => setMobileOpen(true)}
         />
 
-        <main className="min-h-0 flex-1 overflow-auto">
+        <main className="min-h-0 w-full min-w-0 flex-1 overflow-auto">
           <DashboardProviders>{children}</DashboardProviders>
         </main>
       </div>

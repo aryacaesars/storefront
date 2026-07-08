@@ -44,10 +44,6 @@ export function Navbar({
   activeKey,
   transparent = false,
 }: NavbarProps) {
-  const logoDisplay = config.logoDisplay ?? "text"
-  const showLogo = logoDisplay !== "text" && Boolean(config.logoUrl)
-  const showText = logoDisplay === "text" || logoDisplay === "both" || !config.logoUrl
-
   const visibleLinks = NAV_LINKS.filter((link) =>
     isNavHrefAvailable(config.templateId, link.href),
   )
@@ -71,18 +67,10 @@ export function Navbar({
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
         <Link
           href={basePath ?? "/"}
-          className="flex min-w-0 shrink-0 items-center gap-2.5 text-sm font-black uppercase tracking-[0.2em] text-white"
+          className="text-sm font-black uppercase tracking-[0.2em] text-white"
           style={{ fontFamily: "var(--theme-heading-font)" }}
         >
-          {showLogo && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={config.logoUrl}
-              alt={showText ? "" : config.storeName}
-              className="h-8 w-auto max-w-[140px] object-contain"
-            />
-          )}
-          {showText && <span className="truncate">{config.storeName}</span>}
+          {config.storeName}
         </Link>
 
         <NavLinksClient links={resolvedLinks} defaultActiveKey={activeKey} />

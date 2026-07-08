@@ -2,7 +2,8 @@ import Link from "next/link"
 import { Store } from "lucide-react"
 import { requireSession } from "@/features/auth/dal"
 import { TemplateCard } from "@/features/builder/components/TemplateCard"
-import { buttonClassName } from "@/components/ui/button"
+import { DashboardShell } from "@/features/builder/components/DashboardShell"
+import { dashboardBtnPrimary, dashboardCard } from "@/features/builder/components/dashboard-ui"
 import { getActiveTemplateId, isTemplatePreviewReady } from "@/features/builder/theme-state"
 import { TEMPLATE_IDS, TEMPLATE_META } from "@/themes/engine/registry"
 
@@ -22,40 +23,35 @@ export default async function TemplatesPage() {
   }))
 
   return (
-    <div className="p-8 max-w-6xl">
-      <div className="mb-10">
-        <h1 className="text-4xl font-extrabold text-indigo-600 tracking-tight mb-3">
-          Template Saya
-        </h1>
-        <p className="text-base text-gray-500 max-w-xl leading-relaxed">
-          Koleksi template yang sudah Anda beli. Aktifkan atau kelola desain untuk
-          storefront Anda.
-        </p>
-      </div>
-
+    <DashboardShell
+      pageTitle="Template Saya"
+      pageSubtitle="Koleksi template yang sudah kamu beli. Aktifkan atau kelola desain storefront."
+    >
       {templates.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {templates.map((template) => (
             <TemplateCard key={template.id} {...template} />
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white px-8 py-16 text-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+        <div
+          className={`${dashboardCard} flex w-full flex-col items-center justify-center px-8 py-16 text-center`}
+        >
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-dash-primary/10 text-dash-primary">
             <Store className="h-7 w-7" />
           </div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+          <h2 className="mb-2 text-lg font-semibold text-gray-900">
             Belum ada template yang dibeli
           </h2>
-          <p className="text-sm text-gray-500 max-w-sm mb-6 leading-relaxed">
-            Jelajahi katalog template di halaman utama Etalase untuk menemukan
-            desain yang cocok dengan toko Anda.
+          <p className="mb-6 max-w-md text-sm leading-relaxed text-gray-500">
+            Jelajahi katalog template di halaman utama Etalase untuk menemukan desain yang cocok
+            dengan toko kamu.
           </p>
-          <Link href="/#templates" className={buttonClassName()}>
+          <Link href="/#templates" className={dashboardBtnPrimary}>
             Jelajahi Template
           </Link>
         </div>
       )}
-    </div>
+    </DashboardShell>
   )
 }

@@ -1,33 +1,32 @@
-import { requireSession } from "@/features/auth/dal";
+import { requireSession } from "@/features/auth/dal"
+import { cn } from "@/lib/utils"
+import { DashboardShell } from "@/features/builder/components/DashboardShell"
+import { DashboardPanel, dashboardFormWidth, dashboardLabel } from "@/features/builder/components/dashboard-ui"
 
-export const metadata = { title: "Profile — Storefront Builder" };
+export const metadata = { title: "Profile — Storefront Builder" }
 
 export default async function ProfilePage() {
-  const session = await requireSession();
+  const session = await requireSession()
 
   return (
-    <div className="p-8 max-w-2xl">
-      <h1 className="text-4xl font-extrabold text-indigo-600 tracking-tight mb-8">
-        Profile
-      </h1>
-
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+    <DashboardShell pageTitle="Profile" pageSubtitle="Informasi akun merchant kamu.">
+      <DashboardPanel className={cn(dashboardFormWidth, "p-6")}>
         <dl className="space-y-5">
           <div>
-            <dt className="text-xs font-medium text-gray-500">Nama Merchant</dt>
-            <dd className="text-sm text-gray-900 mt-1">{session.name}</dd>
+            <dt className={dashboardLabel}>Nama Merchant</dt>
+            <dd className="text-sm text-gray-900">{session.name}</dd>
           </div>
           <div>
-            <dt className="text-xs font-medium text-gray-500">Toko</dt>
+            <dt className={dashboardLabel}>Toko</dt>
             {/* @ts-expect-error TODO Sprint 2: add storeSlug to SessionData */}
-            <dd className="text-sm text-gray-900 mt-1">{session.tenantSlug}</dd>
+            <dd className="text-sm text-gray-900">{session.tenantSlug}</dd>
           </div>
           <div>
-            <dt className="text-xs font-medium text-gray-500">Paket</dt>
-            <dd className="text-sm text-gray-900 mt-1">Pro Merchant</dd>
+            <dt className={dashboardLabel}>Paket</dt>
+            <dd className="text-sm text-gray-900">Pro Merchant</dd>
           </div>
         </dl>
-      </div>
-    </div>
-  );
+      </DashboardPanel>
+    </DashboardShell>
+  )
 }

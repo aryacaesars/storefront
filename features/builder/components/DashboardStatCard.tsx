@@ -1,45 +1,26 @@
 import type { LucideIcon } from "lucide-react"
-import { TrendingDown, TrendingUp } from "lucide-react"
-import { dashboardCard } from "@/features/builder/components/dashboard-ui"
+import { dashboardCard } from "./dashboard-ui"
+import { cn } from "@/lib/utils"
 
 interface DashboardStatCardProps {
   label: string
   value: string | number
   icon: LucideIcon
-  trend?: number
 }
 
-export function DashboardStatCard({ label, value, icon: Icon, trend }: DashboardStatCardProps) {
-  const trendUp = trend === undefined || trend >= 0
-
+export function DashboardStatCard({ label, value, icon: Icon }: DashboardStatCardProps) {
   return (
-    <article className={`${dashboardCard} p-5 md:p-6`}>
-      <div className="flex items-center justify-center rounded-xl bg-dash-primary/10 p-3 w-fit">
-        <Icon className="h-6 w-6 text-dash-primary" strokeWidth={1.75} />
-      </div>
-
-      <div className="mt-5 flex items-end justify-between gap-3">
-        <div>
-          <h4 className="text-2xl font-bold text-gray-800 md:text-3xl">{value}</h4>
-          <p className="mt-1 text-sm text-gray-500">{label}</p>
+    <article className={cn(dashboardCard, "p-4 sm:p-5")}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-medium text-dash-muted">{label}</p>
+          <p className="mt-1 truncate text-2xl font-bold tabular-nums tracking-tight text-dash-ink sm:text-[1.75rem]">
+            {value}
+          </p>
         </div>
-
-        {trend !== undefined && (
-          <span
-            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-              trendUp
-                ? "bg-emerald-50 text-emerald-600"
-                : "bg-red-50 text-red-600"
-            }`}
-          >
-            {trendUp ? (
-              <TrendingUp className="h-3 w-3" />
-            ) : (
-              <TrendingDown className="h-3 w-3" />
-            )}
-            {Math.abs(trend)}%
-          </span>
-        )}
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-dash-primary-light text-dash-primary">
+          <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+        </div>
       </div>
     </article>
   )

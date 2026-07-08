@@ -28,10 +28,10 @@ export default async function TemplatesPage({
   searchParams,
 }: {
   params: Promise<{ storeId: string }>
-  searchParams: Promise<{ success?: string; notice?: string }>
+  searchParams: Promise<{ success?: string }>
 }) {
   const { storeId } = await params
-  const { success, notice } = await searchParams
+  const { success } = await searchParams
   const session = await requireSession()
   const store = await getStoreById(storeId)
 
@@ -56,14 +56,7 @@ export default async function TemplatesPage({
                 message: "Template berhasil diaktifkan di storefront kamu.",
                 title: "Berhasil",
               }
-            : notice === "pick-template"
-              ? {
-                  type: "info",
-                  message:
-                    "Pilih dan aktifkan template dulu sebelum masuk ke halaman Kustomisasi.",
-                  title: "Pilih Template",
-                }
-              : null
+            : null
         }
       />
 

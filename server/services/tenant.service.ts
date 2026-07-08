@@ -1,13 +1,6 @@
 import "server-only"
-import type { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/db/prisma"
 import type { Store } from "@prisma/client"
-import { getDefaultThemeConfig } from "@/lib/themes/defaults"
-import type { ThemeConfig } from "@/themes/engine/schema"
-
-function toJsonConfig(config: ThemeConfig): Prisma.InputJsonValue {
-  return JSON.parse(JSON.stringify(config)) as Prisma.InputJsonValue
-}
 
 export type { Store }
 
@@ -40,22 +33,11 @@ export async function createStore(input: {
   slug: string
   ownerId: string
 }): Promise<Store> {
-  const defaultConfig = {
-    ...getDefaultThemeConfig("minimalist"),
-    storeName: input.name,
-  }
-
   return prisma.store.create({
     data: {
       name: input.name,
       slug: input.slug,
       ownerId: input.ownerId,
-      themeConfig: {
-        create: {
-          templateId: "minimalist",
-          configJson: toJsonConfig(defaultConfig),
-        },
-      },
     },
   })
 }

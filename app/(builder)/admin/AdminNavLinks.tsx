@@ -14,9 +14,8 @@ const NAV = [
 
 export function AdminNavLinks() {
   const pathname = usePathname()
-
   return (
-    <nav className="flex flex-col gap-1">
+    <nav className="flex flex-col gap-1 px-2">
       {NAV.map((item) => {
         const active = item.exact ? pathname === item.href : pathname.startsWith(item.href)
         const Icon = item.icon
@@ -25,13 +24,16 @@ export function AdminNavLinks() {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+              "group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
               active
-                ? "bg-dash-primary-light text-dash-primary"
-                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+                ? "bg-indigo-50 text-indigo-700"
+                : "text-gray-500 hover:bg-gray-100 hover:text-gray-900",
             )}
           >
-            <Icon className="h-5 w-5 shrink-0" strokeWidth={1.75} />
+            {active && (
+              <span className="absolute left-0 top-2 bottom-2 w-0.5 rounded-r-full bg-indigo-600" />
+            )}
+            <Icon className="w-4 h-4 shrink-0" />
             {item.label}
           </Link>
         )

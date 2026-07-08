@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { useCallback } from "react"
 import { cn } from "@/lib/utils"
 import { CanvasMeasurementBadge } from "@/features/builder/components/canvas/CanvasGridOverlay"
 import { CanvasInlineText } from "@/features/builder/components/canvas/CanvasInlineText"
@@ -21,10 +20,7 @@ interface CanvasHeroCtaProps {
   scale: number
   designWidth: number
   frameRef: React.RefObject<HTMLDivElement | null>
-  variant?: "filled" | "outline" | "ghost"
-  shape?: "pill" | "square"
-  previewClassName?: string
-  zIndex?: number
+  variant?: "filled" | "outline"
   onSelect: () => void
   onChange: (patch: Record<string, unknown>) => void
 }
@@ -38,67 +34,12 @@ export function CanvasHeroCta({
   designWidth,
   frameRef,
   variant = "filled",
-  shape = "pill",
-  previewClassName,
-  zIndex = 20,
   onSelect,
   onChange,
 }: CanvasHeroCtaProps) {
   const { layout } = cta
   const isOutline = variant === "outline"
-  const isGhost = variant === "ghost"
-  const isSquare = shape === "square"
-  const textColor = cta.textColor
-  const bgColor = isOutline || isGhost ? "transparent" : cta.bgColor
-  const radiusOverride = cta.radius ?? null
-
-  const startMove = useCallback(
-    (event: React.PointerEvent<HTMLElement>) => {
-      if (
-        event.target instanceof HTMLElement &&
-        Boolean(event.target.closest('button[aria-label^="Tarik"]'))
-      ) {
-        return
-      }
-      event.stopPropagation()
-      const startX = event.clientX
-      const startY = event.clientY
-      const originXPct = layout.xPct
-      const originYPx = layout.yPx
-      let dragging = false
-
-      function onMove(moveEvent: PointerEvent) {
-        const dx = moveEvent.clientX - startX
-        const dy = moveEvent.clientY - startY
-        if (!dragging && Math.abs(dx) + Math.abs(dy) < 4) return
-        dragging = true
-        moveEvent.preventDefault()
-        const active = document.activeElement
-        if (active instanceof HTMLElement && active.isContentEditable) {
-          active.blur()
-        }
-        const frameWidth = frameRef.current?.clientWidth ?? 1
-        const dxPct = (dx / frameWidth) * 100
-        const dyDesign = dy / scale
-        onChange({
-          xPct: Math.max(
-            0,
-            Math.min(100 - layout.wPct, Math.round((originXPct + dxPct) * 10) / 10),
-          ),
-          yPx: Math.max(0, Math.round(originYPx + dyDesign)),
-        })
-      }
-
-      function onUp() {
-        window.removeEventListener("pointermove", onMove)
-        window.removeEventListener("pointerup", onUp)
-      }
-
-      window.addEventListener("pointermove", onMove)
-      window.addEventListener("pointerup", onUp)
-    },
-    [frameRef, layout.wPct, layout.xPct, layout.yPx, onChange, scale],
-  )
+  const textColor = cta.textColor.trim() || (isOutline ? "#ffffff" : "var(--theme-primary)")
 
   const boxStyle: React.CSSProperties = {
     position: "absolute",
@@ -106,40 +47,24 @@ export function CanvasHeroCta({
     width: `${layout.wPct}%`,
     top: `${layout.yPx * scale}px`,
     height: `${layout.hPx * scale}px`,
-    zIndex,
   }
 
   const buttonStyle: React.CSSProperties = {
-    backgroundColor: bgColor,
+    backgroundColor: isOutline ? "transparent" : cta.bgColor,
     color: textColor,
     fontFamily: "var(--theme-heading-font)",
     fontSize: `${Math.max(12, layout.hPx * scale * 0.38)}px`,
     ...(isOutline && {
-      border: isSquare ? "1px solid #ffffff" : "1.5px solid #ffffff",
+      border: "1.5px solid #ffffff",
       boxShadow: "none",
     }),
-    ...(isGhost && { border: "none", boxShadow: "none" }),
-    ...(radiusOverride != null && { borderRadius: `${radiusOverride * scale}px` }),
   }
 
-  const radiusClass =
-    radiusOverride != null
-      ? ""
-      : isSquare
-        ? "rounded-none"
-        : isOutline
-          ? "rounded-full"
-          : "rounded-[47px]"
-  const casingClass = isSquare ? "font-bold uppercase tracking-[0.14em]" : "font-black uppercase tracking-[0.14em] capitalize"
-
   const className = cn(
-    "pointer-events-auto z-20 flex items-center justify-center overflow-visible px-6",
-    radiusClass,
-    casingClass,
-    !isOutline && !isGhost && "shadow-lg",
+    "pointer-events-auto z-20 flex items-center justify-center overflow-visible px-6 font-black uppercase tracking-[0.14em]",
+    isOutline ? "rounded-full" : "rounded-[47px] capitalize shadow-lg",
     editable && "cursor-pointer",
-    !editable && !previewClassName && "hover:opacity-80",
-    previewClassName,
+    !editable && "hover:opacity-80",
   )
 
   const labelNode = editable ? (
@@ -160,12 +85,7 @@ export function CanvasHeroCta({
         role="button"
         tabIndex={0}
         style={boxStyle}
-        className={cn(
-          "pointer-events-auto",
-          !selected && "ring-2 ring-transparent",
-          selected && "cursor-move",
-        )}
-        onPointerDown={selected ? startMove : undefined}
+        className={cn(editable && !selected && "ring-2 ring-transparent")}
         onClick={(event) => {
           event.preventDefault()
           event.stopPropagation()
@@ -189,7 +109,7 @@ export function CanvasHeroCta({
         <div
           className={cn(
             "flex h-full w-full items-center justify-center",
-            radiusClass,
+            isOutline ? "rounded-full" : "rounded-[47px]",
             className,
             selected && "ring-2 ring-indigo-400 ring-offset-2 ring-offset-transparent",
           )}

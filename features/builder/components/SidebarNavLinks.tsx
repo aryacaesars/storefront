@@ -35,10 +35,10 @@ type StoreItem = { id: string; name: string }
 
 const navItemClass = (active: boolean) =>
   cn(
-    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-200",
     active
       ? "bg-dash-primary-light text-dash-primary"
-      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+      : "text-dash-muted hover:bg-dash-bg hover:text-dash-ink",
   )
 
 export function SidebarNavLinks({
@@ -100,7 +100,7 @@ export function SidebarNavLinks({
 
       {stores.length > 0 && (
         <div className="mt-6">
-          <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+          <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-dash-muted">
             Toko Saya
           </p>
           {stores.map((store) => {
@@ -124,10 +124,10 @@ export function SidebarNavLinks({
                           key={sub}
                           href={subPath}
                           className={cn(
-                            "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                            "flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition-colors duration-200",
                             subActive
                               ? "bg-dash-primary-light font-medium text-dash-primary"
-                              : "text-gray-500 hover:bg-gray-50 hover:text-gray-900",
+                              : "text-dash-muted hover:bg-dash-bg hover:text-dash-ink",
                           )}
                         >
                           <Icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />

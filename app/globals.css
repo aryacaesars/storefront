@@ -10,13 +10,17 @@
   --ink: #0e0e1a;
   --surface: #f4f2ef;
 
-  /* Dashboard shell — TailAdmin-inspired */
-  --dash-bg: #f1f5f9;
-  --dash-primary: #3c50e0;
-  --dash-primary-dark: #2f41c7;
-  --dash-primary-light: #eef2ff;
-  --dash-success: #22c55e;
-  --dash-danger: #ef4444;
+  /* Dashboard shell */
+  --dash-bg: #ffffff;
+  --dash-surface: #ffffff;
+  --dash-border: #e8eaef;
+  --dash-muted: #64748b;
+  --dash-ink: #0f172a;
+  --dash-primary: #5b4ee6;
+  --dash-primary-dark: #4a3ed0;
+  --dash-primary-light: #f0efff;
+  --dash-success: #16a34a;
+  --dash-danger: #dc2626;
 }
 
 @theme inline {
@@ -27,6 +31,10 @@
   --color-ink: var(--ink);
   --color-surface: var(--surface);
   --color-dash-bg: var(--dash-bg);
+  --color-dash-surface: var(--dash-surface);
+  --color-dash-border: var(--dash-border);
+  --color-dash-muted: var(--dash-muted);
+  --color-dash-ink: var(--dash-ink);
   --color-dash-primary: var(--dash-primary);
   --color-dash-primary-dark: var(--dash-primary-dark);
   --color-dash-primary-light: var(--dash-primary-light);
@@ -40,7 +48,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
 }
 
 @keyframes notice-modal-in {

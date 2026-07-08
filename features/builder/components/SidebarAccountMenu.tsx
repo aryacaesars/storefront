@@ -54,8 +54,8 @@ export function SidebarAccountMenu({
         className={cn(
           "flex w-full items-center gap-2.5 rounded-lg text-left transition-colors",
           isHeader
-            ? "border border-gray-200 px-2 py-1.5 hover:bg-gray-50"
-            : cn("px-3 py-2.5", open ? "bg-dash-primary/8 ring-1 ring-dash-primary/15" : "hover:bg-gray-100"),
+            ? "border border-dash-border px-2 py-1.5 hover:bg-dash-bg"
+            : cn("px-3 py-2.5", open ? "bg-dash-primary/8 ring-1 ring-dash-primary/15" : "hover:bg-dash-bg"),
         )}
       >
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-dash-primary/10">
@@ -64,23 +64,23 @@ export function SidebarAccountMenu({
         {isHeader ? (
           <>
             <span className="hidden min-w-0 flex-1 sm:block">
-              <span className="block truncate text-sm font-semibold text-gray-800">{displayName}</span>
-              <span className="block truncate text-xs text-gray-400">{subtitle}</span>
+              <span className="block truncate text-sm font-semibold text-dash-ink">{displayName}</span>
+              <span className="block truncate text-xs text-dash-muted">{subtitle}</span>
             </span>
             <ChevronDown
               className={cn(
-                "hidden h-4 w-4 shrink-0 text-gray-400 transition-transform sm:block",
-                open && "rotate-180",
+                "hidden h-4 w-4 shrink-0 text-dash-muted transition-transform duration-200 sm:block",
+                open && "rotate-180 text-dash-primary",
               )}
             />
           </>
         ) : (
           <>
             <div className="min-w-0 flex-1">
-              <span className="block truncate text-xs font-semibold leading-tight text-gray-800">
+              <span className="block truncate text-xs font-semibold leading-tight text-dash-ink">
                 {displayName}
               </span>
-              <span className="block text-[10px] leading-tight text-gray-400">{subtitle}</span>
+              <span className="block text-[10px] leading-tight text-dash-muted">{subtitle}</span>
             </div>
             <ChevronDown
               className={cn(
@@ -96,7 +96,7 @@ export function SidebarAccountMenu({
         <div
           role="menu"
           className={cn(
-            "absolute overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg ring-1 ring-black/5 z-50",
+            "absolute overflow-hidden rounded-xl border border-dash-border bg-dash-surface shadow-lg ring-1 ring-dash-ink/5 z-50",
             isHeader ? "right-0 top-full mt-2 w-48" : "bottom-full left-0 right-0 mb-2",
           )}
         >
@@ -105,7 +105,7 @@ export function SidebarAccountMenu({
               href="/profile"
               role="menuitem"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              className="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-dash-ink transition-colors duration-200 hover:bg-dash-bg"
             >
               <User className="h-4 w-4 shrink-0 text-gray-400" />
               Profile
@@ -116,7 +116,7 @@ export function SidebarAccountMenu({
             <button
               type="submit"
               role="menuitem"
-              className="flex w-full items-center gap-2.5 border-t border-gray-100 px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+              className="flex w-full items-center gap-2.5 border-t border-dash-border px-3 py-2.5 text-left text-sm font-medium text-dash-danger transition-colors duration-200 hover:bg-red-50"
             >
               <LogOut className="h-4 w-4 shrink-0" />
               Logout

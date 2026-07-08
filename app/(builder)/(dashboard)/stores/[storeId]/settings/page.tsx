@@ -31,7 +31,7 @@ export default async function StoreSettingsPage({
       pageTitle="Pengaturan Store"
       pageSubtitle={getStorefrontHost(store.slug)}
     >
-      <DashboardPanel className="p-6">
+      <DashboardPanel className="w-full max-w-2xl p-6">
         <SettingsForm
           storeId={storeId}
           defaultName={store.name}

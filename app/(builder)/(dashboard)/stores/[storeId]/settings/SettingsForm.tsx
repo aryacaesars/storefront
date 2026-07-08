@@ -28,7 +28,7 @@ export function SettingsForm({
   })
 
   return (
-    <form action={formAction} className="flex max-w-xl flex-col gap-4">
+    <form action={formAction} className="flex w-full flex-col gap-4">
       <div>
         <label className={dashboardLabel}>Nama Store</label>
         <input

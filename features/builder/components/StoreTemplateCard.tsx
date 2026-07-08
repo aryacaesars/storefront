@@ -2,7 +2,7 @@ import Link from "next/link"
 import type { Template } from "@prisma/client"
 import { cn } from "@/lib/utils"
 import { TemplateThumbnail } from "@/features/builder/components/TemplateThumbnail"
-import { dashboardBtnOutline, dashboardBtnPrimary, dashboardCard } from "@/features/builder/components/dashboard-ui"
+import { dashboardBtnOutline, dashboardBtnPrimary } from "@/features/builder/components/dashboard-ui"
 import { normalizeThemeSlug } from "@/server/services/template.service"
 import type { TemplateId } from "@/themes/engine/schema"
 
@@ -28,7 +28,7 @@ export function StoreTemplateCard({
   const activate = buyAction.bind(null, storeId, template.id)
 
   return (
-    <article className={cn(dashboardCard, "overflow-hidden")}>
+    <article className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-black/5">
       <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
         {template.previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -59,7 +59,7 @@ export function StoreTemplateCard({
               aktif
             </span>
           ) : (
-            <span className="shrink-0 text-sm font-semibold text-dash-primary">{priceLabel}</span>
+            <span className="shrink-0 text-sm font-semibold text-brand">{priceLabel}</span>
           )}
         </div>
 

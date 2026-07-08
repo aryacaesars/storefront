@@ -14,11 +14,11 @@ export default async function NewStorePage() {
 
   return (
     <DashboardShell pageTitle="Buat Store Baru">
-      <div className="flex max-w-md flex-col gap-4">
+      <div className="flex w-full max-w-xl flex-col gap-4">
         <Link href="/dashboard" className={dashboardBackLink}>
           ← Kembali ke Dashboard
         </Link>
-        <DashboardPanel className="p-6">
+        <DashboardPanel className="w-full max-w-xl p-6">
           <CreateStoreForm />
         </DashboardPanel>
       </div>

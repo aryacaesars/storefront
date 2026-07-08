@@ -4,10 +4,6 @@ import type { Category, Product, ProductImage } from "@prisma/client"
 
 export type { Category, Product, ProductImage }
 export type ProductWithCategory = Product & { category: Category | null }
-export type ProductListItem = Product & {
-  category: Category | null
-  images: ProductImage[]
-}
 export type ProductWithImages = Product & {
   category: Category | null
   images: ProductImage[]
@@ -80,29 +76,10 @@ export async function categorySlugExists(
 
 // ─── Products ─────────────────────────────────────────────────────────────────
 
-export async function getProducts(
-  storeId: string,
-  options?: { search?: string },
-): Promise<ProductListItem[]> {
-  const search = options?.search?.trim()
-
+export async function getProducts(storeId: string): Promise<ProductWithCategory[]> {
   return prisma.product.findMany({
-    where: {
-      storeId,
-      ...(search
-        ? {
-            OR: [
-              { name: { contains: search, mode: "insensitive" } },
-              { slug: { contains: search, mode: "insensitive" } },
-              { category: { name: { contains: search, mode: "insensitive" } } },
-            ],
-          }
-        : {}),
-    },
-    include: {
-      category: true,
-      images: { orderBy: { order: "asc" }, take: 1 },
-    },
+    where: { storeId },
+    include: { category: true },
     orderBy: { name: "asc" },
   })
 }

@@ -26,49 +26,6 @@ export type HeroCtaData = {
   bgColor: string
   textColor: string
   layout: CategoryCardLayout
-  /** True when block has no ctaBgColor override — follows theme primaryColor. */
-  bgFromTheme?: boolean
-  /** True when block has no ctaTextColor override — follows default (#ffffff). */
-  textFromTheme?: boolean
-  /** Corner radius override in design px; null = theme default shape. */
-  radius?: number | null
-}
-
-export const MAX_CTA_RADIUS = 60
-
-export function parseCtaRadius(
-  settings: Record<string, unknown> | undefined,
-): number | null {
-  const raw = settings?.ctaRadius
-  if (raw == null || raw === "") return null
-  const n = Number(raw)
-  if (!Number.isFinite(n)) return null
-  return clamp(Math.round(n), 0, MAX_CTA_RADIUS)
-}
-
-export type HeroCtaThemeFallback = {
-  primaryColor?: string
-  defaultTextColor?: string
-}
-
-export function resolveHeroCtaColors(
-  settings: Record<string, unknown> | undefined,
-  theme: HeroCtaThemeFallback = {},
-): Pick<HeroCtaData, "bgColor" | "textColor" | "bgFromTheme" | "textFromTheme"> {
-  const primaryColor = theme.primaryColor?.trim() || "#3D4F6F"
-  const defaultTextColor = theme.defaultTextColor?.trim() || "#ffffff"
-
-  const rawBg =
-    typeof settings?.ctaBgColor === "string" ? settings.ctaBgColor.trim() : ""
-  const rawText =
-    typeof settings?.ctaTextColor === "string" ? settings.ctaTextColor.trim() : ""
-
-  return {
-    bgColor: rawBg || primaryColor,
-    textColor: rawText || defaultTextColor,
-    bgFromTheme: rawBg === "",
-    textFromTheme: rawText === "",
-  }
 }
 
 export const DEFAULT_CTA_LAYOUT_DESKTOP: CategoryCardLayout = {
@@ -119,7 +76,6 @@ function legacyToLayout(
 function parseLayout(
   settings: Record<string, unknown> | undefined,
   fallback: CategoryCardLayout,
-  designHeight = HERO_DESIGN_HEIGHT,
 ): CategoryCardLayout {
   if (!hasBoxLayout(settings)) {
     if (
@@ -130,7 +86,6 @@ function parseLayout(
         num(settings.ctaXPct, 82),
         num(settings.ctaYPct, 84),
         num(settings.ctaScale, 100),
-        designHeight,
       )
     }
     return fallback
@@ -139,7 +94,7 @@ function parseLayout(
   return {
     xPct: clamp(Math.round(num(settings?.xPct, fallback.xPct)), 0, 100 - MIN_WIDTH_PCT),
     wPct: clamp(Math.round(num(settings?.wPct, fallback.wPct)), MIN_WIDTH_PCT, 100),
-    yPx: clamp(Math.round(num(settings?.yPx, fallback.yPx)), 0, designHeight - MIN_CTA_HEIGHT),
+    yPx: clamp(Math.round(num(settings?.yPx, fallback.yPx)), 0, HERO_DESIGN_HEIGHT - MIN_CTA_HEIGHT),
     hPx: clamp(
       Math.round(num(settings?.hPx, fallback.hPx)),
       MIN_CTA_HEIGHT,
@@ -152,19 +107,19 @@ export function parseHeroCta(
   settings: Record<string, unknown> | undefined,
   fallbackLabel: string,
   isMobile = false,
-  theme?: HeroCtaThemeFallback,
-  designHeight = HERO_DESIGN_HEIGHT,
 ): HeroCtaData {
   const layoutFallback = isMobile ? DEFAULT_CTA_LAYOUT_MOBILE : DEFAULT_CTA_LAYOUT_DESKTOP
-  const colors = resolveHeroCtaColors(settings, theme)
 
   return {
     label:
       typeof settings?.label === "string" && settings.label.trim()
         ? settings.label
         : fallbackLabel,
-    ...colors,
-    radius: parseCtaRadius(settings),
-    layout: parseLayout(settings, layoutFallback, designHeight),
+    bgColor:
+      typeof settings?.ctaBgColor === "string" && settings.ctaBgColor.trim()
+        ? settings.ctaBgColor
+        : "#ffffff",
+    textColor: typeof settings?.ctaTextColor === "string" ? settings.ctaTextColor : "",
+    layout: parseLayout(settings, layoutFallback),
   }
 }
