@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { TemplateThumbnail } from "@/features/builder/components/TemplateThumbnail";
+import { getTemplatePreviewHref } from "@/themes/engine/registry";
 
 const TEMPLATES = [
   {
@@ -7,21 +8,18 @@ const TEMPLATES = [
     name: "Aurora Minimal",
     label: "Minimalist",
     price: "Rp. 300.000",
-    previewHref: "/preview",
   },
   {
     id: "bold" as const,
     name: "Momentum",
     label: "Bold",
     price: "Rp. 300.000",
-    previewHref: "/preview/bold",
   },
   {
     id: "fashion" as const,
     name: "Luna Soft",
     label: "Fashion",
     price: "Rp. 300.000",
-    previewHref: "/preview/fashion",
   },
 ];
 
@@ -30,10 +28,9 @@ function TemplateCard({
   name,
   label,
   price,
-  previewHref,
 }: (typeof TEMPLATES)[number]) {
   return (
-    <Link href={previewHref} target="_blank" className="group block">
+    <Link href={getTemplatePreviewHref(id)} target="_blank" className="group block">
       <div className="overflow-hidden rounded-xl border border-black/5 bg-white shadow-xl shadow-slate-900/10 transition-shadow group-hover:shadow-2xl group-hover:shadow-slate-900/15">
         {/* Browser chrome dots */}
         <div className="flex items-center gap-1.5 border-b border-black/5 bg-slate-100 px-3 py-2">

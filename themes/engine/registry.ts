@@ -113,3 +113,12 @@ export function getImplementedPages(templateId: TemplateId): PageType[] {
   if (!pages) return []
   return Object.keys(pages) as PageType[]
 }
+
+/**
+ * Live preview URL for a template — a read-only static route, NOT the editor.
+ * `minimalist` lives at the bare `/preview` (historical default); every other
+ * template gets its own `/preview/<id>` segment.
+ */
+export function getTemplatePreviewHref(templateId: TemplateId): string {
+  return templateId === "minimalist" ? "/preview" : `/preview/${templateId}`
+}

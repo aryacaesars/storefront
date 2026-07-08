@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils"
 import { TemplateThumbnail } from "@/features/builder/components/TemplateThumbnail"
 import { dashboardBtnOutline, dashboardBtnPrimary } from "@/features/builder/components/dashboard-ui"
 import { normalizeThemeSlug } from "@/server/services/template.service"
+import { getTemplatePreviewHref } from "@/themes/engine/registry"
 import type { TemplateId } from "@/themes/engine/schema"
 
 interface StoreTemplateCardProps {
@@ -86,12 +87,22 @@ export function StoreTemplateCard({
             <Link href={customizeHref} className={cn(dashboardBtnOutline, "py-2.5")}>
               customize
             </Link>
-            <Link
-              href={`${customizeHref}&mode=preview`}
-              className={cn(dashboardBtnOutline, "py-2.5")}
-            >
-              preview
-            </Link>
+            {themeId ? (
+              <Link
+                href={getTemplatePreviewHref(themeId)}
+                target="_blank"
+                className={cn(dashboardBtnOutline, "py-2.5")}
+              >
+                preview
+              </Link>
+            ) : (
+              <span
+                aria-disabled
+                className={cn(dashboardBtnOutline, "py-2.5 cursor-not-allowed opacity-40")}
+              >
+                preview
+              </span>
+            )}
           </div>
         </div>
       </div>
