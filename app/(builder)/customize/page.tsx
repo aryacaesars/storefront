@@ -11,6 +11,14 @@ import { getStorefrontHost } from "@/lib/tenant/storefront-url"
 
 export const metadata = { title: "Customize" }
 
+/** Prevent browser pinch/page-zoom — only the preview canvas zooms. */
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+}
+
 export default async function CustomizePage({
   searchParams,
 }: {

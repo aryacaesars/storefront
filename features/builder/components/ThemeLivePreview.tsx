@@ -116,11 +116,11 @@ export function ThemeLivePreview({
   )
 
   const chrome = (
-    <div className="flex items-center gap-1.5 border-b border-gray-100 bg-gray-50 px-4 py-2.5">
-      <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-      <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-      <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-      <div className="mx-auto max-w-xs flex-1 truncate rounded-md border border-gray-200 bg-white px-3 py-1 text-center text-[10px] text-gray-400">
+    <div className="flex items-center gap-1.5 px-3 py-2">
+      <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-red-400" />
+      <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-amber-400" />
+      <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-400" />
+      <div className="mx-auto min-w-0 max-w-xs flex-1 truncate rounded-md border border-gray-200 bg-white px-2 py-1 text-center text-[10px] text-gray-400">
         {storefrontHost}
       </div>
       <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-gray-600">
@@ -137,8 +137,8 @@ export function ThemeLivePreview({
       </div>
 
       {/*
-        previewRootRef stays on the scroll viewport so scrollIntoView for
-        selected sections still works inside the zoomable canvas.
+        previewRootRef wraps the canvas so section scroll can find
+        [data-preview-viewport] + section nodes (see scrollPreviewIntoView).
       */}
       <div ref={scrollRootRef} className="flex min-h-0 flex-1 flex-col">
         <PreviewCanvas device={device} chrome={chrome}>

@@ -66,10 +66,12 @@ export function CanvasFloatingToolbar({
   return (
     <div
       // z di atas navbar theme (sticky z-50) supaya klik tidak tembus ke preview.
+      data-builder-chrome
       className={cn(
         "z-200",
         mobile
-          ? "absolute inset-x-0 bottom-0 border-t border-gray-100 bg-white/95 px-2 py-1.5 backdrop-blur-sm"
+          ? // Fixed to viewport above bottom tool navbar — never scales with canvas zoom
+            "fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] border-t border-gray-100 bg-white/95 px-2 py-1.5 backdrop-blur-sm"
           : "absolute left-1/2 top-3 -translate-x-1/2",
       )}
       onPointerDown={(e) => e.stopPropagation()}

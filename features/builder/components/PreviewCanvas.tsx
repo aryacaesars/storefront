@@ -29,8 +29,8 @@ interface PreviewCanvasProps {
 
 /**
  * Canva-like zoomable artboard.
- * Desktop always lays out at a fixed 1280px width (not crushed by phone viewport);
- * the frame is visually scaled with CSS transform + scroll for pan.
+ * Only page content scales. Fit-to-width runs on device change / explicit fit —
+ * never on every layout twitch (selection, toolbar), so zoom + scroll stay put.
  */
 export function PreviewCanvas({
   device,
@@ -42,35 +42,63 @@ export function PreviewCanvas({
   const artboardRef = useRef<HTMLDivElement>(null)
   const [zoom, setZoom] = useState(1)
   const [contentH, setContentH] = useState(640)
+  /** True until user pinches / +/- ; then resize must not steal their zoom. */
+  const fitModeRef = useRef(true)
   const artboardW = device === "mobile" ? MOBILE_ARTBOARD : DESKTOP_ARTBOARD
+  const lastViewportW = useRef(0)
+
+  const applyFitZoom = useCallback(
+    (opts?: { resetScrollY?: boolean }) => {
+      const el = viewportRef.current
+      if (!el) return
+      const pad = 24
+      const next = clampZoom((el.clientWidth - pad) / artboardW)
+      fitModeRef.current = true
+      setZoom(next)
+      lastViewportW.current = el.clientWidth
+      requestAnimationFrame(() => {
+        const vp = viewportRef.current
+        if (!vp) return
+        const scaledW = artboardW * next
+        vp.scrollLeft = Math.max(0, (scaledW - vp.clientWidth) / 2 + pad / 2)
+        if (opts?.resetScrollY) vp.scrollTop = 0
+      })
+    },
+    [artboardW],
+  )
 
   const fitToViewport = useCallback(() => {
-    const el = viewportRef.current
-    if (!el) return
-    const pad = 24
-    const next = clampZoom((el.clientWidth - pad) / artboardW)
-    setZoom(next)
-    // Center horizontally after fit
-    requestAnimationFrame(() => {
-      const vp = viewportRef.current
-      if (!vp) return
-      const scaledW = artboardW * next
-      vp.scrollLeft = Math.max(0, (scaledW - vp.clientWidth) / 2 + pad / 2)
-      vp.scrollTop = 0
-    })
-  }, [artboardW])
+    applyFitZoom({ resetScrollY: false })
+  }, [applyFitZoom])
 
+  // Device change → fresh fit + jump to top (intentional)
   useLayoutEffect(() => {
-    fitToViewport()
-  }, [fitToViewport, device])
+    applyFitZoom({ resetScrollY: true })
+  }, [applyFitZoom, device])
 
+  // Viewport resize: re-fit only while still in fit-mode AND width actually changed.
+  // Never reset scrollY — that was jumping back to hero on select/toolbar.
   useEffect(() => {
     const vp = viewportRef.current
     if (!vp) return
-    const ro = new ResizeObserver(() => fitToViewport())
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect.width ?? vp.clientWidth
+      if (Math.abs(w - lastViewportW.current) < 1) return
+      lastViewportW.current = w
+      if (!fitModeRef.current) return
+      const pad = 24
+      const next = clampZoom((w - pad) / artboardW)
+      setZoom(next)
+      requestAnimationFrame(() => {
+        const el = viewportRef.current
+        if (!el) return
+        const scaledW = artboardW * next
+        el.scrollLeft = Math.max(0, (scaledW - el.clientWidth) / 2 + pad / 2)
+      })
+    })
     ro.observe(vp)
     return () => ro.disconnect()
-  }, [fitToViewport])
+  }, [artboardW])
 
   useEffect(() => {
     const el = artboardRef.current
@@ -81,23 +109,31 @@ export function PreviewCanvas({
     ro.observe(el)
     setContentH(el.offsetHeight)
     return () => ro.disconnect()
-  }, [device, children])
+  }, [device])
 
-  // Ctrl / meta + wheel → zoom
+  const bumpZoom = useCallback((next: number | ((z: number) => number)) => {
+    fitModeRef.current = false
+    setZoom((z) =>
+      clampZoom(typeof next === "function" ? next(z) : next),
+    )
+  }, [])
+
+  // Ctrl / meta + wheel → canvas zoom only
   useEffect(() => {
     const el = viewportRef.current
     if (!el) return
     const onWheel = (e: WheelEvent) => {
       if (!(e.ctrlKey || e.metaKey)) return
       e.preventDefault()
+      e.stopPropagation()
       const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP
-      setZoom((z) => clampZoom(z + delta))
+      bumpZoom((z) => z + delta)
     }
     el.addEventListener("wheel", onWheel, { passive: false })
     return () => el.removeEventListener("wheel", onWheel)
-  }, [])
+  }, [bumpZoom])
 
-  // Pinch-to-zoom (2 fingers)
+  // Pinch-to-zoom; block browser page zoom
   useEffect(() => {
     const el = viewportRef.current
     if (!el) return
@@ -122,7 +158,7 @@ export function PreviewCanvas({
         const d = dist()
         const ratio = d / lastDist
         lastDist = d
-        setZoom((z) => clampZoom(z * ratio))
+        bumpZoom((z) => z * ratio)
       }
     }
     const onUp = (e: PointerEvent) => {
@@ -130,60 +166,90 @@ export function PreviewCanvas({
       if (pointers.size < 2) lastDist = 0
     }
 
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length >= 2) e.preventDefault()
+    }
+
     el.addEventListener("pointerdown", onDown)
     el.addEventListener("pointermove", onMove)
     el.addEventListener("pointerup", onUp)
     el.addEventListener("pointercancel", onUp)
+    el.addEventListener("touchmove", onTouchMove, { passive: false })
     return () => {
       el.removeEventListener("pointerdown", onDown)
       el.removeEventListener("pointermove", onMove)
       el.removeEventListener("pointerup", onUp)
       el.removeEventListener("pointercancel", onUp)
+      el.removeEventListener("touchmove", onTouchMove)
     }
-  }, [])
+  }, [bumpZoom])
 
   const scaledW = artboardW * zoom
   const scaledH = contentH * zoom
 
   return (
-    <div className={cn("relative flex min-h-0 flex-1 flex-col", className)}>
+    <div
+      className={cn("relative flex min-h-0 flex-1 flex-col", className)}
+      data-preview-canvas
+    >
       <div
         ref={viewportRef}
-        className="relative min-h-0 flex-1 overflow-auto overscroll-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        className="relative min-h-0 flex-1 touch-none overflow-auto overscroll-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         data-preview-viewport
       >
         <div
           className="relative mx-auto"
           style={{
             width: scaledW,
-            height: scaledH,
             marginTop: 16,
             marginBottom: 64,
           }}
         >
+          {chrome ? (
+            <div
+              className="overflow-hidden rounded-t-xl border border-b-0 border-gray-200 bg-gray-50"
+              data-preview-chrome
+            >
+              {chrome}
+            </div>
+          ) : null}
+
           <div
-            ref={artboardRef}
-            data-preview-device={device}
-            data-preview-artboard
-            className="absolute left-0 top-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl"
+            className="relative overflow-hidden rounded-b-xl border border-gray-200 bg-white shadow-xl"
             style={{
-              width: artboardW,
-              transform: `scale(${zoom})`,
-              transformOrigin: "top left",
+              width: scaledW,
+              height: scaledH,
+              borderTopLeftRadius: chrome ? 0 : undefined,
+              borderTopRightRadius: chrome ? 0 : undefined,
+              borderTopWidth: chrome ? 0 : undefined,
             }}
           >
-            {chrome}
-            {children}
+            <div
+              ref={artboardRef}
+              data-preview-device={device}
+              data-preview-artboard
+              className="absolute left-0 top-0 origin-top-left"
+              style={{
+                width: artboardW,
+                transform: `scale(${zoom})`,
+                transformOrigin: "top left",
+              }}
+            >
+              {children}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="pointer-events-none absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-0.5 rounded-full border border-gray-200 bg-white/95 px-1 py-1 shadow-lg backdrop-blur-sm md:bottom-4">
+      <div
+        className="pointer-events-none absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-0.5 rounded-full border border-gray-200 bg-white/95 px-1 py-1 shadow-lg backdrop-blur-sm md:bottom-4"
+        data-builder-chrome
+      >
         <button
           type="button"
           aria-label="Zoom out"
           className="pointer-events-auto inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-600 hover:bg-gray-100"
-          onClick={() => setZoom((z) => clampZoom(z - ZOOM_STEP))}
+          onClick={() => bumpZoom((z) => z - ZOOM_STEP)}
         >
           <Minus className="h-4 w-4" />
         </button>
@@ -200,7 +266,7 @@ export function PreviewCanvas({
           type="button"
           aria-label="Zoom in"
           className="pointer-events-auto inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-600 hover:bg-gray-100"
-          onClick={() => setZoom((z) => clampZoom(z + ZOOM_STEP))}
+          onClick={() => bumpZoom((z) => z + ZOOM_STEP)}
         >
           <Plus className="h-4 w-4" />
         </button>
@@ -218,3 +284,44 @@ export function PreviewCanvas({
 }
 
 export { DESKTOP_ARTBOARD, MOBILE_ARTBOARD }
+
+/**
+ * Scroll a section/element into the preview viewport, accounting for CSS scale.
+ * Native scrollIntoView is unreliable inside transform: scale().
+ */
+export function scrollPreviewIntoView(
+  root: ParentNode,
+  target: HTMLElement,
+  opts?: { behavior?: ScrollBehavior; block?: "center" | "nearest" },
+) {
+  const viewport = root.querySelector<HTMLElement>("[data-preview-viewport]")
+  if (!viewport) {
+    target.scrollIntoView({
+      behavior: opts?.behavior ?? "smooth",
+      block: opts?.block ?? "center",
+    })
+    return
+  }
+
+  const elRect = target.getBoundingClientRect()
+  const vpRect = viewport.getBoundingClientRect()
+  const block = opts?.block ?? "center"
+
+  let deltaY = 0
+  if (block === "center") {
+    const elMid = elRect.top + elRect.height / 2
+    const vpMid = vpRect.top + vpRect.height / 2
+    deltaY = elMid - vpMid
+  } else {
+    if (elRect.top < vpRect.top) deltaY = elRect.top - vpRect.top - 16
+    else if (elRect.bottom > vpRect.bottom)
+      deltaY = elRect.bottom - vpRect.bottom + 16
+  }
+
+  if (Math.abs(deltaY) < 2) return
+
+  viewport.scrollTo({
+    top: viewport.scrollTop + deltaY,
+    behavior: opts?.behavior ?? "smooth",
+  })
+}

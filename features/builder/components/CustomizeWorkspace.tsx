@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { EditorTopbar } from "./EditorTopbar"
 import { ThemeLivePreview } from "./ThemeLivePreview"
+import { scrollPreviewIntoView } from "./PreviewCanvas"
 import { BuilderToolRail, BUILDER_TOOLS, type BuilderTool } from "./BuilderToolRail"
 import { BuilderToolPanels } from "./BuilderToolPanels"
 import { BuilderMobileNav } from "./BuilderMobileNav"
@@ -109,6 +110,28 @@ export function CustomizeWorkspace({
     apply()
     mq.addEventListener("change", apply)
     return () => mq.removeEventListener("change", apply)
+  }, [])
+
+  // Lock browser page-zoom so topbar / navbar stay fixed; only the canvas zooms.
+  useEffect(() => {
+    const onWheel = (e: WheelEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return
+      const target = e.target as HTMLElement | null
+      if (target?.closest("[data-preview-viewport]")) return
+      e.preventDefault()
+    }
+    const onGesture = (e: Event) => e.preventDefault()
+
+    document.addEventListener("wheel", onWheel, { passive: false })
+    document.addEventListener("gesturestart", onGesture)
+    document.addEventListener("gesturechange", onGesture)
+    document.addEventListener("gestureend", onGesture)
+    return () => {
+      document.removeEventListener("wheel", onWheel)
+      document.removeEventListener("gesturestart", onGesture)
+      document.removeEventListener("gesturechange", onGesture)
+      document.removeEventListener("gestureend", onGesture)
+    }
   }, [])
 
   const persistDraft = useCallback(async (next: ThemeConfig) => {
@@ -413,9 +436,13 @@ export function CustomizeWorkspace({
       { selectedSectionId, onSelectSection: setSelectedSectionId },
       selectedSectionId,
     )
-    previewRootRef.current
-      .querySelector(`#${domId}`)
-      ?.scrollIntoView({ behavior: "smooth", block: "center" })
+    const el = previewRootRef.current.querySelector<HTMLElement>(`#${domId}`)
+    if (!el) return
+    // CSS scale breaks native scrollIntoView — scroll the preview viewport manually.
+    scrollPreviewIntoView(previewRootRef.current, el, {
+      behavior: "smooth",
+      block: "center",
+    })
   }, [selectedSectionId])
 
   function updateConfig<K extends keyof ThemeConfig>(key: K, value: ThemeConfig[K]) {
@@ -533,7 +560,10 @@ export function CustomizeWorkspace({
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
+    <div
+      className="flex h-dvh flex-col overflow-hidden overscroll-none"
+      data-builder-workspace
+    >
       {paymentRequired && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
@@ -652,7 +682,7 @@ export function CustomizeWorkspace({
         </div>
 
         {mode === "edit" && (
-          <div className="shrink-0 md:hidden">
+          <div className="relative z-40 shrink-0 md:hidden" data-builder-chrome>
             <BuilderMobileNav
               activeTool={activeTool}
               onToolChange={handleMobileToolChange}

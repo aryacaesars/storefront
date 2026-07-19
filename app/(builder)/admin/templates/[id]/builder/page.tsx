@@ -13,6 +13,14 @@ import { savePlatformBaseAction } from "./actions"
 
 export const metadata = { title: "Theme Builder" }
 
+/** Prevent browser pinch/page-zoom — only the preview canvas zooms. */
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+}
+
 export default async function AdminThemeBuilderPage({
   params,
 }: {

@@ -28,7 +28,8 @@ export function BuilderMobileNav({
 
   return (
     <nav
-      className="flex shrink-0 items-stretch justify-around border-t border-gray-200 bg-white px-1 pt-1 pb-[max(0.35rem,env(safe-area-inset-bottom))]"
+      data-builder-chrome
+      className="relative z-40 flex shrink-0 items-stretch justify-around border-t border-gray-200 bg-white px-1 pt-1 pb-[max(0.35rem,env(safe-area-inset-bottom))]"
       aria-label="Builder tools"
     >
       {tools.map((tool) => {
