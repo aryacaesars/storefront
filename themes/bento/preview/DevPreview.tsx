@@ -1,18 +1,12 @@
-import { ThemeProvider } from "@/themes/engine/theme-provider"
-import { Header, Footer } from "@/themes/bento"
 import { HomePage } from "@/themes/bento/pages/HomePage"
-import { DEFAULT_BENTO_CONFIG } from "@/themes/bento/theme.config"
+import type { ThemeConfig } from "@/themes/engine/schema"
+import { BENTO_PREVIEW_CONFIG } from "./preview-config"
+import { BentoPreviewShell } from "./BentoPreviewShell"
 
-export function DevPreview() {
+export function DevPreview({ config = BENTO_PREVIEW_CONFIG }: { config?: ThemeConfig }) {
   return (
-    <div className="min-h-full font-sans">
-      <ThemeProvider config={DEFAULT_BENTO_CONFIG}>
-        <Header config={DEFAULT_BENTO_CONFIG} />
-        <main>
-          <HomePage />
-        </main>
-        <Footer config={DEFAULT_BENTO_CONFIG} />
-      </ThemeProvider>
-    </div>
+    <BentoPreviewShell config={config}>
+      <HomePage config={config} />
+    </BentoPreviewShell>
   )
 }

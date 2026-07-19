@@ -34,6 +34,26 @@ export function Footer({ config }: FooterProps) {
           </p>
         </div>
 
+        {(config.contactPhone || config.contactEmail || config.contactAddress) && (
+          <div className="mt-8 space-y-1.5 text-sm text-[#515160]">
+            {config.contactAddress && <p className="leading-relaxed">{config.contactAddress}</p>}
+            {config.contactPhone && (
+              <p>
+                <a href={`tel:${config.contactPhone}`} className="hover:text-[#1a1c1b]">
+                  {config.contactPhone}
+                </a>
+              </p>
+            )}
+            {config.contactEmail && (
+              <p>
+                <a href={`mailto:${config.contactEmail}`} className="hover:text-[#1a1c1b]">
+                  {config.contactEmail}
+                </a>
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="mt-10 border-t border-gray-100 pt-6 text-xs text-[#515160]">
           <p>© {new Date().getFullYear()} {config.storeName}. All rights reserved.</p>
         </div>

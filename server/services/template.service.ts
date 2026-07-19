@@ -3,6 +3,13 @@ import { prisma } from "@/lib/db/prisma"
 import { templateIdSchema } from "@/themes/engine/schema"
 import type { Template, TemplatePurchase } from "@prisma/client"
 import type { TemplateId } from "@/themes/engine/schema"
+import {
+  getThemeForTenant,
+  publishTheme,
+  readThemeVault,
+  writeThemeVault,
+} from "@/server/services/theme.service"
+import { getPlatformBaseConfig } from "@/server/services/platform-theme.service"
 
 export type { Template, TemplatePurchase }
 export type PurchaseWithTemplate = TemplatePurchase & { template: Template }
@@ -42,6 +49,29 @@ export async function getPurchasedTemplateIds(storeId: string): Promise<Set<stri
     select: { templateId: true },
   })
   return new Set(purchases.map((p) => p.templateId))
+}
+
+/**
+ * Map templateId → set of storeIds yang sudah punya license PAID.
+ * Dipakai library global untuk status agregat multi-toko.
+ */
+export async function getPaidOwnershipByTemplate(
+  storeIds: string[],
+): Promise<Map<string, Set<string>>> {
+  const map = new Map<string, Set<string>>()
+  if (storeIds.length === 0) return map
+
+  const rows = await prisma.templatePurchase.findMany({
+    where: { storeId: { in: storeIds }, status: "PAID" },
+    select: { storeId: true, templateId: true },
+  })
+
+  for (const row of rows) {
+    const set = map.get(row.templateId) ?? new Set<string>()
+    set.add(row.storeId)
+    map.set(row.templateId, set)
+  }
+  return map
 }
 
 export async function getActiveTemplateId(storeId: string): Promise<string | null> {
@@ -95,15 +125,47 @@ export async function isTemplateAccessible(
 }
 
 export async function activateTemplate(storeId: string, templateId: string): Promise<void> {
-  // templateId is Template.id (CUID) — theme engine needs the slug ("bold", "bento", etc.)
-  const template = await prisma.template.findUnique({
-    where: { id: templateId },
-    select: { slug: true },
-  })
-  const themeSlug = normalizeThemeSlug(template?.slug ?? templateId) ?? template?.slug ?? templateId
-  await prisma.storeThemeConfig.upsert({
-    where: { storeId },
-    update: { templateId: themeSlug },
-    create: { storeId, templateId: themeSlug, configJson: {} },
-  })
+  const [template, store, existingTheme, vaultState] = await Promise.all([
+    prisma.template.findUnique({
+      where: { id: templateId },
+      select: { slug: true },
+    }),
+    prisma.store.findUnique({
+      where: { id: storeId },
+      select: { name: true },
+    }),
+    getThemeForTenant(storeId),
+    readThemeVault(storeId),
+  ])
+
+  if (!store) throw new Error(`Store not found: ${storeId}`)
+
+  const rawSlug = template?.slug ?? templateId
+  let themeSlug: TemplateId | null = normalizeThemeSlug(rawSlug)
+  if (!themeSlug) {
+    const parsed = templateIdSchema.safeParse(rawSlug)
+    if (parsed.success) themeSlug = parsed.data
+  }
+  if (!themeSlug) throw new Error(`Unknown theme slug: ${rawSlug}`)
+
+  const vault = vaultState?.vault ?? { version: 1 as const, configs: {} }
+  const currentId = vaultState?.activeTemplateId ?? existingTheme?.config.templateId
+
+  if (currentId && existingTheme?.config) {
+    vault.configs[currentId] = {
+      ...existingTheme.config,
+      storeName: store.name,
+    }
+  }
+
+  const targetConfig =
+    vault.configs[themeSlug] ?? (await getPlatformBaseConfig(themeSlug))
+
+  vault.configs[themeSlug] = {
+    ...targetConfig,
+    templateId: themeSlug,
+    storeName: store.name,
+  }
+
+  await writeThemeVault(storeId, themeSlug, vault)
 }

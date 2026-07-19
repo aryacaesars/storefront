@@ -1,6 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
+import type { CatalogProduct } from "@/features/storefront/catalog-types"
 import { resolvePageTemplate } from "@/themes/engine/page-template"
 import {
   previewSectionDomId,
@@ -19,9 +20,11 @@ interface SectionRendererProps {
   config: ThemeConfig
   pageType: SectionPageType
   editor?: SectionEditorState
+  /** Live catalog — omit in builder/preview so sections keep mock data. */
+  products?: CatalogProduct[]
 }
 
-export function SectionRenderer({ config, pageType, editor }: SectionRendererProps) {
+export function SectionRenderer({ config, pageType, editor, products }: SectionRendererProps) {
   const isMobile = useDeviceIsMobile()
   const template = resolvePageTemplate(config, pageType)
 
@@ -55,6 +58,7 @@ export function SectionRenderer({ config, pageType, editor }: SectionRendererPro
             settings={resolvedSettings}
             blocks={resolvedBlocks}
             isMobile={isMobile}
+            products={products}
             canvas={
               editor
                 ? {

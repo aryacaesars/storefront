@@ -1,7 +1,6 @@
 import { ShopHeader } from "@/themes/fashion/sections/shop/ShopHeader"
-import { FilterSidebarClient } from "@/themes/fashion/sections/shop/FilterSidebarClient"
+import { ProductCatalogFilters } from "@/features/storefront/ProductCatalogFilters"
 import { ProductGrid } from "@/themes/fashion/sections/shop/ProductGrid"
-import { Pagination } from "@/themes/fashion/sections/shop/Pagination"
 import { ShopFooter } from "@/themes/fashion/sections/shop/ShopFooter"
 import { DEFAULT_FASHION_CONFIG } from "@/themes/fashion/theme.config"
 import type { ThemePageProps } from "@/themes/engine/page-props"
@@ -9,18 +8,28 @@ import type { ThemePageProps } from "@/themes/engine/page-props"
 export function ShopAllPage({
   config = DEFAULT_FASHION_CONFIG,
   products = [],
+  categories = [],
+  priceBounds = null,
+  catalogFilters = {},
 }: ThemePageProps) {
+  const isLive = products.length > 0 || categories.length > 0 || priceBounds != null
+
   return (
     <div style={{ backgroundColor: "var(--theme-bg)" }}>
       <ShopHeader />
       <div className="mx-auto max-w-7xl px-6 py-10">
-        <div className="flex gap-12">
-          <FilterSidebarClient />
-          <div className="flex-1 min-w-0">
-            <ProductGrid products={products} />
-            <Pagination />
+        {isLive && (
+          <div className="mb-10">
+            <ProductCatalogFilters
+              categories={categories}
+              priceBounds={priceBounds}
+              active={catalogFilters}
+              resultCount={products.length}
+              variant="fashion"
+            />
           </div>
-        </div>
+        )}
+        <ProductGrid products={products} />
       </div>
       <ShopFooter config={config} />
     </div>

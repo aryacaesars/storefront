@@ -73,18 +73,21 @@ model User {
 }
 
 model Store {
-  id          String             @id @default(cuid())
-  name        String
-  slug        String             @unique
-  ownerId     String             @map("owner_id")
-  owner       User               @relation(fields: [ownerId], references: [id])
-  products    Product[]
-  categories  Category[]
-  orders      Order[]
-  customers   Customer[]
-  themeConfig StoreThemeConfig?
-  purchases   TemplatePurchase[]
-  createdAt   DateTime           @default(now()) @map("created_at")
+  id              String             @id @default(cuid())
+  name            String
+  slug            String             @unique
+  ownerId         String             @map("owner_id")
+  owner           User               @relation(fields: [ownerId], references: [id])
+  contactPhone    String?            @map("contact_phone")
+  contactEmail    String?            @map("contact_email")
+  contactAddress  String?            @map("contact_address")
+  products        Product[]
+  categories      Category[]
+  orders          Order[]
+  customers       Customer[]
+  themeConfig     StoreThemeConfig?
+  purchases       TemplatePurchase[]
+  createdAt       DateTime           @default(now()) @map("created_at")
 
   @@map("stores")
 }
@@ -114,6 +117,17 @@ model TemplatePurchase {
   createdAt       DateTime       @default(now()) @map("created_at")
 
   @@map("template_purchases")
+}
+
+// Config platform per theme (di-edit admin): base = seed/fallback store baru,
+// preview = showcase /preview/{theme}. Kosong → fallback code defaults.
+model PlatformThemeConfig {
+  templateId        String   @id @map("template_id")
+  baseConfigJson    Json     @map("base_config_json")
+  previewConfigJson Json?    @map("preview_config_json")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("platform_theme_configs")
 }
 
 model StoreThemeConfig {
@@ -171,6 +185,7 @@ model Customer {
   id        String    @id @default(cuid())
   email        String
   name         String?
+  phone        String?
   image        String?
   passwordHash String?   @map("password_hash")
   storeId      String    @map("store_id")

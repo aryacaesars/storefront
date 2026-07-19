@@ -18,19 +18,13 @@ export function CallToActionSection({ settings }: SectionProps) {
         {title}
       </h2>
       <p className="mx-auto mt-4 max-w-lg text-sm text-zinc-500">{subtitle}</p>
-      <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+      <div className="mt-10 flex justify-center">
         <a
           href="/products"
           className="inline-flex h-12 items-center px-10 text-xs font-black uppercase tracking-[0.15em] text-zinc-900 transition-opacity hover:opacity-90"
           style={{ backgroundColor: "var(--theme-accent)" }}
         >
           SHOP THE SERIES
-        </a>
-        <a
-          href="/about"
-          className="inline-flex h-12 items-center border border-zinc-300 px-10 text-xs font-bold uppercase tracking-[0.15em] text-zinc-900 transition-colors hover:border-zinc-900"
-        >
-          OUR STORY
         </a>
       </div>
     </section>

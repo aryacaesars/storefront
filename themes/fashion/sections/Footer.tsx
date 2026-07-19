@@ -27,7 +27,29 @@ export function Footer({ config }: FooterProps) {
           <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/50">
             CONTACT
           </p>
-          <p className="text-sm text-white/60">hello@lunasoft.com</p>
+          {(config.contactPhone || config.contactEmail || config.contactAddress) ? (
+            <div className="space-y-1.5 text-sm text-white/60">
+              {config.contactAddress && (
+                <p className="leading-relaxed">{config.contactAddress}</p>
+              )}
+              {config.contactPhone && (
+                <p>
+                  <a href={`tel:${config.contactPhone}`} className="hover:text-white/90">
+                    {config.contactPhone}
+                  </a>
+                </p>
+              )}
+              {config.contactEmail && (
+                <p>
+                  <a href={`mailto:${config.contactEmail}`} className="hover:text-white/90">
+                    {config.contactEmail}
+                  </a>
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-white/40">Kontak belum diatur</p>
+          )}
         </div>
       </div>
 

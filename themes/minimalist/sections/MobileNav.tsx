@@ -3,13 +3,15 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
+import { withBasePath } from "@/themes/engine/with-base-path"
 
 interface MobileNavProps {
   links: readonly { label: string; href: string }[]
+  basePath?: string
 }
 
 /** Hamburger menu untuk layar < md. Panel menempel di bawah header sticky. */
-export function MobileNav({ links }: MobileNavProps) {
+export function MobileNav({ links, basePath }: MobileNavProps) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -34,9 +36,9 @@ export function MobileNav({ links }: MobileNavProps) {
             {links.map(({ label, href }) => (
               <li key={label} className="border-b border-black/5 last:border-0">
                 <Link
-                  href={href}
+                  href={withBasePath(href, basePath)}
                   onClick={() => setOpen(false)}
-                  className="block py-3 text-xs font-semibold tracking-[0.12em] text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)] uppercase"
+                  className="block py-3 text-xs font-semibold tracking-[0.12em] text-[var(--theme-muted)] uppercase transition-colors hover:text-[var(--theme-text)]"
                 >
                   {label}
                 </Link>

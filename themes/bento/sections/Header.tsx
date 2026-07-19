@@ -1,25 +1,19 @@
 import Link from "next/link"
 import { MobileNav } from "./MobileNav"
-import { HeaderSearch } from "./HeaderSearch"
+import { HeaderActions } from "./HeaderActions"
 import type { ThemeConfig } from "@/themes/engine/schema"
 import { isNavHrefAvailable } from "@/themes/engine/nav-utils"
+import { withBasePath } from "@/themes/engine/with-base-path"
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "Shop", href: "/products" },
-  { label: "About", href: "/about" },
 ] as const
 
 interface HeaderProps {
   config: ThemeConfig
   cartCount?: number
   basePath?: string
-}
-
-function resolveHref(href: string, basePath?: string): string {
-  if (!basePath) return href
-  if (href === "/") return basePath
-  return `${basePath}${href}`
 }
 
 export function Header({ config, cartCount = 0, basePath }: HeaderProps) {
@@ -45,7 +39,7 @@ export function Header({ config, cartCount = 0, basePath }: HeaderProps) {
       <header className="sticky top-0 z-50 px-4 py-3 @2xl:px-6">
         <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 rounded-full bg-white px-6 shadow-[0px_0px_19px_rgba(0,0,0,0.25)]">
           <Link
-            href={resolveHref("/", basePath)}
+            href={withBasePath("/", basePath)}
             className="flex shrink-0 items-center gap-2 text-[#1a1c1b]"
             style={{ fontFamily: "var(--theme-heading-font)" }}
           >
@@ -67,7 +61,7 @@ export function Header({ config, cartCount = 0, basePath }: HeaderProps) {
             {visibleLinks.map(({ label, href }) => (
               <Link
                 key={href}
-                href={resolveHref(href, basePath)}
+                href={withBasePath(href, basePath)}
                 className="text-base font-normal text-[#515160] transition-colors hover:text-[var(--theme-primary)]"
               >
                 {label}
@@ -76,10 +70,7 @@ export function Header({ config, cartCount = 0, basePath }: HeaderProps) {
           </nav>
 
           <div className="flex shrink-0 items-center gap-2">
-            <HeaderSearch
-              basePath={basePath}
-              cartCount={cartCount}
-            />
+            <HeaderActions basePath={basePath} cartCount={cartCount} />
             <MobileNav links={visibleLinks} basePath={basePath} />
           </div>
         </div>

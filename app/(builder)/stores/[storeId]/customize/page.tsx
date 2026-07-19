@@ -2,10 +2,10 @@ import { redirect } from "next/navigation"
 import { notFound } from "next/navigation"
 import { requireSession } from "@/features/auth/dal"
 import { getStoreById } from "@/server/services/tenant.service"
-import { getThemeForTenant } from "@/server/services/theme.service"
+import { getThemeConfigForStore } from "@/server/services/theme.service"
 import { getActiveTemplateId } from "@/server/services/template.service"
 import { templateIdSchema } from "@/themes/engine/schema"
-import { getDefaultThemeConfig } from "@/lib/themes/defaults"
+import { getPlatformBaseConfig } from "@/server/services/platform-theme.service"
 import { getStorefrontHost } from "@/lib/tenant/storefront-url"
 import { TEMPLATE_META } from "@/themes/engine/registry"
 import { CustomizeWorkspace } from "@/features/builder/components/CustomizeWorkspace"
@@ -36,11 +36,8 @@ export default async function StoreCustomizePage({
   }
 
   const templateId = parsedTemplateId.data
-  const fromDb = await getThemeForTenant(storeId)
-  const initialConfig =
-    fromDb?.config.templateId === templateId
-      ? fromDb.config
-      : getDefaultThemeConfig(templateId)
+  const savedConfig = await getThemeConfigForStore(storeId, templateId)
+  const initialConfig = savedConfig ?? (await getPlatformBaseConfig(templateId))
 
   const meta = TEMPLATE_META[templateId]
   const storefrontHost = getStorefrontHost(store.slug)

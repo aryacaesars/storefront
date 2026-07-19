@@ -1,16 +1,25 @@
 import { mockProductToCatalog, PRODUCTS } from "@/themes/bold/data/mock"
 import { ProductsHeader } from "@/themes/bold/sections/products/ProductsHeader"
-import { FilterSidebar } from "@/themes/bold/sections/products/FilterSidebar"
+import { ProductCatalogFilters } from "@/features/storefront/ProductCatalogFilters"
 import { ProductGrid } from "@/themes/bold/sections/products/ProductGrid"
-import { Pagination } from "@/themes/bold/sections/products/Pagination"
 import type { CatalogProduct } from "@/features/storefront/catalog-types"
+import type { StorefrontCategory } from "@/features/storefront/catalog-types"
+import type { CatalogListFilters } from "@/features/storefront/catalog-types"
 
 interface AllProductsPageProps {
   products?: CatalogProduct[]
+  categories?: StorefrontCategory[]
+  priceBounds?: { min: number; max: number } | null
+  catalogFilters?: CatalogListFilters
 }
 
-export function AllProductsPage({ products = [] }: AllProductsPageProps) {
-  const isLive = products.length > 0
+export function AllProductsPage({
+  products = [],
+  categories = [],
+  priceBounds = null,
+  catalogFilters = {},
+}: AllProductsPageProps) {
+  const isLive = products.length > 0 || categories.length > 0 || priceBounds != null
   const items = isLive ? products : PRODUCTS.map(mockProductToCatalog)
 
   return (
@@ -19,18 +28,23 @@ export function AllProductsPage({ products = [] }: AllProductsPageProps) {
         totalCount={items.length}
         subtitle={
           isLive
-            ? "Produk langsung dari katalog toko Anda."
+            ? "Cari dan filter produk dari katalog toko Anda."
             : "Precision engineered for the high-endurance athlete."
         }
       />
       <div className="mx-auto max-w-7xl px-6 py-8">
-        <div className="flex items-start gap-8">
-          <FilterSidebar />
-          <div className="min-w-0 flex-1">
-            <ProductGrid products={items} liveCatalog={isLive} />
-            {!isLive && <Pagination currentPage={1} totalPages={10} />}
+        {isLive && (
+          <div className="mb-8">
+            <ProductCatalogFilters
+              categories={categories}
+              priceBounds={priceBounds}
+              active={catalogFilters}
+              resultCount={products.length}
+              variant="bold"
+            />
           </div>
-        </div>
+        )}
+        <ProductGrid products={items} liveCatalog={isLive} />
       </div>
     </div>
   )

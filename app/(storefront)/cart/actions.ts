@@ -43,12 +43,14 @@ export async function addToCart(
   }
   await writeCartItems(items)
   revalidatePath("/cart")
+  revalidatePath("/checkout")
 }
 
 export async function removeFromCart(slug: string): Promise<void> {
   const items = await readCartItems()
   await writeCartItems(items.filter((i) => i.slug !== slug))
   revalidatePath("/cart")
+  revalidatePath("/checkout")
 }
 
 export async function updateQuantity(slug: string, quantity: number): Promise<void> {
@@ -61,6 +63,7 @@ export async function updateQuantity(slug: string, quantity: number): Promise<vo
     await writeCartItems(items)
   }
   revalidatePath("/cart")
+  revalidatePath("/checkout")
 }
 
 export async function clearCart(): Promise<void> {

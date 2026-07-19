@@ -1,46 +1,23 @@
-import Image from "next/image";
-import Link from "next/link";
-import { redirect } from "next/navigation";
-import { getSession } from "@/features/auth/dal";
-import { LoginForm } from "@/features/auth/components/LoginForm";
-import EtalaseMark from "@/features/builder/landing/EtalaseMark";
-import gradient from "@/public/builder-landing/gradient.png";
+import Image from "next/image"
+import { redirect } from "next/navigation"
+import { getSession } from "@/features/auth/dal"
+import { LoginForm } from "@/features/auth/components/LoginForm"
+import LandingNav from "@/features/builder/landing/LandingNav"
+import LandingFooter from "@/features/builder/landing/LandingFooter"
+import gradient from "@/public/builder-landing/gradient.png"
 
-export const metadata = { title: "Masuk — Etalase" };
-
-const NAV_LINKS = [
-  { label: "Home", href: "/#home" },
-  { label: "Template", href: "/#templates" },
-  { label: "Contact", href: "/#contact" },
-];
+export const metadata = { title: "Masuk — Etalase" }
 
 export default async function LoginPage() {
   // Already signed in? Skip the form. Admin → admin panel, owner → dashboard.
-  const session = await getSession();
-  if (session) redirect(session.role === "ADMIN" ? "/admin" : "/dashboard");
+  const session = await getSession()
+  if (session) redirect(session.role === "ADMIN" ? "/admin" : "/dashboard")
 
   return (
     <div className="flex min-h-dvh flex-col bg-white">
-      <header className="w-full border-b border-black/5">
-        <nav className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6">
-          <Link href="/" aria-label="Etalase home">
-            <EtalaseMark />
-          </Link>
-
-          <ul className="hidden items-center gap-9 text-sm font-medium text-slate-600 md:flex">
-            {NAV_LINKS.map((l) => (
-              <li key={l.label}>
-                <Link href={l.href} className="transition-colors hover:text-ink">
-                  {l.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </header>
+      <LandingNav />
 
       <main className="relative flex flex-1 flex-col items-center overflow-hidden px-6 pt-16">
-        {/* purple glow */}
         <Image
           src={gradient}
           alt=""
@@ -66,14 +43,7 @@ export default async function LoginPage() {
         </div>
       </main>
 
-      <footer className="border-t border-black/5 bg-white">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-8 sm:flex-row">
-          <EtalaseMark />
-          <p className="text-sm text-slate-400">
-            © 2026 Etalase Inc. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <LandingFooter />
     </div>
-  );
+  )
 }

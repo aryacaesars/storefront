@@ -11,6 +11,7 @@ import type {
   TemplateId,
   ThemeConfig,
 } from "@/themes/engine/schema"
+import { getDefaultThemeConfig } from "@/lib/themes/defaults"
 
 const DEFAULT_PAGE_TEMPLATES: Record<
   TemplateId,
@@ -132,5 +133,16 @@ export function applyPageTemplate(
       ...config.templates,
       [pageType]: template,
     },
+  }
+}
+
+/** Reset section layouts to theme defaults while preserving branding fields. */
+export function resetPageLayouts(config: ThemeConfig): ThemeConfig {
+  const defaults = getDefaultThemeConfig(config.templateId)
+  return {
+    ...config,
+    templates: undefined,
+    hero: defaults.hero,
+    heroImageUrl: defaults.heroImageUrl,
   }
 }

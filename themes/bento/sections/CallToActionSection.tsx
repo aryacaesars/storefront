@@ -1,34 +1,66 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { CanvasImageFrame } from "@/features/builder/components/canvas/CanvasImageFrame"
 import { CanvasMultiImageItem } from "@/features/builder/components/canvas/CanvasMultiImageItem"
+import { CanvasFreeTextLayer } from "@/features/builder/components/canvas/CanvasFreeTextLayer"
 import { getStringSetting } from "@/themes/engine/section-settings-schema"
 import type { SectionProps } from "@/themes/engine/section-registry"
 import { parseImageTransform } from "@/themes/bento/sections/category-grid-layout"
+import {
+  canvasElementDomKey,
+  type SelectedElementKind,
+} from "@/themes/engine/section-editor"
 import {
   parseCanvasImages,
   updateImageInArray,
   type CanvasImageItem,
 } from "@/themes/engine/canvas-image"
+import { parseCanvasTexts } from "@/themes/engine/canvas-text"
 
 export function CallToActionSection({ settings, blocks, canvas }: SectionProps) {
   const title = getStringSetting(settings, "title", "Grab It Fast And Claim 10% Discount")
   const primaryLabel = getStringSetting(settings, "primaryLabel", "Buy Now")
 
-  const [activeImageId, setActiveImageId] = useState<string | null>(null)
-
   const imageBlock = blocks?.[0]
   const imageSettings = imageBlock?.settings as Record<string, unknown> | undefined
   const image = parseImageTransform(imageSettings)
   const canvasImages = parseCanvasImages(imageSettings)
+  const canvasTexts = parseCanvasTexts(imageSettings)
 
   const editor = canvas?.editor
   const isSectionSelected = editor?.selectedSectionId === canvas?.sectionId
   const editable = Boolean(editor && isSectionSelected && imageBlock)
   const interactive = editable && editor?.selectedBlockId === imageBlock?.id
+
+  const sectionId = canvas?.sectionId
+  const selectedElement = editor?.selectedElement ?? null
+  const activeImageId =
+    selectedElement?.kind === "image" &&
+    selectedElement.sectionId === sectionId &&
+    selectedElement.blockId === imageBlock?.id
+      ? selectedElement.itemId ?? null
+      : null
+
+  const selectElement = (
+    kind: SelectedElementKind,
+    blockId: string | undefined,
+    itemId?: string,
+  ) => {
+    if (!blockId || !sectionId || !editor) return
+    editor.onSelectBlock?.(sectionId, blockId)
+    editor.onSelectElement?.({ kind, sectionId, blockId, itemId })
+  }
+
+  const elementDomKey = (
+    kind: SelectedElementKind,
+    blockId: string | undefined,
+    itemId?: string,
+  ) =>
+    blockId && sectionId
+      ? canvasElementDomKey({ kind, sectionId, blockId, itemId })
+      : undefined
 
   function onMultiImageChange(imageId: string, patch: Partial<CanvasImageItem>) {
     if (!imageBlock || !editor) return
@@ -37,13 +69,12 @@ export function CallToActionSection({ settings, blocks, canvas }: SectionProps) 
   }
 
   return (
-    // Section clips to its own bounds (no page scroll); the card frame does not.
     <section className="overflow-hidden px-4 pb-16 pt-6 @2xl:px-6">
       <div
-        className="relative mx-auto flex max-w-7xl items-center justify-end overflow-hidden rounded-[40px] px-10 py-14 @2xl:overflow-visible @2xl:rounded-[63px]"
+        className="relative mx-auto flex max-w-7xl items-center justify-end overflow-hidden rounded-[40px] px-10 py-14 @2xl:rounded-[63px]"
         style={{ backgroundColor: "var(--theme-primary)" }}
       >
-        {/* Uploaded images — drag, resize, rotate (same wrapper as Hero), bleeds beyond the card frame */}
+        {/* Uploaded images — drag, resize, rotate; clipped to the card bounds */}
         {canvasImages.length > 0 && imageBlock && (
           <div
             className={cn("absolute inset-0", !editable && "pointer-events-none")}
@@ -52,7 +83,7 @@ export function CallToActionSection({ settings, blocks, canvas }: SectionProps) 
                 ? (event) => {
                     event.stopPropagation()
                     editor?.onSelectBlock?.(canvas!.sectionId, imageBlock.id)
-                    setActiveImageId(null)
+                    editor?.onSelectElement?.(null)
                   }
                 : undefined
             }
@@ -63,10 +94,9 @@ export function CallToActionSection({ settings, blocks, canvas }: SectionProps) 
                 item={img}
                 selected={interactive && activeImageId === img.id}
                 editable={interactive}
-                onSelect={() => {
-                  setActiveImageId(img.id)
-                  editor?.onSelectBlock?.(canvas!.sectionId, imageBlock.id)
-                }}
+                domKey={elementDomKey("image", imageBlock.id, img.id)}
+                cropping={editor?.croppingElementKey === elementDomKey("image", imageBlock.id, img.id)}
+                onSelect={() => selectElement("image", imageBlock.id, img.id)}
                 onChange={(patch) => onMultiImageChange(img.id, patch)}
               />
             ))}
@@ -81,7 +111,7 @@ export function CallToActionSection({ settings, blocks, canvas }: SectionProps) 
               editable
                 ? (event) => {
                     event.stopPropagation()
-                    editor?.onSelectBlock?.(canvas!.sectionId, imageBlock.id)
+                    selectElement("image", imageBlock.id)
                   }
                 : undefined
             }
@@ -89,12 +119,25 @@ export function CallToActionSection({ settings, blocks, canvas }: SectionProps) 
             <CanvasImageFrame
               image={image}
               interactive={interactive}
+              domKey={elementDomKey("image", imageBlock.id)}
               onChange={(patch) =>
                 editor?.onBlockChange?.(canvas!.sectionId, imageBlock.id, patch)
               }
             />
           </div>
         )}
+
+        <CanvasFreeTextLayer
+          items={canvasTexts}
+          editable={editable}
+          interactive={interactive}
+          sectionId={sectionId}
+          blockId={imageBlock?.id}
+          editor={editor}
+          onItemsChange={(texts) =>
+            imageBlock && editor?.onBlockChange?.(canvas!.sectionId, imageBlock.id, { texts })
+          }
+        />
 
         {/* Text + CTA sit above the image */}
         <div className="relative z-10 flex flex-col items-end gap-6">

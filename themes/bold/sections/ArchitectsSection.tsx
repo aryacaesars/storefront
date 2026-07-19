@@ -1,4 +1,3 @@
-import { ArrowRight } from "lucide-react"
 import { TEAM_MEMBERS } from "@/themes/bold/data/mock"
 
 export function ArchitectsSection() {
@@ -15,14 +14,6 @@ export function ArchitectsSection() {
               Led by visionaries, driven by engineers.
             </p>
           </div>
-          <a
-            href="/about"
-            className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-widest transition-opacity hover:opacity-70"
-            style={{ color: "var(--theme-primary)" }}
-          >
-            VIEW FULL COLLECTIVE
-            <ArrowRight className="h-3 w-3" strokeWidth={2.5} />
-          </a>
         </div>
 
         {/* Team grid */}

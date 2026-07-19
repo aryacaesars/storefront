@@ -1,7 +1,8 @@
-import { DevPreview } from "@/themes/minimalist/preview/DevPreview"
+import { redirectLegacyMinimalistPreview } from "@/themes/engine/preview-route"
 
-export const metadata = { title: "Preview — Aurora Minimal" }
+export const dynamic = "force-dynamic"
 
-export default function MinimalistPreviewPage() {
-  return <DevPreview />
+/** Legacy URL — arahkan ke path spesifik theme. */
+export default function PreviewIndexPage() {
+  redirectLegacyMinimalistPreview()
 }

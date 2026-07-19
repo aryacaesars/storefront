@@ -21,9 +21,13 @@ interface CanvasHeroCtaProps {
   designWidth: number
   frameRef: React.RefObject<HTMLDivElement | null>
   variant?: "filled" | "outline"
+  /** Stamped as data-canvas-element so the floating toolbar can anchor here. */
+  domKey?: string
   onSelect: () => void
   onChange: (patch: Record<string, unknown>) => void
 }
+
+const CTA_DRAG_THRESHOLD_PX = 4
 
 export function CanvasHeroCta({
   cta,
@@ -34,10 +38,57 @@ export function CanvasHeroCta({
   designWidth,
   frameRef,
   variant = "filled",
+  domKey,
   onSelect,
   onChange,
 }: CanvasHeroCtaProps) {
   const { layout } = cta
+
+  // Drag pindah posisi — pola sama dengan teks: select dulu, drag aktif setelah
+  // threshold (blur label contentEditable saat mulai geser).
+  function startMove(event: React.PointerEvent<HTMLDivElement>) {
+    if (!editable) return
+    event.stopPropagation()
+    onSelect()
+    const frame = frameRef.current
+    if (!frame) return
+    const startX = event.clientX
+    const startY = event.clientY
+    const start = { ...layout }
+    const frameWidth = frame.clientWidth || 1
+    const designHeight = (frame.clientHeight || 1) / (scale || 1)
+    let dragging = false
+
+    function onPointerMove(e: PointerEvent) {
+      const dx = e.clientX - startX
+      const dy = e.clientY - startY
+      if (!dragging && Math.abs(dx) + Math.abs(dy) < CTA_DRAG_THRESHOLD_PX) return
+      dragging = true
+      e.preventDefault()
+      const active = document.activeElement
+      if (active instanceof HTMLElement && active.isContentEditable) {
+        active.blur()
+      }
+      const xPct = Math.max(
+        0,
+        Math.min(100 - start.wPct, start.xPct + (dx / frameWidth) * 100),
+      )
+      const yPx = Math.max(
+        0,
+        Math.min(designHeight - start.hPx, start.yPx + dy / (scale || 1)),
+      )
+      onChange({
+        xPct: Math.round(xPct * 10) / 10,
+        yPx: Math.round(yPx),
+      })
+    }
+    function onUp() {
+      window.removeEventListener("pointermove", onPointerMove)
+      window.removeEventListener("pointerup", onUp)
+    }
+    window.addEventListener("pointermove", onPointerMove)
+    window.addEventListener("pointerup", onUp)
+  }
   const isOutline = variant === "outline"
   const textColor = cta.textColor.trim() || (isOutline ? "#ffffff" : "var(--theme-primary)")
 
@@ -85,7 +136,12 @@ export function CanvasHeroCta({
         role="button"
         tabIndex={0}
         style={boxStyle}
-        className={cn(editable && !selected && "ring-2 ring-transparent")}
+        data-canvas-element={domKey}
+        className={cn(
+          "cursor-move",
+          editable && !selected && "ring-2 ring-transparent",
+        )}
+        onPointerDown={startMove}
         onClick={(event) => {
           event.preventDefault()
           event.stopPropagation()

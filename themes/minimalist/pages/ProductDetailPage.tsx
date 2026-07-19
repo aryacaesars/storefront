@@ -115,12 +115,26 @@ export function ProductDetailPage({
                 {resolved.inStock ? "Add to Cart" : "Stok habis"}
               </button>
             )}
-            <Link
-              href="/cart"
-              className="inline-flex h-11 items-center border border-[var(--theme-text)]/20 px-8 text-xs font-bold tracking-[0.14em] text-[var(--theme-text)] uppercase transition-colors hover:border-[var(--theme-text)]"
-            >
-              View Cart
-            </Link>
+            {resolved.inStock && isLiveCatalog ? (
+              <AddToCartButton
+                productId={resolved.id}
+                slug={resolved.slug}
+                name={resolved.name}
+                price={resolved.price}
+                imageUrl={resolved.imageUrl}
+                label="Beli"
+                redirectTo="/checkout"
+                className="inline-flex h-11 items-center border border-[var(--theme-text)]/20 px-8 text-xs font-bold tracking-[0.14em] text-[var(--theme-text)] uppercase transition-colors hover:border-[var(--theme-text)]"
+              />
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="inline-flex h-11 cursor-not-allowed items-center border border-[var(--theme-text)]/20 px-8 text-xs font-bold tracking-[0.14em] text-[var(--theme-text)] uppercase opacity-50"
+              >
+                Beli
+              </button>
+            )}
           </div>
           {isLiveCatalog && (
             <p className="mt-4 text-[10px] tracking-wide text-[var(--theme-muted)] uppercase">

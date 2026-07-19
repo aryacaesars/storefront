@@ -11,6 +11,8 @@ interface AddToCartButtonProps {
   price: number
   imageUrl?: string
   label?: string
+  /** After add: navigate here (e.g. /checkout for buy now). */
+  redirectTo?: string
   className?: string
   style?: React.CSSProperties
   disabled?: boolean
@@ -23,6 +25,7 @@ export function AddToCartButton({
   price,
   imageUrl,
   label = "Add to Cart",
+  redirectTo,
   className,
   style,
   disabled = false,
@@ -34,11 +37,18 @@ export function AddToCartButton({
   function handleClick() {
     startTransition(async () => {
       await addToCart(productId, slug, name, price, imageUrl)
-      router.refresh() // re-render layout so navbar badge updates
+      if (redirectTo) {
+        router.push(redirectTo)
+        return
+      }
+      router.refresh()
       setAdded(true)
       setTimeout(() => setAdded(false), 2000)
     })
   }
+
+  const pendingLabel = redirectTo ? "Memproses..." : "Menambahkan..."
+  const doneLabel = redirectTo ? label : "✓ Masuk keranjang"
 
   return (
     <button
@@ -49,7 +59,7 @@ export function AddToCartButton({
       style={style}
       aria-live="polite"
     >
-      {pending ? "Menambahkan..." : added ? "✓ Masuk keranjang" : label}
+      {pending ? pendingLabel : added ? doneLabel : label}
     </button>
   )
 }

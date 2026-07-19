@@ -1,6 +1,7 @@
 "use server"
 
 import { redirect, notFound } from "next/navigation"
+import { revalidatePath } from "next/cache"
 import { requireSession } from "@/features/auth/dal"
 import { getStoreById } from "@/server/services/tenant.service"
 import {
@@ -9,7 +10,12 @@ import {
   createPendingPurchase,
   activateTemplate,
 } from "@/server/services/template.service"
+import { getStorefrontUrl } from "@/lib/tenant/storefront-url"
 import { stripe } from "@/lib/stripe"
+
+export type ActivateForLiveResult =
+  | { ok: true; url: string }
+  | { ok: false; error: string }
 
 export async function buyTemplate(storeId: string, templateId: string): Promise<void> {
   const session = await requireSession()
@@ -22,6 +28,7 @@ export async function buyTemplate(storeId: string, templateId: string): Promise<
   // Template gratis — langsung aktifkan tanpa Stripe
   if (template.price === 0) {
     await activateTemplate(storeId, templateId)
+    revalidatePath("/", "layout")
     redirect(`/stores/${storeId}/templates?success=1`)
   }
 
@@ -30,6 +37,7 @@ export async function buyTemplate(storeId: string, templateId: string): Promise<
   if (purchasedIds.has(templateId)) {
     // Sudah dibeli, langsung aktifkan
     await activateTemplate(storeId, templateId)
+    revalidatePath("/", "layout")
     redirect(`/stores/${storeId}/templates?success=1`)
   }
 
@@ -63,4 +71,40 @@ export async function buyTemplate(storeId: string, templateId: string): Promise<
 
   // Redirect ke Stripe hosted checkout — harus di luar try/catch
   redirect(stripeSession.url!)
+}
+
+/**
+ * Aktifkan template milik merchant lalu kembalikan URL live store
+ * (dialog "template belum aktif" → Aktifkan → buka live store).
+ */
+export async function activateOwnedTemplateForLive(
+  storeId: string,
+  templateId: string,
+): Promise<ActivateForLiveResult> {
+  const session = await requireSession()
+  const store = await getStoreById(storeId)
+  if (!store || store.ownerId !== session.userId) {
+    return { ok: false, error: "Store tidak ditemukan." }
+  }
+
+  const template = await getTemplateById(templateId)
+  if (!template || !template.published) {
+    return { ok: false, error: "Template tidak ditemukan." }
+  }
+
+  const isFree = template.price === 0
+  if (!isFree) {
+    const purchasedIds = await getPurchasedTemplateIds(storeId)
+    if (!purchasedIds.has(templateId)) {
+      return { ok: false, error: "Template belum dibeli." }
+    }
+  }
+
+  try {
+    await activateTemplate(storeId, templateId)
+    revalidatePath("/", "layout")
+    return { ok: true, url: getStorefrontUrl(store.slug) }
+  } catch {
+    return { ok: false, error: "Gagal mengaktifkan template." }
+  }
 }

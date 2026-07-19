@@ -1,8 +1,9 @@
 import Link from "next/link"
-import { Search, User, ShoppingBag } from "lucide-react"
+import { User, ShoppingBag } from "lucide-react"
 import { MobileNav } from "./MobileNav"
 import type { ThemeConfig } from "@/themes/engine/schema"
 import { isNavHrefAvailable } from "@/themes/engine/nav-utils"
+import { withBasePath } from "@/themes/engine/with-base-path"
 
 const NAV_LINKS = [
   { label: "Collections", href: "/products" },
@@ -14,9 +15,10 @@ const NAV_LINKS = [
 interface HeaderProps {
   config: ThemeConfig
   cartCount?: number
+  basePath?: string
 }
 
-export function Header({ config, cartCount = 0 }: HeaderProps) {
+export function Header({ config, cartCount = 0, basePath }: HeaderProps) {
   const logoDisplay = config.logoDisplay ?? "logo"
   const showLogo = logoDisplay !== "text" && Boolean(config.logoUrl)
   const showText = logoDisplay === "text" || logoDisplay === "both" || !config.logoUrl
@@ -29,7 +31,7 @@ export function Header({ config, cartCount = 0 }: HeaderProps) {
     <>
       {config.bannerText && (
         <div
-          className="text-center text-[11px] font-medium tracking-wide text-white px-4 py-2"
+          className="px-4 py-2 text-center text-[11px] font-medium tracking-wide text-white"
           style={{ backgroundColor: "var(--theme-primary)" }}
         >
           {config.bannerText}
@@ -39,12 +41,11 @@ export function Header({ config, cartCount = 0 }: HeaderProps) {
       <header className="sticky top-0 z-50 border-b border-black/5 bg-[var(--theme-bg)]/95 backdrop-blur-sm">
         <div className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 @2xl:gap-6 @2xl:px-6">
           <Link
-            href="/"
+            href={withBasePath("/", basePath)}
             className="flex shrink-0 items-center gap-2.5 text-lg font-semibold tracking-tight text-[var(--theme-text)]"
             style={{ fontFamily: "var(--theme-heading-font)" }}
           >
             {showLogo && (
-              // <img> biasa (bukan next/image) supaya logo SVG juga jalan.
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={config.logoUrl}
@@ -60,31 +61,26 @@ export function Header({ config, cartCount = 0 }: HeaderProps) {
             {visibleLinks.map(({ label, href }) => (
               <Link
                 key={label}
-                href={href}
-                className="text-[11px] font-semibold tracking-[0.12em] text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)] uppercase"
+                href={withBasePath(href, basePath)}
+                className="text-[11px] font-semibold tracking-[0.12em] text-[var(--theme-muted)] uppercase transition-colors hover:text-[var(--theme-text)]"
               >
                 {label}
               </Link>
             ))}
           </nav>
 
-          <div className="flex items-center gap-3 shrink-0 @2xl:gap-4">
-            <button
-              type="button"
-              className="text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
-              aria-label="Search"
-            >
-              <Search className="h-[18px] w-[18px]" strokeWidth={1.5} />
-            </button>
+          <div className="flex shrink-0 items-center gap-3 @2xl:gap-4">
+            {!basePath && (
+              <Link
+                href="/account"
+                className="text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
+                aria-label="Account"
+              >
+                <User className="h-[18px] w-[18px]" strokeWidth={1.5} />
+              </Link>
+            )}
             <Link
-              href="/account"
-              className="text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
-              aria-label="Account"
-            >
-              <User className="h-[18px] w-[18px]" strokeWidth={1.5} />
-            </Link>
-            <Link
-              href="/cart"
+              href={withBasePath("/cart", basePath)}
               className="relative text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
               aria-label="Cart"
             >
@@ -96,7 +92,7 @@ export function Header({ config, cartCount = 0 }: HeaderProps) {
               )}
             </Link>
 
-            <MobileNav links={visibleLinks} />
+            <MobileNav links={visibleLinks} basePath={basePath} />
           </div>
         </div>
       </header>

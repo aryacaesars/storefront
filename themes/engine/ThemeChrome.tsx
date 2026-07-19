@@ -2,11 +2,12 @@ import type { ReactNode } from "react"
 import { cookies } from "next/headers"
 import type { CartItem } from "@/lib/storefront/cart"
 import type { ThemeConfig } from "./schema"
-import { ThemeChromeView } from "./ThemeChromeView"
+import { ThemeChromeView, type ChromeMode } from "./ThemeChromeView"
 
 interface ThemeChromeProps {
   config: ThemeConfig
   children: ReactNode
+  mode?: ChromeMode
 }
 
 async function getCartCount(): Promise<number> {
@@ -22,11 +23,15 @@ async function getCartCount(): Promise<number> {
 }
 
 /** Header/nav + optional footer untuk halaman storefront non-home. */
-export async function ThemeChrome({ config, children }: ThemeChromeProps) {
-  const cartCount = await getCartCount()
+export async function ThemeChrome({
+  config,
+  children,
+  mode = "default",
+}: ThemeChromeProps) {
+  const cartCount = mode === "checkout" ? 0 : await getCartCount()
 
   return (
-    <ThemeChromeView config={config} cartCount={cartCount}>
+    <ThemeChromeView config={config} cartCount={cartCount} mode={mode}>
       {children}
     </ThemeChromeView>
   )

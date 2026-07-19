@@ -4,7 +4,7 @@ interface HeroBannerProps {
   allProductsHref?: string
 }
 
-export function HeroBanner({ allProductsHref = "/all-products" }: HeroBannerProps) {
+export function HeroBanner({ allProductsHref = "/products" }: HeroBannerProps) {
   return (
     <section id="section-performance" className="relative min-h-[85vh] overflow-hidden bg-gradient-to-br from-black via-zinc-950 to-[#0D4A3E]">
       {/* Dot pattern */}

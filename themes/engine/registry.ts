@@ -1,11 +1,3 @@
-import { AboutPage as BoldAboutPage } from "@/themes/bold/pages/AboutPage"
-import { ProductListPage as BoldProductListPage } from "@/themes/bold/pages/ProductListPage"
-import { ProductDetailPage as BoldProductDetailPage } from "@/themes/bold/pages/ProductDetailPage"
-import { CollectionPage as BoldCollectionPage } from "@/themes/bold/pages/CollectionPage"
-import { CartPage as BoldCartPage } from "@/themes/bold/pages/CartPage"
-import { CheckoutPage as BoldCheckoutPage } from "@/themes/bold/pages/CheckoutPage"
-import { NewArrivalsPage as BoldNewArrivalsPage } from "@/themes/bold/pages/NewArrivalsPage"
-import { AllProductsStorePage } from "@/themes/bold/pages/AllProductsStorePage"
 import { AboutPage as FashionAboutPage } from "@/themes/fashion/pages/AboutPage"
 import { ContactPage as FashionContactPage } from "@/themes/fashion/pages/ContactPage"
 import { ShopAllPage as FashionShopPage } from "@/themes/fashion/pages/ShopAllPage"
@@ -33,6 +25,12 @@ import { ProductDetailPage as BentoProductDetailPage } from "@/themes/bento/page
 import { CollectionPage as BentoCollectionPage } from "@/themes/bento/pages/CollectionPage"
 import { CartPage as BentoCartPage } from "@/themes/bento/pages/CartPage"
 import { CheckoutPage as BentoCheckoutPage } from "@/themes/bento/pages/CheckoutPage"
+import { ProductListPage as BoldProductListPage } from "@/themes/bold/pages/ProductListPage"
+import { ProductDetailPage as BoldProductDetailPage } from "@/themes/bold/pages/ProductDetailPage"
+import { CollectionPage as BoldCollectionPage } from "@/themes/bold/pages/CollectionPage"
+import { CartPage as BoldCartPage } from "@/themes/bold/pages/CartPage"
+import { CheckoutPage as BoldCheckoutPage } from "@/themes/bold/pages/CheckoutPage"
+import { NewArrivalsPage as BoldNewArrivalsPage } from "@/themes/bold/pages/NewArrivalsPage"
 
 export const TEMPLATE_IDS = ["minimalist", "bold", "fashion", "bento"] as const satisfies readonly TemplateId[]
 
@@ -71,14 +69,12 @@ export const templatePages = {
   },
   bold: {
     home: BoldHomePage,
-    about: BoldAboutPage,
     productList: BoldProductListPage,
     productDetail: BoldProductDetailPage,
     collection: BoldCollectionPage,
     cart: BoldCartPage,
     checkout: BoldCheckoutPage,
     newArrivals: BoldNewArrivalsPage,
-    allProducts: AllProductsStorePage,
   },
   fashion: {
     home: FashionHomePage,
@@ -116,9 +112,7 @@ export function getImplementedPages(templateId: TemplateId): PageType[] {
 
 /**
  * Live preview URL for a template — a read-only static route, NOT the editor.
- * `minimalist` lives at the bare `/preview` (historical default); every other
- * template gets its own `/preview/<id>` segment.
  */
 export function getTemplatePreviewHref(templateId: TemplateId): string {
-  return templateId === "minimalist" ? "/preview" : `/preview/${templateId}`
+  return `/preview/${templateId}`
 }

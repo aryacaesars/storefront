@@ -1,8 +1,10 @@
 import { Cormorant_Garamond } from "next/font/google"
 import type { CSSProperties, ReactNode } from "react"
 import { ThemeProvider } from "@/themes/engine/theme-provider"
+import { PreviewLinkScope } from "@/themes/engine/preview-base-path"
 import { Navbar } from "@/themes/fashion/sections/Navbar"
 import { DEFAULT_FASHION_CONFIG } from "@/themes/fashion/theme.config"
+import type { ThemeConfig } from "@/themes/engine/schema"
 import { FASHION_PREVIEW_BASE } from "./constants"
 
 const cormorant = Cormorant_Garamond({
@@ -20,17 +22,23 @@ const themeVars = {
 
 interface FashionPreviewShellProps {
   children: ReactNode
+  config?: ThemeConfig
 }
 
-export function FashionPreviewShell({ children }: FashionPreviewShellProps) {
+export function FashionPreviewShell({
+  children,
+  config = DEFAULT_FASHION_CONFIG,
+}: FashionPreviewShellProps) {
   return (
-    <div className={cormorant.variable}>
-      <ThemeProvider config={DEFAULT_FASHION_CONFIG}>
-        <div style={themeVars}>
-          <Navbar config={DEFAULT_FASHION_CONFIG} basePath={FASHION_PREVIEW_BASE} />
-          {children}
-        </div>
-      </ThemeProvider>
-    </div>
+    <PreviewLinkScope basePath={FASHION_PREVIEW_BASE}>
+      <div className={cormorant.variable}>
+        <ThemeProvider config={config}>
+          <div style={themeVars}>
+            <Navbar config={config} basePath={FASHION_PREVIEW_BASE} />
+            {children}
+          </div>
+        </ThemeProvider>
+      </div>
+    </PreviewLinkScope>
   )
 }

@@ -1,62 +1,120 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useState } from "react"
 import { createStoreAction } from "@/app/(builder)/(dashboard)/stores/new/actions"
 import type { CreateStoreState } from "@/app/(builder)/(dashboard)/stores/new/actions"
 import { useDashboardActionNotice } from "@/features/builder/hooks/useDashboardActionNotice"
+import {
+  dashboardBtnPrimary,
+  dashboardInput,
+  dashboardLabel,
+} from "@/features/builder/components/dashboard-ui"
+import { cn } from "@/lib/utils"
 
-export function CreateStoreForm() {
+function slugifyPreview(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+}
+
+export function CreateStoreForm({ rootDomain }: { rootDomain: string }) {
   const [state, action, pending] = useActionState<CreateStoreState, FormData>(
     createStoreAction,
     undefined,
   )
+  const [name, setName] = useState("")
+  const [slug, setSlug] = useState("")
+  const [slugTouched, setSlugTouched] = useState(false)
 
   useDashboardActionNotice(state)
 
+  function onNameChange(value: string) {
+    setName(value)
+    if (!slugTouched) setSlug(slugifyPreview(value))
+  }
+
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form action={action} className="flex flex-col gap-6">
+      {state?.error && (
+        <p
+          className="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-600"
+          role="alert"
+        >
+          {state.error}
+        </p>
+      )}
+
       <div>
-        <label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700">
-          Nama Store
+        <label htmlFor="name" className={dashboardLabel}>
+          Nama Store <span className="text-red-500">*</span>
         </label>
         <input
           id="name"
           name="name"
           type="text"
           required
+          value={name}
+          onChange={(e) => onNameChange(e.target.value)}
           placeholder="Toko Sepatu Keren"
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-black"
+          autoComplete="organization"
+          className={dashboardInput}
         />
+        <p className="mt-1.5 text-xs text-dash-muted">
+          Nama yang tampil di dashboard dan storefront.
+        </p>
       </div>
 
       <div>
-        <label htmlFor="slug" className="mb-1 block text-sm font-medium text-gray-700">
-          Slug (subdomain)
+        <label htmlFor="slug" className={dashboardLabel}>
+          Subdomain <span className="text-red-500">*</span>
         </label>
-        <div className="flex items-center gap-2">
+        <div className="flex items-stretch">
           <input
             id="slug"
             name="slug"
             type="text"
             required
+            value={slug}
+            onChange={(e) => {
+              setSlugTouched(true)
+              setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
+            }}
             placeholder="toko-sepatu"
-            pattern="[a-z0-9][a-z0-9\-]*[a-z0-9]"
-            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-black"
+            pattern="[a-z0-9][a-z0-9\-]*[a-z0-9]|[a-z0-9]"
+            autoComplete="off"
+            spellCheck={false}
+            className={cn(dashboardInput, "rounded-r-none")}
           />
-          <span className="shrink-0 whitespace-nowrap text-sm text-gray-400">.etalase.com</span>
+          <span className="inline-flex items-center rounded-r-xl border border-l-0 border-dash-border bg-dash-bg px-3.5 text-sm text-dash-muted">
+            .{rootDomain}
+          </span>
         </div>
-        <p className="mt-1 text-xs text-gray-400">
-          Hanya huruf kecil, angka, dan tanda hubung. Contoh: toko-sepatu
+        <p className="mt-1.5 text-xs leading-relaxed text-dash-muted">
+          Huruf kecil, angka, dan tanda hubung. Alamat toko publik kamu.
         </p>
+        {slug.length >= 2 && (
+          <p className="mt-2 truncate rounded-xl bg-dash-bg px-3 py-2 text-xs text-dash-ink">
+            <span className="text-dash-muted">Preview: </span>
+            <span className="font-medium">
+              {slug}.{rootDomain}
+            </span>
+          </p>
+        )}
       </div>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {pending ? "Membuat store..." : "Buat Store"}
-      </button>
+      <div className="border-t border-dash-border pt-6">
+        <button
+          type="submit"
+          disabled={pending}
+          className={cn(dashboardBtnPrimary, "w-full sm:w-auto")}
+        >
+          {pending ? "Membuat store..." : "Buat Store"}
+        </button>
+      </div>
     </form>
   )
 }

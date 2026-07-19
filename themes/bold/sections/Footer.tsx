@@ -1,58 +1,67 @@
-import { X, Share2, Mail } from "lucide-react"
 import type { ThemeConfig } from "@/themes/engine/schema"
 
 interface FooterProps {
   config: ThemeConfig
 }
 
+/** Footer Bold — isi seperti bento: brand, tagline, kontak, copyright. */
 export function Footer({ config }: FooterProps) {
+  const logoDisplay = config.logoDisplay ?? "logo"
+  const showLogo = logoDisplay !== "text" && Boolean(config.logoUrl)
+  const showText = logoDisplay === "text" || logoDisplay === "both" || !config.logoUrl
+  const logoScale = (config.logoScale ?? 100) / 100
+
   return (
     <footer className="border-t border-white/10 bg-zinc-950">
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-2">
-        {/* Brand */}
+      <div className="mx-auto max-w-7xl px-6 py-14">
         <div>
-          <p className="font-black uppercase text-white" style={{ fontFamily: "var(--theme-heading-font)" }}>
-            {config.storeName}
+          <p
+            className="flex items-center gap-2.5 text-sm font-black uppercase tracking-[0.15em] text-white"
+            style={{ fontFamily: "var(--theme-heading-font)" }}
+          >
+            {showLogo && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={config.logoUrl}
+                alt={showText ? "" : config.storeName}
+                className="w-auto object-contain"
+                style={{ height: 24 * logoScale, maxWidth: 120 * logoScale }}
+              />
+            )}
+            {showText && config.storeName}
           </p>
-          <p className="mt-3 text-sm text-white/40">{config.tagline}</p>
-          <div className="mt-5 flex gap-4">
-            <span className="text-white/40">
-              <X className="h-4 w-4" strokeWidth={1.5} />
-            </span>
-            <span className="text-white/40">
-              <Share2 className="h-4 w-4" strokeWidth={1.5} />
-            </span>
-            <span className="text-white/40">
-              <Mail className="h-4 w-4" strokeWidth={1.5} />
-            </span>
+          <p className="mt-3 max-w-md text-sm leading-relaxed text-white/40">
+            {config.tagline ?? "Precision engineered for those who refuse to compromise."}
+          </p>
+        </div>
+
+        {(config.contactPhone || config.contactEmail || config.contactAddress) && (
+          <div className="mt-8 space-y-1.5 text-sm text-white/50">
+            {config.contactAddress && (
+              <p className="leading-relaxed">{config.contactAddress}</p>
+            )}
+            {config.contactPhone && (
+              <p>
+                <a href={`tel:${config.contactPhone}`} className="hover:text-white/80">
+                  {config.contactPhone}
+                </a>
+              </p>
+            )}
+            {config.contactEmail && (
+              <p>
+                <a href={`mailto:${config.contactEmail}`} className="hover:text-white/80">
+                  {config.contactEmail}
+                </a>
+              </p>
+            )}
           </div>
-        </div>
+        )}
 
-        {/* Newsletter */}
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/50">NEWSLETTER</p>
-          <p className="mt-4 text-sm text-white/40">Access early release drops and technical insights.</p>
-          <form className="mt-4 flex">
-            <input
-              type="email"
-              placeholder="Email address"
-              className="h-10 flex-1 border border-r-0 border-white/20 bg-white/5 px-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-white/40"
-            />
-            <button
-              type="submit"
-              className="px-4 text-xs font-black uppercase tracking-[0.1em] text-zinc-900 transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "var(--theme-accent)" }}
-            >
-              JOIN
-            </button>
-          </form>
+        <div className="mt-10 border-t border-white/10 pt-6 text-xs text-white/30">
+          <p>
+            © {new Date().getFullYear()} {config.storeName}. All rights reserved.
+          </p>
         </div>
-      </div>
-
-      <div className="border-t border-white/10 py-5">
-        <p className="text-center text-xs text-white/30">
-          © 2026 {config.storeName}. Precision Engineering.
-        </p>
       </div>
     </footer>
   )

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { revalidatePath } from "next/cache"
 import { stripe } from "@/lib/stripe"
 import { markPurchasePaid, activateTemplate } from "@/server/services/template.service"
 import { markOrderPaid } from "@/server/services/order.service"
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest) {
         // Template purchase: owner beli template.
         await markPurchasePaid(session.id)
         await activateTemplate(meta.storeId, meta.templateId)
+        revalidatePath("/", "layout")
         console.log(`[stripe webhook] template ${meta.templateId} activated for store ${meta.storeId}`)
       } else {
         console.error("[stripe webhook] missing metadata:", session.id)

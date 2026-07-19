@@ -29,7 +29,7 @@ export function StoreOverviewCard({
       className={cn(
         dashboardCard,
         variant === "overview" ? dashboardCardHover : "",
-        "flex h-full min-h-[220px] flex-col p-4 sm:p-5",
+        "flex h-full min-h-[220px] flex-col rounded-[24px] p-5",
       )}
     >
       <div className="flex items-start justify-between gap-4">
@@ -42,15 +42,18 @@ export function StoreOverviewCard({
             <p className="mt-0.5 truncate text-sm text-dash-muted">{getStorefrontHost(slug)}</p>
           </div>
         </div>
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-200/80 bg-[#ecfdf5] px-2.5 py-1 text-xs font-medium text-[#007a55]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#00bc7d]" aria-hidden />
           Aktif
         </span>
       </div>
 
       <div className="mt-auto flex flex-col gap-3 pt-5">
         {variant === "overview" && (
-          <Link href={`/stores/${id}/dashboard`} className={`${dashboardBtnPrimary} w-full py-3`}>
+          <Link
+            href={`/stores/${id}/dashboard`}
+            className={`${dashboardBtnPrimary} w-full rounded-[26px] py-3`}
+          >
             Buka Dashboard Toko
           </Link>
         )}
@@ -58,7 +61,7 @@ export function StoreOverviewCard({
         <div className="grid w-full grid-cols-2 gap-3">
           <Link
             href={`/stores/${id}/customize`}
-            className={`${dashboardBtnOutline} gap-2 py-2.5`}
+            className={`${dashboardBtnOutline} rounded-[27px] py-2.5`}
           >
             <Pencil className="h-4 w-4 shrink-0" aria-hidden />
             Kustomisasi
@@ -67,7 +70,7 @@ export function StoreOverviewCard({
             href={storefrontUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className={`${dashboardBtnOutline} gap-2 py-2.5`}
+            className={`${dashboardBtnOutline} rounded-[27px] py-2.5`}
           >
             <ExternalLink className="h-4 w-4 shrink-0" aria-hidden />
             Kunjungi Toko

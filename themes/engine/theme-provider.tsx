@@ -8,16 +8,27 @@ interface ThemeProviderProps {
   children: React.ReactNode
   /** Editor preview forces desktop/mobile; live storefront omits this and uses the viewport. */
   forcedDevice?: DeviceMode
+  /** false = tanpa min-h-full / bg surface (thumbnail kartu). */
+  surface?: boolean
 }
 
-export function ThemeProvider({ config, children, forcedDevice }: ThemeProviderProps) {
+export function ThemeProvider({
+  config,
+  children,
+  forcedDevice,
+  surface = true,
+}: ThemeProviderProps) {
   const palette = getThemePalette(config.templateId)
 
   return (
     <div
       // `@container`: section theme pakai container query (@2xl:/@3xl:/@5xl:),
       // bukan media query, supaya preview builder (frame 375px) ikut responsif.
-      className="@container min-h-full bg-[var(--theme-bg)] text-[var(--theme-text)]"
+      className={
+        surface
+          ? "@container flex min-h-full flex-1 flex-col bg-[var(--theme-bg)] text-[var(--theme-text)]"
+          : "@container block text-[var(--theme-text)]"
+      }
       style={
         {
           "--theme-primary": config.primaryColor,

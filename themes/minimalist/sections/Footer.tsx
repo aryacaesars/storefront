@@ -35,6 +35,30 @@ export function Footer({ config }: FooterProps) {
             {config.tagline ??
               "Curated essentials for the intentional lifestyle."}
           </p>
+          {(config.contactPhone || config.contactEmail || config.contactAddress) && (
+            <div className="mt-5 space-y-1.5 text-sm text-[var(--theme-muted)]">
+              {config.contactAddress && (
+                <p className="leading-relaxed">{config.contactAddress}</p>
+              )}
+              {config.contactPhone && (
+                <p>
+                  <a href={`tel:${config.contactPhone}`} className="hover:text-[var(--theme-text)]">
+                    {config.contactPhone}
+                  </a>
+                </p>
+              )}
+              {config.contactEmail && (
+                <p>
+                  <a
+                    href={`mailto:${config.contactEmail}`}
+                    className="hover:text-[var(--theme-text)]"
+                  >
+                    {config.contactEmail}
+                  </a>
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         <div>

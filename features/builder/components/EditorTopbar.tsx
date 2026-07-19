@@ -16,6 +16,7 @@ interface EditorTopbarProps {
   onDeviceChange: (device: PreviewDevice) => void
   onSaveDraft: () => void
   onPublish: () => void
+  onResetLayout?: () => void
   isSaving?: boolean
 }
 
@@ -28,6 +29,7 @@ export function EditorTopbar({
   onDeviceChange,
   onSaveDraft,
   onPublish,
+  onResetLayout,
   isSaving = false,
 }: EditorTopbarProps) {
   return (
@@ -107,6 +109,16 @@ export function EditorTopbar({
 
         <div className="w-px h-5 bg-gray-200 hidden sm:block" />
 
+        {onResetLayout && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onResetLayout}
+            disabled={isSaving}
+          >
+            Reset Layout
+          </Button>
+        )}
         <Button
           variant="outline"
           size="sm"

@@ -11,6 +11,7 @@ export type CustomerSession = {
   storeId: string
   email: string
   name: string | null
+  phone: string | null
 }
 
 /** Returns the logged-in customer for the CURRENT store, or null. No redirect. */
@@ -25,11 +26,17 @@ export const getCustomerSession = cache(async (): Promise<CustomerSession | null
 
   const customer = await prisma.customer.findFirst({
     where: { id: session.customerId, storeId: store.id },
-    select: { id: true, email: true, name: true },
+    select: { id: true, email: true, name: true, phone: true },
   })
   if (!customer) return null
 
-  return { customerId: customer.id, storeId: store.id, email: customer.email, name: customer.name }
+  return {
+    customerId: customer.id,
+    storeId: store.id,
+    email: customer.email,
+    name: customer.name,
+    phone: customer.phone,
+  }
 })
 
 /** Require a logged-in customer; redirect to /signin if absent. */

@@ -52,24 +52,34 @@ export function SidebarAccountMenu({
         aria-expanded={open}
         aria-haspopup="menu"
         className={cn(
-          "flex w-full items-center gap-2.5 rounded-lg text-left transition-colors",
+          "flex w-full items-center text-left transition-colors",
           isHeader
-            ? "border border-dash-border px-2 py-1.5 hover:bg-dash-bg"
-            : cn("px-3 py-2.5", open ? "bg-dash-primary/8 ring-1 ring-dash-primary/15" : "hover:bg-dash-bg"),
+            ? "gap-2 rounded-full border border-dash-border/70 bg-dash-surface py-1.5 pl-1.5 pr-2.5 hover:border-dash-border"
+            : cn(
+                "gap-2.5 rounded-lg px-3 py-2.5",
+                open ? "bg-dash-primary/8 ring-1 ring-dash-primary/15" : "hover:bg-dash-bg",
+              ),
         )}
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-dash-primary/10">
-          <User2 className="h-4 w-4 text-dash-primary" />
+        <span
+          className={cn(
+            "flex shrink-0 items-center justify-center rounded-full bg-dash-primary/10",
+            isHeader ? "h-8 w-8" : "h-9 w-9",
+          )}
+        >
+          <User2 className={cn("text-dash-primary", isHeader ? "h-3.5 w-3.5" : "h-4 w-4")} />
         </span>
         {isHeader ? (
           <>
             <span className="hidden min-w-0 flex-1 sm:block">
-              <span className="block truncate text-sm font-semibold text-dash-ink">{displayName}</span>
-              <span className="block truncate text-xs text-dash-muted">{subtitle}</span>
+              <span className="block truncate text-[13px] font-semibold leading-tight text-dash-ink">
+                {displayName}
+              </span>
+              <span className="block truncate text-[10px] leading-tight text-dash-muted">{subtitle}</span>
             </span>
             <ChevronDown
               className={cn(
-                "hidden h-4 w-4 shrink-0 text-dash-muted transition-transform duration-200 sm:block",
+                "hidden h-3.5 w-3.5 shrink-0 text-dash-muted transition-transform duration-200 sm:block",
                 open && "rotate-180 text-dash-primary",
               )}
             />

@@ -25,10 +25,21 @@ const FONT_CLASS: Record<TemplateId, string> = {
 interface ThemeFontScopeProps {
   templateId: TemplateId
   children: ReactNode
+  /** false = jangan stretch min-h-full (thumbnail kartu). */
+  fill?: boolean
 }
 
-export function ThemeFontScope({ templateId, children }: ThemeFontScopeProps) {
+export function ThemeFontScope({
+  templateId,
+  children,
+  fill = true,
+}: ThemeFontScopeProps) {
   const fontClass = FONT_CLASS[templateId]
-  if (!fontClass) return children
-  return <div className={`${fontClass} min-h-full font-sans`}>{children}</div>
+  const layout = fill ? "flex min-h-full flex-1 flex-col" : "block"
+  if (!fontClass) {
+    return <div className={layout}>{children}</div>
+  }
+  return (
+    <div className={`${fontClass} ${layout} font-sans`}>{children}</div>
+  )
 }

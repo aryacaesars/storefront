@@ -1,15 +1,16 @@
 import { Footer } from "@/themes/bold"
 import { HomePage } from "@/themes/bold/pages/HomePage"
-import { DEFAULT_BOLD_CONFIG } from "@/themes/bold/theme.config"
+import type { ThemeConfig } from "@/themes/engine/schema"
+import { BOLD_PREVIEW_CONFIG } from "./preview-config"
 import { BoldPreviewShell } from "./BoldPreviewShell"
 
-export function HomePreview() {
+export function HomePreview({ config = BOLD_PREVIEW_CONFIG }: { config?: ThemeConfig }) {
   return (
-    <BoldPreviewShell>
+    <BoldPreviewShell config={config} transparent>
       <main>
-        <HomePage />
+        <HomePage config={config} />
       </main>
-      <Footer config={DEFAULT_BOLD_CONFIG} />
+      <Footer config={config} />
     </BoldPreviewShell>
   )
 }

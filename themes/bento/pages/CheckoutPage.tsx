@@ -6,18 +6,25 @@ import type { ThemePageProps } from "@/themes/engine/page-props"
 import { formatIdr } from "@/features/storefront/catalog-types"
 import { placeOrderAction } from "@/app/(storefront)/checkout/actions"
 import type { CheckoutState } from "@/app/(storefront)/checkout/actions"
-import { UseMyLocationButton } from "@/features/storefront/UseMyLocationButton"
+import { CheckoutCartLines } from "@/features/storefront/CheckoutCartLines"
 
-const inputClass =
-  "h-12 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm text-[#1a1c1b] outline-none transition-colors focus:border-[var(--theme-primary)] placeholder:text-[#515160]"
-
-export function CheckoutPage({ cart = [], storeId, checkoutPrefill }: ThemePageProps) {
+export function CheckoutPage({
+  cart = [],
+  storeId,
+  checkoutCustomer,
+  checkoutAddress,
+}: ThemePageProps) {
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const action = storeId
     ? placeOrderAction.bind(null, storeId)
-    : async (_prev: CheckoutState, _fd: FormData): Promise<CheckoutState> => ({ error: "Store tidak ditemukan." })
+    : async (_prev: CheckoutState, _fd: FormData): Promise<CheckoutState> => ({
+        error: "Store tidak ditemukan.",
+      })
 
-  const [state, formAction, pending] = useActionState<CheckoutState, FormData>(action, undefined)
+  const [state, formAction, pending] = useActionState<CheckoutState, FormData>(
+    action,
+    undefined,
+  )
 
   useEffect(() => {
     if (state && "ok" in state && state.ok) {
@@ -25,71 +32,140 @@ export function CheckoutPage({ cart = [], storeId, checkoutPrefill }: ThemePageP
     }
   }, [state])
 
+  const canPlaceOrder =
+    Boolean(checkoutCustomer?.name?.trim()) &&
+    Boolean(checkoutCustomer?.phone?.trim()) &&
+    Boolean(checkoutAddress) &&
+    cart.length > 0 &&
+    Boolean(storeId)
+
   return (
-    <section className="mx-auto max-w-5xl px-4 py-12 @2xl:px-6">
-      <div className="mb-10 rounded-[27px] bg-white p-8 shadow-[0px_0px_19px_rgba(0,0,0,0.12)]">
-        <h1
-          className="text-3xl font-bold text-[#1a1c1b]"
-          style={{ fontFamily: "var(--theme-heading-font)" }}
-        >
-          Checkout
-        </h1>
-        {state && "error" in state && state.error && (
-          <p className="mt-3 text-sm text-red-600">{state.error}</p>
-        )}
-        {checkoutPrefill && (
-          <p className="mt-2 text-sm text-[#515160]">
-            Masuk sebagai <span className="font-semibold text-[#1a1c1b]">{checkoutPrefill.email}</span>
-          </p>
-        )}
-      </div>
+    <section className="mx-auto max-w-5xl px-4 py-8 @2xl:px-6 @2xl:py-10">
+      {state && "error" in state && state.error && (
+        <p className="mb-5 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">
+          {state.error}
+        </p>
+      )}
 
-      <div className="grid gap-10 @3xl:grid-cols-5">
-        <form action={formAction} className="space-y-4 rounded-[27px] bg-white p-8 shadow-[0px_0px_19px_rgba(0,0,0,0.12)] @3xl:col-span-3">
-          <fieldset className="space-y-4">
-            <legend className="text-sm font-bold text-[#1a1c1b]">Kontak</legend>
-            <input name="email" type="email" required placeholder="Email" defaultValue={checkoutPrefill?.email ?? ""} className={inputClass} />
-            <input name="name" type="text" required placeholder="Nama lengkap" defaultValue={checkoutPrefill?.name ?? ""} className={inputClass} />
-            <input name="phone" type="tel" required placeholder="No. HP" defaultValue={checkoutPrefill?.phone ?? ""} className={inputClass} />
-          </fieldset>
-          <fieldset className="space-y-4">
-            <legend className="text-sm font-bold text-[#1a1c1b]">Alamat Pengiriman</legend>
-            <UseMyLocationButton className="text-sm font-semibold text-[var(--theme-primary)] transition-opacity hover:opacity-70 disabled:opacity-50" />
-            <input name="street" type="text" required placeholder="Alamat" defaultValue={checkoutPrefill?.street ?? ""} className={inputClass} />
-            <div className="grid gap-3 @2xl:grid-cols-2">
-              <input name="city" type="text" required placeholder="Kota" defaultValue={checkoutPrefill?.city ?? ""} className={inputClass} />
-              <input name="province" type="text" required placeholder="Provinsi" defaultValue={checkoutPrefill?.province ?? ""} className={inputClass} />
+      <div className="space-y-5">
+        {/* User / shipping info — top card */}
+        <div className="rounded-[27px] bg-white p-6 shadow-[0px_0px_19px_rgba(0,0,0,0.12)] @2xl:p-8">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--theme-primary)]">
+                Pengiriman
+              </p>
+              <h2 className="mt-1 text-lg font-bold text-[#1a1c1b]">Informasi pesanan</h2>
             </div>
-            <input name="postalCode" type="text" required placeholder="Kode pos" defaultValue={checkoutPrefill?.postalCode ?? ""} className={inputClass} />
-          </fieldset>
+            {checkoutCustomer && (
+              <Link
+                href="/account"
+                className="rounded-full border border-black/10 px-3 py-1.5 text-xs font-semibold text-[#1a1c1b] transition-colors hover:border-[var(--theme-primary)] hover:text-[var(--theme-primary)]"
+              >
+                {checkoutAddress ? "Ubah alamat" : "Tambah alamat"}
+              </Link>
+            )}
+          </div>
 
-          <aside className="rounded-[27px] border border-gray-100 bg-white p-6 shadow-[0px_0px_19px_rgba(0,0,0,0.08)]">
-            <h2 className="text-sm font-bold text-[#1a1c1b]">Order Summary</h2>
-            <div className="mt-4 space-y-2 text-sm">
-              {cart.map((item) => (
-                <div key={item.slug} className="flex justify-between text-[#515160]">
-                  <span>{item.name} ×{item.quantity}</span>
-                  <span>{formatIdr(item.price * item.quantity)}</span>
-                </div>
-              ))}
-              <div className="flex justify-between border-t border-gray-100 pt-3 font-bold text-[#1a1c1b]">
-                <span>Total</span>
-                <span>{formatIdr(subtotal)}</span>
+          {!checkoutCustomer ? (
+            <div className="mt-5 rounded-2xl border border-dashed border-black/10 px-4 py-6 text-center">
+              <p className="text-sm text-[#515160]">
+                Masuk ke akun untuk memakai alamat tersimpan.
+              </p>
+              <div className="mt-3 flex flex-wrap justify-center gap-3">
+                <Link
+                  href="/signin"
+                  className="text-sm font-bold text-[var(--theme-primary)]"
+                >
+                  Masuk
+                </Link>
+                <Link href="/account" className="text-sm text-[#515160] hover:underline">
+                  Atau ke Akun
+                </Link>
               </div>
             </div>
+          ) : (
+            <div className="mt-5 grid gap-3 @2xl:grid-cols-2">
+              <div className="rounded-2xl border border-black/8 bg-[#fafafa] p-4">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#515160]">
+                  Penerima
+                </p>
+                <p className="mt-1.5 text-sm font-semibold text-[#1a1c1b]">
+                  {checkoutCustomer.name || "—"}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-[#515160]">
+                  {checkoutCustomer.email}
+                  {checkoutCustomer.phone ? (
+                    <>
+                      <br />
+                      {checkoutCustomer.phone}
+                    </>
+                  ) : null}
+                </p>
+                <p className="mt-2 text-[11px] text-[#515160]">
+                  Edit di{" "}
+                  <Link href="/account" className="font-semibold text-[var(--theme-primary)]">
+                    /account
+                  </Link>
+                </p>
+              </div>
+
+              {!checkoutAddress ? (
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-black/10 px-4 py-5 text-center">
+                  <p className="text-sm text-[#515160]">Belum ada alamat.</p>
+                  <Link
+                    href="/account"
+                    className="mt-2 text-sm font-bold text-[var(--theme-primary)]"
+                  >
+                    Tambah alamat
+                  </Link>
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-black/8 bg-[#fafafa] p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#515160]">
+                    Alamat pengiriman
+                    {checkoutAddress.label ? ` · ${checkoutAddress.label}` : ""}
+                  </p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-[#1a1c1b]">
+                    {checkoutAddress.street}
+                    <br />
+                    {checkoutAddress.city}, {checkoutAddress.province}{" "}
+                    {checkoutAddress.postalCode}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Order summary — below */}
+        <div className="rounded-[27px] bg-white p-6 shadow-[0px_0px_19px_rgba(0,0,0,0.12)] @2xl:p-8">
+          <h2 className="text-sm font-bold text-[#1a1c1b]">Order Summary</h2>
+          <div className="mt-5">
+            <CheckoutCartLines cart={cart} />
+          </div>
+          <div className="mt-5 flex justify-between border-t border-gray-100 pt-4 text-sm font-bold text-[#1a1c1b]">
+            <span>Total</span>
+            <span>{formatIdr(subtotal)}</span>
+          </div>
+
+          <form action={formAction}>
             <button
               type="submit"
-              disabled={pending || cart.length === 0}
+              disabled={pending || !canPlaceOrder}
               className="mt-6 h-12 w-full rounded-full text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
               style={{ backgroundColor: "var(--theme-primary)" }}
             >
               {pending ? "Memproses..." : "Place Order"}
             </button>
-            <Link href="/cart" className="mt-3 block text-center text-xs text-[#515160] hover:text-[var(--theme-primary)]">
-              Kembali ke cart
-            </Link>
-          </aside>
-        </form>
+          </form>
+          <Link
+            href="/cart"
+            className="mt-3 block text-center text-xs text-[#515160] hover:text-[var(--theme-primary)]"
+          >
+            Kembali ke cart
+          </Link>
+        </div>
       </div>
     </section>
   )

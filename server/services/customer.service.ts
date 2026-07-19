@@ -102,6 +102,97 @@ export async function getCustomerDefaultAddress(customerId: string) {
   })
 }
 
+/** All addresses for a customer (default first). */
+export async function getCustomerAddresses(customerId: string) {
+  return prisma.address.findMany({
+    where: { customerId },
+    orderBy: [{ isDefault: "desc" }, { id: "desc" }],
+  })
+}
+
+/** Update display name + phone on the customer profile. */
+export async function updateCustomerProfile(
+  customerId: string,
+  input: { name: string; phone?: string },
+): Promise<void> {
+  await prisma.customer.update({
+    where: { id: customerId },
+    data: {
+      name: input.name.trim(),
+      phone: input.phone?.trim() || null,
+    },
+  })
+}
+
+/** Create or update a shipping address. New address becomes default if none exists. */
+export async function saveCustomerAddress(input: {
+  customerId: string
+  addressId?: string
+  label?: string
+  street: string
+  city: string
+  province: string
+  postalCode: string
+  makeDefault?: boolean
+}): Promise<{ id: string }> {
+  const label = input.label?.trim() || null
+  const street = input.street.trim()
+  const city = input.city.trim()
+  const province = input.province.trim()
+  const postalCode = input.postalCode.trim()
+
+  if (input.addressId) {
+    const existing = await prisma.address.findFirst({
+      where: { id: input.addressId, customerId: input.customerId },
+    })
+    if (!existing) throw new Error("ADDRESS_NOT_FOUND")
+
+    if (input.makeDefault) {
+      await prisma.address.updateMany({
+        where: { customerId: input.customerId },
+        data: { isDefault: false },
+      })
+    }
+
+    const updated = await prisma.address.update({
+      where: { id: existing.id },
+      data: {
+        label,
+        street,
+        city,
+        province,
+        postalCode,
+        ...(input.makeDefault ? { isDefault: true } : {}),
+      },
+      select: { id: true },
+    })
+    return updated
+  }
+
+  const count = await prisma.address.count({ where: { customerId: input.customerId } })
+  const isDefault = count === 0 || Boolean(input.makeDefault)
+
+  if (isDefault) {
+    await prisma.address.updateMany({
+      where: { customerId: input.customerId },
+      data: { isDefault: false },
+    })
+  }
+
+  return prisma.address.create({
+    data: {
+      customerId: input.customerId,
+      label,
+      street,
+      city,
+      province,
+      postalCode,
+      isDefault,
+    },
+    select: { id: true },
+  })
+}
+
 /** Create a default address for a customer if they have none yet. */
 export async function ensureCustomerAddress(input: {
   customerId: string

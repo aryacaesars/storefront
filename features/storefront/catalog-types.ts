@@ -14,6 +14,68 @@ export type CatalogProduct = {
   inStock: boolean;
 };
 
+export type StorefrontCategory = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+export type CatalogSort = "name" | "price-asc" | "price-desc" | "popular";
+
+export type CatalogListFilters = {
+  q?: string;
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
+  sort?: CatalogSort;
+};
+
+const CATALOG_SORTS: CatalogSort[] = [
+  "name",
+  "price-asc",
+  "price-desc",
+  "popular",
+];
+
+export function parseCatalogSearchParams(
+  params: Record<string, string | string[] | undefined> | undefined,
+): CatalogListFilters {
+  if (!params) return {};
+
+  const one = (key: string): string | undefined => {
+    const value = params[key];
+    if (Array.isArray(value)) return value[0];
+    return value;
+  };
+
+  const q = one("q")?.trim() || undefined;
+  const category = one("category")?.trim() || undefined;
+  const minRaw = one("min");
+  const maxRaw = one("max");
+  const minPrice =
+    minRaw != null && minRaw !== "" ? Number(minRaw) : undefined;
+  const maxPrice =
+    maxRaw != null && maxRaw !== "" ? Number(maxRaw) : undefined;
+  const sortRaw = one("sort");
+  const sort =
+    sortRaw && CATALOG_SORTS.includes(sortRaw as CatalogSort)
+      ? (sortRaw as CatalogSort)
+      : undefined;
+  const inStockRaw = one("inStock");
+  const inStock =
+    inStockRaw === "1" || inStockRaw === "true" ? true : undefined;
+
+  return {
+    q,
+    category,
+    minPrice: Number.isFinite(minPrice) ? minPrice : undefined,
+    maxPrice: Number.isFinite(maxPrice) ? maxPrice : undefined,
+    sort,
+    inStock,
+  };
+}
+
 const FALLBACK_GRADIENTS = [
   "bg-gradient-to-br from-stone-200 to-stone-400",
   "bg-gradient-to-br from-neutral-200 to-neutral-500",

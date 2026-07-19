@@ -1,6 +1,7 @@
 import Image from "next/image";
 import laptopMock from "@/public/builder-landing/laptop-mock.png";
 import gradient from "@/public/builder-landing/gradient.png";
+import AnimatedBlurFadeIn from "@/features/builder/landing/AnimatedBlurFadeIn";
 
 export default function Hero() {
   return (
@@ -8,37 +9,42 @@ export default function Hero() {
       id="home"
       className="relative overflow-hidden bg-white px-6 pt-16 pb-24"
     >
-      <div className="mx-auto max-w-4xl text-center">
-        <h1 className="font-display text-5xl font-extrabold leading-[1.05] tracking-tight text-ink sm:text-6xl md:text-7xl">
+      {/* purple glow — same as login */}
+      <Image
+        src={gradient}
+        alt=""
+        aria-hidden
+        priority
+        className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[80%] w-[150%] max-w-none -translate-x-1/2 -translate-y-1/3 opacity-80 blur-2xl"
+      />
+
+      <div className="relative z-10 mx-auto max-w-4xl text-center">
+        <AnimatedBlurFadeIn
+          as="h1"
+          className="font-display text-5xl font-extrabold leading-[1.05] tracking-tight text-ink sm:text-6xl md:text-7xl"
+          delayMs={80}
+        >
           Work <span className="text-brand">Smarter</span>
           <br />
           Not Harder
-        </h1>
+        </AnimatedBlurFadeIn>
 
-        <a
-          href="/login"
-          className="mt-8 inline-block rounded-full bg-brand px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-brand/30 transition-colors hover:bg-brand-dark"
-        >
-          Get Yours Now!
-        </a>
+        <AnimatedBlurFadeIn as="div" className="mt-8" delayMs={220}>
+          <a
+            href="/login"
+            className="inline-block rounded-full bg-brand px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-brand/30 transition-colors hover:bg-brand-dark"
+          >
+            Get Yours Now!
+          </a>
+        </AnimatedBlurFadeIn>
       </div>
 
-      {/* laptop + glow */}
-      <div className="relative mx-auto mt-14 max-w-4xl">
-        {/* glow */}
-        <Image
-          src={gradient}
-          alt=""
-          aria-hidden
-          className="pointer-events-none absolute left-1/2 top-[42%] z-0 h-[72%] w-[175%] max-w-none -translate-x-1/2 -translate-y-1/2 opacity-80 blur-2xl"
-        />
-
-        {/* laptop */}
+      <div className="relative z-10 mx-auto mt-14 max-w-4xl">
         <Image
           src={laptopMock}
           alt="Storefront preview on a laptop"
           priority
-          className="relative z-10 mx-auto h-auto w-full"
+          className="relative mx-auto h-auto w-full"
           style={{
             WebkitMaskImage:
               "linear-gradient(to bottom, black 0%, black 58%, rgba(0,0,0,0.35) 76%, transparent 92%)",

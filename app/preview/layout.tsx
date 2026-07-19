@@ -9,7 +9,7 @@ export default function PreviewLayout({
   return (
     <>
       <Link
-        href="/#templates"
+        href="/templates"
         aria-label="Kembali ke daftar template"
         className="fixed top-6 left-6 z-[100] flex items-center justify-center rounded-full border border-gray-200 bg-white/80 p-3 text-gray-800 shadow-lg backdrop-blur-md transition-all hover:scale-105 hover:bg-white"
       >

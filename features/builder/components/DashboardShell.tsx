@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import { DashboardPageTitle } from "./DashboardHeaderContext"
 import { dashboardPage } from "./dashboard-ui"
 
 interface DashboardShellProps {
@@ -22,6 +23,8 @@ export function DashboardShell({
 }: DashboardShellProps) {
   return (
     <div className={dashboardPage}>
+      {pageTitle && <DashboardPageTitle>{pageTitle}</DashboardPageTitle>}
+
       {showGreeting ? (
         <header className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0 flex-1">
@@ -38,16 +41,11 @@ export function DashboardShell({
           {action && <div className="shrink-0">{action}</div>}
         </header>
       ) : (
-        (pageTitle || pageSubtitle || action) && (
+        (pageSubtitle || action) && (
           <header className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0 flex-1">
-              {pageTitle && (
-                <h1 className="truncate font-display text-xl font-bold tracking-tight text-dash-ink md:text-2xl">
-                  {pageTitle}
-                </h1>
-              )}
               {pageSubtitle && (
-                <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-dash-muted">
+                <p className="max-w-2xl text-sm leading-relaxed text-dash-muted">
                   {pageSubtitle}
                 </p>
               )}

@@ -8,16 +8,22 @@ import { CanvasImageFrame } from "@/features/builder/components/canvas/CanvasIma
 import { CanvasMultiImageItem } from "@/features/builder/components/canvas/CanvasMultiImageItem"
 import { CanvasInlineText } from "@/features/builder/components/canvas/CanvasInlineText"
 import { CanvasLabelResizeHandles } from "@/features/builder/components/canvas/CanvasLabelResizeHandles"
+import { CanvasFreeTextLayer } from "@/features/builder/components/canvas/CanvasFreeTextLayer"
 import type { SectionProps } from "@/themes/engine/section-registry"
 import {
   parseCanvasImages,
   updateImageInArray,
   type CanvasImageItem,
 } from "@/themes/engine/canvas-image"
+import { parseCanvasTexts } from "@/themes/engine/canvas-text"
 import {
   hasMobileOverride,
   MOBILE_OVERRIDE_FLAG,
 } from "@/themes/engine/device-settings"
+import {
+  canvasElementDomKey,
+  type SelectedElementKind,
+} from "@/themes/engine/section-editor"
 import {
   labelMoveFromDelta,
   parseImageTransform,
@@ -38,6 +44,7 @@ import {
   type HeroTitleLine,
 } from "@/themes/bento/sections/hero-title-layout"
 import {
+  heroTitleLineCss,
   parseHeroTitleStyle,
   type HeroTitleStyleOverride,
 } from "@/themes/bento/sections/hero-title-style"
@@ -77,6 +84,7 @@ interface HeroTitleLineProps {
   mediaInteractive: boolean
   editable: boolean
   lineSelected: boolean
+  domKey?: string
   onActivate: () => void
   onHeroKey: "title" | "subtitle"
   onHeroChange?: (key: "title" | "subtitle", value: string) => void
@@ -96,6 +104,7 @@ function HeroTitleLine({
   mediaInteractive,
   editable,
   lineSelected,
+  domKey,
   onActivate,
   onHeroKey,
   onHeroChange,
@@ -107,14 +116,7 @@ function HeroTitleLine({
   const labelMovable = labelResizable
 
   const labelBoxHeightPx = frameHeightPx * (labelLayout.hPct / 100)
-  const labelStyle: React.CSSProperties = {
-    fontFamily: styleOverride.fontFamily ?? "var(--theme-heading-font)",
-    fontSize: `${Math.max(14, labelBoxHeightPx * 0.72)}px`,
-    lineHeight: 1.05,
-    fontWeight: styleOverride.fontWeight ?? 700,
-    fontStyle: styleOverride.fontStyle ?? "normal",
-    ...(styleOverride.color && { color: styleOverride.color }),
-  }
+  const labelStyle = heroTitleLineCss(styleOverride, labelBoxHeightPx)
 
   const labelBoxStyle: React.CSSProperties = {
     position: "absolute",
@@ -211,6 +213,7 @@ function HeroTitleLine({
       {labelMovable && layer === "behind" && (
         <div
           aria-hidden
+          data-canvas-element={domKey}
           className={cn(
             "absolute z-15 cursor-move rounded-sm",
             lineSelected &&
@@ -224,6 +227,7 @@ function HeroTitleLine({
 
       {layer === "front" && (
         <div
+          data-canvas-element={domKey}
           className={cn(
             "absolute z-10 flex items-start overflow-visible",
             labelMovable && "cursor-move",
@@ -245,9 +249,6 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const [measuredWidth, setMeasuredWidth] = useState(
     isMobile ? HERO_MOBILE_DESIGN_WIDTH : HERO_DESIGN_WIDTH,
   )
-  const [activeImageId, setActiveImageId] = useState<string | null>(null)
-  const [activeTitleLine, setActiveTitleLine] = useState<HeroTitleLine | null>(null)
-
   useEffect(() => {
     const element = frameRef.current
     if (!element) return
@@ -271,6 +272,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const parsed = parseImageTransform(mediaSettings)
   const image = { ...parsed, url: parsed.url ?? config?.heroImageUrl }
   const canvasImages = parseCanvasImages(mediaSettings)
+  const canvasTexts = parseCanvasTexts(mediaSettings)
 
   const title1Layout = parseHeroTitleLayout(mediaSettings, "title1", isMobile)
   const title2Layout = parseHeroTitleLayout(mediaSettings, "title2", isMobile)
@@ -308,9 +310,41 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const mediaInteractive = editable && editor?.selectedBlockId === mediaBlock?.id
   const ctaInteractive = editable && editor?.selectedBlockId === ctaBlock?.id
 
-  useEffect(() => {
-    if (!mediaInteractive) setActiveTitleLine(null)
-  }, [mediaInteractive])
+  // Element-level selection lives in the workspace (Canva-like floating toolbar).
+  const sectionId = canvas?.sectionId
+  const selectedElement = editor?.selectedElement ?? null
+  const elementInMedia =
+    selectedElement &&
+    selectedElement.sectionId === sectionId &&
+    selectedElement.blockId === mediaBlock?.id
+      ? selectedElement
+      : null
+  const activeImageId =
+    elementInMedia?.kind === "image" ? elementInMedia.itemId ?? null : null
+  const activeTitleLine: HeroTitleLine | null =
+    elementInMedia?.kind === "text" &&
+    (elementInMedia.itemId === "title1" || elementInMedia.itemId === "title2")
+      ? elementInMedia.itemId
+      : null
+
+  const selectElement = (
+    kind: SelectedElementKind,
+    blockId: string | undefined,
+    itemId?: string,
+  ) => {
+    if (!blockId || !sectionId || !editor) return
+    editor.onSelectBlock?.(sectionId, blockId)
+    editor.onSelectElement?.({ kind, sectionId, blockId, itemId })
+  }
+
+  const elementDomKey = (
+    kind: SelectedElementKind,
+    blockId: string | undefined,
+    itemId?: string,
+  ) =>
+    blockId && sectionId
+      ? canvasElementDomKey({ kind, sectionId, blockId, itemId })
+      : undefined
 
   const onMediaChange = (patch: Record<string, unknown>) => {
     if (!mediaBlock || !editor) return
@@ -384,8 +418,12 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
     },
   ]
 
-  const behindTitles = titleLines.filter((item) => item.layer === "behind")
-  const frontTitles = titleLines.filter((item) => item.layer === "front")
+  // Judul bisa "dihapus" dari builder — flag title{n}Hidden di settings media.
+  const visibleTitleLines = titleLines.filter(
+    (item) => mediaSettings?.[`${item.line}Hidden`] !== true,
+  )
+  const behindTitles = visibleTitleLines.filter((item) => item.layer === "behind")
+  const frontTitles = visibleTitleLines.filter((item) => item.layer === "front")
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-10 @2xl:px-6 @2xl:py-14">
@@ -413,10 +451,8 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
               mediaInteractive={mediaInteractive}
               editable={editable}
               lineSelected={mediaInteractive && activeTitleLine === item.line}
-              onActivate={() => {
-                setActiveTitleLine(item.line)
-                setActiveImageId(null)
-              }}
+              domKey={elementDomKey("text", mediaBlock?.id, item.line)}
+              onActivate={() => selectElement("text", mediaBlock?.id, item.line)}
               onHeroKey={item.onHeroKey}
               onHeroChange={(key, value) => editor?.onHeroChange?.(key, value)}
               onLayoutChange={onMediaChange}
@@ -435,8 +471,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
                   ? (event) => {
                       event.stopPropagation()
                       editor?.onSelectBlock?.(canvas!.sectionId, mediaBlock.id)
-                      setActiveImageId(null)
-                      setActiveTitleLine(null)
+                      editor?.onSelectElement?.(null)
                     }
                   : undefined
               }
@@ -447,11 +482,9 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
                   item={img}
                   selected={mediaInteractive && activeImageId === img.id}
                   editable={mediaInteractive}
-                  onSelect={() => {
-                    setActiveImageId(img.id)
-                    setActiveTitleLine(null)
-                    editor?.onSelectBlock?.(canvas!.sectionId, mediaBlock.id)
-                  }}
+                  domKey={elementDomKey("image", mediaBlock.id, img.id)}
+                  cropping={editor?.croppingElementKey === elementDomKey("image", mediaBlock.id, img.id)}
+                  onSelect={() => selectElement("image", mediaBlock.id, img.id)}
                   onChange={(patch) => onMultiImageChange(img.id, patch)}
                 />
               ))}
@@ -467,7 +500,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
                 editable
                   ? (event) => {
                       event.stopPropagation()
-                      editor?.onSelectBlock?.(canvas!.sectionId, mediaBlock.id)
+                      selectElement("image", mediaBlock.id)
                     }
                   : undefined
               }
@@ -475,6 +508,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
               <CanvasImageFrame
                 image={image}
                 interactive={mediaInteractive}
+                domKey={elementDomKey("image", mediaBlock.id)}
                 onChange={onMediaChange}
               />
             </div>
@@ -494,10 +528,8 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
               mediaInteractive={mediaInteractive}
               editable={editable}
               lineSelected={mediaInteractive && activeTitleLine === item.line}
-              onActivate={() => {
-                setActiveTitleLine(item.line)
-                setActiveImageId(null)
-              }}
+              domKey={elementDomKey("text", mediaBlock?.id, item.line)}
+              onActivate={() => selectElement("text", mediaBlock?.id, item.line)}
               onHeroKey={item.onHeroKey}
               onHeroChange={(key, value) => editor?.onHeroChange?.(key, value)}
               onLayoutChange={onMediaChange}
@@ -506,6 +538,17 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
               }
             />
           ))}
+
+          <CanvasFreeTextLayer
+            items={canvasTexts}
+            editable={editable}
+            interactive={mediaInteractive}
+            sectionId={sectionId}
+            blockId={mediaBlock?.id}
+            editor={editor}
+            designWidth={designWidth}
+            onItemsChange={(texts) => onMediaChange({ texts })}
+          />
         </div>
 
         {mediaInteractive &&
@@ -543,7 +586,8 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
             scale={scale}
             designWidth={designWidth}
             frameRef={frameRef}
-            onSelect={() => editor?.onSelectBlock?.(canvas!.sectionId, ctaBlock.id)}
+            domKey={elementDomKey("button", ctaBlock.id)}
+            onSelect={() => selectElement("button", ctaBlock.id)}
             onChange={onCtaChange}
           />
         )}
