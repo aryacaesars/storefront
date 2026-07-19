@@ -6,7 +6,7 @@ import LandingNav from "@/features/builder/landing/LandingNav"
 import LandingFooter from "@/features/builder/landing/LandingFooter"
 import gradient from "@/public/builder-landing/gradient.png"
 
-export const metadata = { title: "Masuk — Etalase" }
+export const metadata = { title: "Masuk" }
 
 export default async function LoginPage() {
   // Already signed in? Skip the form. Admin → admin panel, owner → dashboard.

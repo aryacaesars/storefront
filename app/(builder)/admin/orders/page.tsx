@@ -7,7 +7,7 @@ import {
   dashboardTableHeadRow,
 } from "@/features/builder/components/dashboard-ui"
 
-export const metadata = { title: "Admin — Transaksi" }
+export const metadata = { title: "Transaksi" }
 
 const STATUS_CLASS: Record<string, string> = {
   PAID: "bg-green-50 text-green-700",

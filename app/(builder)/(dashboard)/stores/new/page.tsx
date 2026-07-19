@@ -9,7 +9,7 @@ import {
 } from "@/features/builder/components/dashboard-ui"
 import { ROOT_DOMAIN } from "@/lib/tenant/storefront-url"
 
-export const metadata = { title: "Buat Store Baru — Etalase" }
+export const metadata = { title: "Buat Store Baru" }
 
 export default async function NewStorePage() {
   await requireSession()

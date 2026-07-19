@@ -4,7 +4,7 @@ import { requireSession } from "@/features/auth/dal"
 import { DashboardShell } from "@/features/builder/components/DashboardShell"
 import { DashboardPanel } from "@/features/builder/components/dashboard-ui"
 
-export const metadata = { title: "Support — Etalase" }
+export const metadata = { title: "Support" }
 
 export default async function SupportPage() {
   await requireSession()
@@ -43,10 +43,10 @@ export default async function SupportPage() {
               Pelajari cara setup store, template, dan kustomisasi.
             </p>
             <Link
-              href="/dashboard"
+              href="/docs"
               className="mt-3 inline-block text-sm font-semibold text-brand hover:text-brand-dark"
             >
-              Kembali ke Dashboard
+              Buka dokumentasi
             </Link>
           </div>
         </DashboardPanel>

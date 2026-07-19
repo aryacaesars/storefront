@@ -8,7 +8,7 @@ import {
 import { TemplateForm } from "../TemplateForm"
 import { createTemplateAction } from "./actions"
 
-export const metadata = { title: "Admin — Tambah Template" }
+export const metadata = { title: "Tambah Template" }
 
 export default async function NewTemplatePage() {
   await requireAdmin()

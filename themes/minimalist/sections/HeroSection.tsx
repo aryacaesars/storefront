@@ -12,6 +12,7 @@ import { CanvasFreeTextLayer } from "@/features/builder/components/canvas/Canvas
 import type { SectionProps } from "@/themes/engine/section-registry"
 import {
   parseCanvasImages,
+  mobileFitCanvasImages,
   updateImageInArray,
   type CanvasImageItem,
 } from "@/themes/engine/canvas-image"
@@ -38,6 +39,8 @@ import {
   parseHeroCta,
 } from "@/themes/bento/sections/hero-cta-layout"
 import {
+  defaultHeroTitle1Layout,
+  defaultHeroTitle2Layout,
   heroTitleLayoutToPatch,
   heroTitleLayoutsToPatch,
   parseHeroTitleLayout,
@@ -304,11 +307,8 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const mediaSettings = mediaBlock?.settings as Record<string, unknown> | undefined
   const parsed = parseImageTransform(mediaSettings)
   const image = { ...parsed, url: parsed.url ?? config?.heroImageUrl }
-  const canvasImages = parseCanvasImages(mediaSettings)
   const canvasTexts = parseCanvasTexts(mediaSettings)
 
-  const title1Layout = parseHeroTitleLayout(mediaSettings, "title1", isMobile)
-  const title2Layout = parseHeroTitleLayout(mediaSettings, "title2", isMobile)
   const title1Layer = parseTitleLayer(mediaSettings?.title1Layer)
   const title2Layer = parseTitleLayer(mediaSettings?.title2Layer)
 
@@ -322,8 +322,21 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   )
   const useMobileTitleSeed = isMobile && !mediaHasMobileOverride
 
+  const title1Layout = useMobileTitleSeed
+    ? defaultHeroTitle1Layout(true)
+    : parseHeroTitleLayout(mediaSettings, "title1", isMobile)
+  const title2Layout = useMobileTitleSeed
+    ? defaultHeroTitle2Layout(true, title1Layout)
+    : parseHeroTitleLayout(mediaSettings, "title2", isMobile)
+
+  const rawCanvasImages = parseCanvasImages(mediaSettings)
+  const canvasImages = useMobileTitleSeed
+    ? mobileFitCanvasImages(rawCanvasImages)
+    : rawCanvasImages
+
   const ctaHasMobileOverride = Boolean(
-    (ctaBlock?.settings as Record<string, unknown> | undefined)?.[MOBILE_OVERRIDE_FLAG],
+    (ctaBlock?.settings as Record<string, unknown> | undefined)?.[MOBILE_OVERRIDE_FLAG] ||
+      hasMobileOverride(ctaBlock?.settings as Record<string, unknown> | undefined),
   )
   const useMobileCtaSeed = isMobile && !ctaHasMobileOverride
 
@@ -387,6 +400,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
           imgScale: image.scale,
           imgX: image.x,
           imgY: image.y,
+          images: canvasImages,
           ...patch,
         }
       : patch
@@ -409,8 +423,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
 
   const onMultiImageChange = (imageId: string, patch: Partial<CanvasImageItem>) => {
     if (!mediaBlock || !editor) return
-    const current = parseCanvasImages(mediaSettings)
-    const updatedImages = updateImageInArray(current, imageId, patch)
+    const updatedImages = updateImageInArray(canvasImages, imageId, patch)
     const full = useMobileTitleSeed
       ? {
           ...heroTitleLayoutsToPatch(title1Layout, title2Layout),

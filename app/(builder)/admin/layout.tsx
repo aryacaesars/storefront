@@ -4,6 +4,13 @@ import { requireAdmin } from "@/features/auth/dal"
 import { DashboardLayoutShell } from "@/features/builder/components/DashboardLayoutShell"
 import { AdminNavLinks } from "./AdminNavLinks"
 
+export const metadata = {
+  title: {
+    template: "%s — Admin Etalase",
+    default: "Admin — Etalase",
+  },
+}
+
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const session = await requireAdmin()
 

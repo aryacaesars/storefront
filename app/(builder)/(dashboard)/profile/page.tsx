@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils"
 import { DashboardShell } from "@/features/builder/components/DashboardShell"
 import { DashboardPanel, dashboardFormWidth, dashboardLabel } from "@/features/builder/components/dashboard-ui"
 
-export const metadata = { title: "Profile — Storefront Builder" }
+export const metadata = { title: "Profile" }
 
 export default async function ProfilePage() {
   const session = await requireSession()

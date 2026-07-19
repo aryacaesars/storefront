@@ -31,6 +31,8 @@ import {
 import type { CategoryCardLayout } from "@/themes/bento/sections/category-grid-layout"
 import type { SectionProps } from "@/themes/engine/section-registry"
 import {
+  defaultHeroTitle1Layout,
+  defaultHeroTitle2Layout,
   heroTitleLayoutToPatch,
   heroTitleLayoutsToPatch,
   parseHeroTitleLayout,
@@ -365,8 +367,6 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const heroImageZoom = parseHeroImageZoom(mediaSettings)
   const canvasTexts = parseCanvasTexts(mediaSettings)
 
-  const title1Layout = parseHeroTitleLayout(mediaSettings, "title1", isMobile)
-  const title2Layout = parseHeroTitleLayout(mediaSettings, "title2", isMobile)
   const title1Layer = parseTitleLayer(mediaSettings?.title1Layer)
   const title2Layer = parseTitleLayer(mediaSettings?.title2Layer)
 
@@ -384,8 +384,15 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   )
   const useMobileTitleSeed = isMobile && !mediaHasMobileOverride
 
+  const title1Layout = useMobileTitleSeed
+    ? defaultHeroTitle1Layout(true)
+    : parseHeroTitleLayout(mediaSettings, "title1", isMobile)
+  const title2Layout = useMobileTitleSeed
+    ? defaultHeroTitle2Layout(true, title1Layout)
+    : parseHeroTitleLayout(mediaSettings, "title2", isMobile)
+
   const ctaHasMobileOverride = Boolean(
-    (ctaBlock?.settings as Record<string, unknown> | undefined)?.[MOBILE_OVERRIDE_FLAG],
+    ctaSettings?.[MOBILE_OVERRIDE_FLAG] || hasMobileOverride(ctaSettings),
   )
   const useMobileCtaSeed = isMobile && !ctaHasMobileOverride
 

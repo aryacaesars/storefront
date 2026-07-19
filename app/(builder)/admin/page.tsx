@@ -4,7 +4,7 @@ import { Store, LayoutTemplate, ShoppingCart, DollarSign } from "lucide-react"
 import { DashboardShell } from "@/features/builder/components/DashboardShell"
 import { DashboardStatCard } from "@/features/builder/components/DashboardStatCard"
 
-export const metadata = { title: "Admin — Overview" }
+export const metadata = { title: "Overview" }
 
 export default async function AdminOverviewPage() {
   await requireAdmin()

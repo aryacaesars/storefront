@@ -100,6 +100,28 @@ export function proxy(request: NextRequest) {
   const hostname = getHostname(request);
   const { context, tenant } = resolve(hostname);
 
+  // Salin header masuk, strip header internal (anti-spoof), set ulang.
+  const headers = new Headers(request.headers);
+  headers.delete(CTX_HEADER);
+  headers.delete(TENANT_HEADER);
+  headers.delete("x-pathname");
+  headers.set(CTX_HEADER, context);
+  headers.set("x-pathname", pathname);
+  if (tenant) headers.set(TENANT_HEADER, tenant);
+
+  // Live store: /favicon.ico & /icon.svg jangan serve brand Etalase.
+  // Browser sering nge-hit path ini langsung, bypass <link rel="icon">.
+  if (
+    context === "storefront" &&
+    (pathname === "/favicon.ico" ||
+      pathname === "/icon.svg" ||
+      pathname === "/icon")
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/api/storefront/favicon";
+    return NextResponse.rewrite(url, { request: { headers } });
+  }
+
   // Auth gate: hanya konteks builder + path terproteksi. Tak ada cookie -> login.
   if (context === "builder") {
     const needsAuth = PROTECTED.some(
@@ -124,20 +146,16 @@ export function proxy(request: NextRequest) {
     }
   }
 
-  // Salin header masuk, strip header internal (anti-spoof), set ulang.
-  const headers = new Headers(request.headers);
-  headers.delete(CTX_HEADER);
-  headers.delete(TENANT_HEADER);
-  headers.delete("x-pathname");
-  headers.set(CTX_HEADER, context);
-  headers.set("x-pathname", pathname);
-  if (tenant) headers.set(TENANT_HEADER, tenant);
-
   return NextResponse.next({ request: { headers } });
 }
 
 export const config = {
-  // Jalankan di semua path KECUALI internal Next, static asset, & file dengan ekstensi.
-  // api/storefront/ tetap masuk supaya x-tenant-subdomain ter-inject ke route handlers storefront.
-  matcher: ["/((?!api/(?!storefront/)|_next/|_static/|_vercel|favicon.ico|.*\\..*).*)"],
+  // Path biasa + favicon/icon (punya ekstensi, biasanya di-skip) supaya
+  // storefront bisa rewrite ke favicon dinamis.
+  matcher: [
+    "/((?!api/(?!storefront/)|_next/|_static/|_vercel|.*\\..*).*)",
+    "/favicon.ico",
+    "/icon.svg",
+    "/icon",
+  ],
 };

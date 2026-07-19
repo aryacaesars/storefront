@@ -4,6 +4,8 @@ import { requireCustomer } from "@/features/storefront/customer-dal"
 import { getCustomerOrder } from "@/server/services/customer.service"
 import { formatIdr } from "@/features/storefront/catalog-types"
 
+export const metadata = { title: "Detail Pesanan" }
+
 const STATUS_LABEL: Record<string, string> = {
   PENDING: "Menunggu",
   PAID: "Dibayar",
