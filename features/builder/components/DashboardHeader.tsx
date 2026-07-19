@@ -33,7 +33,7 @@ export function DashboardHeader({
       )}
 
       {title && (
-        <h1 className="min-w-0 flex-1 truncate font-display text-[1.75rem] font-bold leading-9 tracking-tight text-dash-ink lg:text-[1.875rem]">
+        <h1 className="min-w-0 flex-1 truncate font-display text-lg font-semibold leading-7 tracking-tight text-dash-ink lg:text-xl">
           {title}
         </h1>
       )}

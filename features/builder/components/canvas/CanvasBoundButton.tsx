@@ -122,6 +122,8 @@ export function CanvasBoundButton({
     width: `${layout.wPct}%`,
     top: `${layout.yPx * scale}px`,
     height: `${layout.hPx * scale}px`,
+    // Di atas layer gambar (z-10), judul (z-15), overlay, dan free-text (≤40).
+    zIndex: 50,
   }
 
   const buttonStyle: React.CSSProperties = {
@@ -148,7 +150,7 @@ export function CanvasBoundButton({
   )
 
   const className = cn(
-    "pointer-events-auto z-20 flex items-center justify-center overflow-visible px-6 font-black uppercase tracking-[0.14em]",
+    "pointer-events-auto flex items-center justify-center overflow-visible px-6 font-black uppercase tracking-[0.14em]",
     shapeClass,
     editable && "cursor-pointer",
     !editable && "hover:opacity-80",
