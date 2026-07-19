@@ -83,7 +83,8 @@ export function PreviewCanvas({
     if (!vp) return
     const ro = new ResizeObserver((entries) => {
       const w = entries[0]?.contentRect.width ?? vp.clientWidth
-      if (Math.abs(w - lastViewportW.current) < 1) return
+      // Ignore sub-pixel / scrollbar flicker so fit doesn't fight scroll.
+      if (Math.abs(w - lastViewportW.current) < 8) return
       lastViewportW.current = w
       if (!fitModeRef.current) return
       const pad = 24
@@ -100,16 +101,26 @@ export function PreviewCanvas({
     return () => ro.disconnect()
   }, [artboardW])
 
+  // Measure unscaled artboard height so the scroll spacer matches page length.
   useEffect(() => {
     const el = artboardRef.current
     if (!el) return
-    const ro = new ResizeObserver(() => {
-      setContentH(el.offsetHeight)
-    })
+
+    const measure = () => {
+      const h = Math.max(el.scrollHeight, el.offsetHeight, 1)
+      setContentH((prev) => (Math.abs(prev - h) < 1 ? prev : h))
+    }
+
+    measure()
+    const ro = new ResizeObserver(measure)
     ro.observe(el)
-    setContentH(el.offsetHeight)
-    return () => ro.disconnect()
-  }, [device])
+    const mo = new MutationObserver(measure)
+    mo.observe(el, { childList: true, subtree: true, characterData: true })
+    return () => {
+      ro.disconnect()
+      mo.disconnect()
+    }
+  }, [device, children])
 
   const bumpZoom = useCallback((next: number | ((z: number) => number)) => {
     fitModeRef.current = false
@@ -118,7 +129,7 @@ export function PreviewCanvas({
     )
   }, [])
 
-  // Ctrl / meta + wheel → canvas zoom only
+  // Ctrl / meta + wheel → canvas zoom only (plain wheel still scrolls)
   useEffect(() => {
     const el = viewportRef.current
     if (!el) return
@@ -133,7 +144,7 @@ export function PreviewCanvas({
     return () => el.removeEventListener("wheel", onWheel)
   }, [bumpZoom])
 
-  // Pinch-to-zoom; block browser page zoom
+  // Pinch-to-zoom only (2 fingers). One-finger pan/scroll stays native.
   useEffect(() => {
     const el = viewportRef.current
     if (!el) return
@@ -167,6 +178,7 @@ export function PreviewCanvas({
     }
 
     const onTouchMove = (e: TouchEvent) => {
+      // Block browser page-zoom; keep one-finger native scroll.
       if (e.touches.length >= 2) e.preventDefault()
     }
 
@@ -194,13 +206,17 @@ export function PreviewCanvas({
     >
       <div
         ref={viewportRef}
-        className="relative min-h-0 flex-1 touch-none overflow-auto overscroll-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        // touch-pan-* keeps finger scroll; pinch handled in JS above.
+        // touch-none was blocking all scroll on mobile.
+        className="relative min-h-0 flex-1 touch-pan-x touch-pan-y overflow-auto overscroll-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         data-preview-viewport
       >
         <div
           className="relative mx-auto"
           style={{
             width: scaledW,
+            // Explicit min sizes so overflow-auto always has scrollable range
+            minWidth: scaledW,
             marginTop: 16,
             marginBottom: 64,
           }}
