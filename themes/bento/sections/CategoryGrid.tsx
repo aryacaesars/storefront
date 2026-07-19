@@ -11,6 +11,7 @@ import { CanvasImageFrame } from "@/features/builder/components/canvas/CanvasIma
 import { CanvasInlineText } from "@/features/builder/components/canvas/CanvasInlineText"
 import { CanvasLabelResizeHandles } from "@/features/builder/components/canvas/CanvasLabelResizeHandles"
 import { CanvasResizeHandles } from "@/features/builder/components/canvas/CanvasResizeHandles"
+import { createDragSession } from "@/features/builder/components/canvas/visual-frame"
 import type { SectionProps } from "@/themes/engine/section-registry"
 import type { BlockInstance } from "@/themes/engine/schema"
 import {
@@ -134,27 +135,19 @@ function CategoryCard({
       const startY = event.clientY
       const origin: CategoryLabelLayout = { ...card.labelLayout }
       let dragging = false
+      const session = createDragSession<Record<string, unknown>>(event, (patch) => onChange(patch))
 
-      function onMove(moveEvent: PointerEvent) {
+      session.listen((moveEvent) => {
         if (!cardBoundsRef.current) return
         const dx = moveEvent.clientX - startX
         const dy = moveEvent.clientY - startY
         if (!dragging && Math.abs(dx) + Math.abs(dy) < LABEL_DRAG_THRESHOLD) return
         dragging = true
-        moveEvent.preventDefault()
         const metrics = getLabelMetrics(cardBoundsRef.current)
-        onChange(
+        session.push(
           labelLayoutToPatch(labelMoveFromDelta(dx, dy, metrics, origin)),
         )
-      }
-
-      function onUp() {
-        window.removeEventListener("pointermove", onMove)
-        window.removeEventListener("pointerup", onUp)
-      }
-
-      window.addEventListener("pointermove", onMove)
-      window.addEventListener("pointerup", onUp)
+      })
     },
     [card.labelLayout, labelMovable, onChange, onSelectLabel],
   )

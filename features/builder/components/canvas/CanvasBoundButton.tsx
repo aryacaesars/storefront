@@ -6,7 +6,7 @@ import { CanvasMeasurementBadge } from "@/features/builder/components/canvas/Can
 import { CanvasInlineText } from "@/features/builder/components/canvas/CanvasInlineText"
 import { CanvasResizeHandles } from "@/features/builder/components/canvas/CanvasResizeHandles"
 import {
-  createDragRaf,
+  createDragSession,
   visualFrameSize,
 } from "@/features/builder/components/canvas/visual-frame"
 import {
@@ -82,9 +82,9 @@ export function CanvasBoundButton({
     const { w: frameWidth, h: frameHeight } = visualFrameSize(frame)
     const designHeight = (frame.clientHeight || 1) / (scale || 1)
     let dragging = false
-    const raf = createDragRaf(onChange)
+    const session = createDragSession(event, onChange)
 
-    function onPointerMove(e: PointerEvent) {
+    session.listen((e) => {
       const dx = e.clientX - startX
       const dy = e.clientY - startY
       if (!dragging && Math.abs(dx) + Math.abs(dy) < DRAG_THRESHOLD_PX) return
@@ -103,18 +103,11 @@ export function CanvasBoundButton({
         0,
         Math.min(designHeight - start.hPx, start.yPx + dy * (designHeight / frameHeight)),
       )
-      raf.push({
+      session.push({
         xPct: Math.round(xPct * 10) / 10,
         yPx: Math.round(yPx),
       })
-    }
-    function onUp() {
-      raf.cancel()
-      window.removeEventListener("pointermove", onPointerMove)
-      window.removeEventListener("pointerup", onUp)
-    }
-    window.addEventListener("pointermove", onPointerMove)
-    window.addEventListener("pointerup", onUp)
+    })
   }
 
   const isOutline = variant === "outline"

@@ -9,6 +9,7 @@ import { CanvasMultiImageItem } from "@/features/builder/components/canvas/Canva
 import { CanvasInlineText } from "@/features/builder/components/canvas/CanvasInlineText"
 import { CanvasLabelResizeHandles } from "@/features/builder/components/canvas/CanvasLabelResizeHandles"
 import { CanvasFreeTextLayer } from "@/features/builder/components/canvas/CanvasFreeTextLayer"
+import { createDragSession } from "@/features/builder/components/canvas/visual-frame"
 import type { SectionProps } from "@/themes/engine/section-registry"
 import {
   parseCanvasImages,
@@ -139,31 +140,23 @@ function HeroTitleLine({
       const startY = event.clientY
       const origin: CategoryLabelLayout = { ...labelLayout }
       let dragging = false
+      const session = createDragSession<ReturnType<typeof labelMoveFromDelta>>(event, (layout) => {
+        onLayoutChange(heroTitleLayoutToPatch(line, layout))
+      })
 
-      function onMove(moveEvent: PointerEvent) {
+      session.listen((moveEvent) => {
         if (!frameRef.current) return
         const dx = moveEvent.clientX - startX
         const dy = moveEvent.clientY - startY
         if (!dragging && Math.abs(dx) + Math.abs(dy) < LABEL_DRAG_THRESHOLD) return
         dragging = true
-        moveEvent.preventDefault()
         const active = document.activeElement
         if (active instanceof HTMLElement && active.isContentEditable) {
           active.blur()
         }
         const metrics = getLabelMetrics(frameRef.current)
-        onLayoutChange(
-          heroTitleLayoutToPatch(line, labelMoveFromDelta(dx, dy, metrics, origin)),
-        )
-      }
-
-      function onUp() {
-        window.removeEventListener("pointermove", onMove)
-        window.removeEventListener("pointerup", onUp)
-      }
-
-      window.addEventListener("pointermove", onMove)
-      window.addEventListener("pointerup", onUp)
+        session.push(labelMoveFromDelta(dx, dy, metrics, origin))
+      })
     },
     [frameRef, labelLayout, labelMovable, line, onLayoutChange],
   )

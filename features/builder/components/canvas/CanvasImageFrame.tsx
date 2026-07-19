@@ -3,7 +3,7 @@
 import { useRef } from "react"
 import { cn } from "@/lib/utils"
 import {
-  createDragRaf,
+  createDragSession,
   visualFrameSize,
 } from "@/features/builder/components/canvas/visual-frame"
 import {
@@ -59,21 +59,14 @@ export function CanvasImageFrame({ image, interactive, domKey, onChange }: Canva
     const { x: originX, y: originY } = stateRef.current.image
     const frame = event.currentTarget.parentElement?.parentElement
     const { w: width, h: height } = visualFrameSize(frame)
-    const raf = createDragRaf(stateRef.current.onChange)
+    const session = createDragSession(event, stateRef.current.onChange)
 
-    function onMove(e: PointerEvent) {
-      raf.push({
+    session.listen((e) => {
+      session.push({
         imgX: Math.round(originX + ((e.clientX - startX) / width) * 100),
         imgY: Math.round(originY + ((e.clientY - startY) / height) * 100),
       })
-    }
-    function onUp() {
-      raf.cancel()
-      window.removeEventListener("pointermove", onMove)
-      window.removeEventListener("pointerup", onUp)
-    }
-    window.addEventListener("pointermove", onMove)
-    window.addEventListener("pointerup", onUp)
+    })
   }
 
   // ── Rotate ──────────────────────────────────────────────────────────────────
@@ -88,23 +81,16 @@ export function CanvasImageFrame({ image, interactive, domKey, onChange }: Canva
     const cy = rect.top + rect.height / 2
     const startAngle = Math.atan2(event.clientY - cy, event.clientX - cx)
     const startRotation = stateRef.current.image.rotation
-    const raf = createDragRaf(stateRef.current.onChange)
+    const session = createDragSession(event, stateRef.current.onChange)
 
-    function onMove(e: PointerEvent) {
+    session.listen((e) => {
       const angle = Math.atan2(e.clientY - cy, e.clientX - cx)
-      raf.push({
+      session.push({
         imgRotation: Math.round(
           startRotation + (angle - startAngle) * (180 / Math.PI),
         ),
       })
-    }
-    function onUp() {
-      raf.cancel()
-      window.removeEventListener("pointermove", onMove)
-      window.removeEventListener("pointerup", onUp)
-    }
-    window.addEventListener("pointermove", onMove)
-    window.addEventListener("pointerup", onUp)
+    })
   }
 
   // ── Zoom (corner scale) ──────────────────────────────────────────────────────
@@ -117,21 +103,14 @@ export function CanvasImageFrame({ image, interactive, domKey, onChange }: Canva
       const startScaleVal = stateRef.current.image.scale
       const startX = event.clientX
       const startY = event.clientY
-      const raf = createDragRaf(stateRef.current.onChange)
+      const session = createDragSession(event, stateRef.current.onChange)
 
-      function onMove(e: PointerEvent) {
+      session.listen((e) => {
         const delta = (e.clientX - startX) * flipX + (e.clientY - startY) * flipY
-        raf.push({
+        session.push({
           imgScale: clampScale(Math.round(startScaleVal + delta * 0.35)),
         })
-      }
-      function onUp() {
-        raf.cancel()
-        window.removeEventListener("pointermove", onMove)
-        window.removeEventListener("pointerup", onUp)
-      }
-      window.addEventListener("pointermove", onMove)
-      window.addEventListener("pointerup", onUp)
+      })
     }
   }
 

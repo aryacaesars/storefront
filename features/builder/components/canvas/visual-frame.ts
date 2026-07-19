@@ -10,6 +10,45 @@ export function visualFrameSize(
   }
 }
 
+type LockListener = () => void
+let scrollLockCount = 0
+const scrollLockListeners = new Set<LockListener>()
+
+function emitScrollLock() {
+  for (const listener of scrollLockListeners) listener()
+}
+
+/** True while a canvas object is being dragged/resized. */
+export function isPreviewScrollLocked() {
+  return scrollLockCount > 0
+}
+
+export function subscribePreviewScrollLock(listener: LockListener) {
+  scrollLockListeners.add(listener)
+  return () => {
+    scrollLockListeners.delete(listener)
+  }
+}
+
+/** Freeze preview viewport pan/scroll for the duration of a drag. */
+export function lockPreviewScroll() {
+  scrollLockCount += 1
+  if (scrollLockCount === 1) {
+    document.documentElement.dataset.canvasDragging = "true"
+    emitScrollLock()
+  }
+  let released = false
+  return () => {
+    if (released) return
+    released = true
+    scrollLockCount = Math.max(0, scrollLockCount - 1)
+    if (scrollLockCount === 0) {
+      delete document.documentElement.dataset.canvasDragging
+      emitScrollLock()
+    }
+  }
+}
+
 /** Coalesce rapid pointer updates to one React commit per frame. */
 export function createDragRaf<T>(commit: (value: T) => void) {
   let raf = 0
@@ -31,5 +70,85 @@ export function createDragRaf<T>(commit: (value: T) => void) {
     pending = null
   }
 
-  return { push, cancel }
+  /** Flush last pending value immediately (call on pointerup). */
+  const flush = () => {
+    if (raf) {
+      cancelAnimationFrame(raf)
+      raf = 0
+    }
+    if (pending !== null) {
+      commit(pending)
+      pending = null
+    }
+  }
+
+  return { push, cancel, flush }
+}
+
+/**
+ * Start a canvas drag/resize session:
+ * - pointer capture
+ * - lock preview scroll (stops viewport chasing the finger)
+ * - non-passive move listeners so preventDefault works on touch
+ */
+export function createDragSession<T>(
+  event: React.PointerEvent,
+  commit: (value: T) => void,
+) {
+  event.stopPropagation()
+  // Don't preventDefault on down for text (need click-to-edit) — callers can.
+  const target = event.currentTarget as HTMLElement
+  try {
+    target.setPointerCapture(event.pointerId)
+  } catch {
+    // Some elements (svg/text) may not support capture — still OK.
+  }
+
+  const unlockScroll = lockPreviewScroll()
+  const viewport = document.querySelector<HTMLElement>("[data-preview-viewport]")
+  const frozenLeft = viewport?.scrollLeft ?? 0
+  const frozenTop = viewport?.scrollTop ?? 0
+  const freezeScroll = () => {
+    if (!viewport) return
+    if (viewport.scrollLeft !== frozenLeft) viewport.scrollLeft = frozenLeft
+    if (viewport.scrollTop !== frozenTop) viewport.scrollTop = frozenTop
+  }
+  viewport?.addEventListener("scroll", freezeScroll, { passive: true })
+
+  const raf = createDragRaf(commit)
+  let ended = false
+
+  const end = () => {
+    if (ended) return
+    ended = true
+    raf.flush()
+    viewport?.removeEventListener("scroll", freezeScroll)
+    unlockScroll()
+    try {
+      if (target.hasPointerCapture(event.pointerId)) {
+        target.releasePointerCapture(event.pointerId)
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const listen = (onMove: (e: PointerEvent) => void) => {
+    const handleMove = (e: PointerEvent) => {
+      e.preventDefault()
+      freezeScroll()
+      onMove(e)
+    }
+    const handleUp = () => {
+      window.removeEventListener("pointermove", handleMove)
+      window.removeEventListener("pointerup", handleUp)
+      window.removeEventListener("pointercancel", handleUp)
+      end()
+    }
+    window.addEventListener("pointermove", handleMove, { passive: false })
+    window.addEventListener("pointerup", handleUp)
+    window.addEventListener("pointercancel", handleUp)
+  }
+
+  return { push: raf.push, end, listen }
 }

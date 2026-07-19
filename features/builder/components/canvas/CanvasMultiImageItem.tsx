@@ -3,7 +3,7 @@
 import { useRef } from "react"
 import { cn } from "@/lib/utils"
 import {
-  createDragRaf,
+  createDragSession,
   visualFrameSize,
 } from "@/features/builder/components/canvas/visual-frame"
 import {
@@ -133,22 +133,15 @@ export function CanvasMultiImageItem({
     const virtual = virtualBoxFromCrop(startItem)
     const startCrop = startItem.crop ?? { x: 0, y: 0, w: 1, h: 1 }
     const { w: fw, h: fh } = frameVisual()
-    const raf = createDragRaf(stateRef.current.onChange)
+    const session = createDragSession(event, stateRef.current.onChange)
 
-    function onMove(e: PointerEvent) {
+    session.listen((e) => {
       const dxFrac = (((e.clientX - startX) / fw) * 100) / virtual.width
       const dyFrac = (((e.clientY - startY) / fh) * 100) / virtual.height
       const x = clampNum(startCrop.x - dxFrac, 0, 1 - startCrop.w)
       const y = clampNum(startCrop.y - dyFrac, 0, 1 - startCrop.h)
-      raf.push({ crop: { ...startCrop, x, y } })
-    }
-    function onUp() {
-      raf.cancel()
-      window.removeEventListener("pointermove", onMove)
-      window.removeEventListener("pointerup", onUp)
-    }
-    window.addEventListener("pointermove", onMove)
-    window.addEventListener("pointerup", onUp)
+      session.push({ crop: { ...startCrop, x, y } })
+    })
   }
 
   function startCropCorner(corner: "tl" | "tr" | "bl" | "br") {
@@ -170,9 +163,9 @@ export function CanvasMultiImageItem({
       const bottom = start.y + start.height
       const vRight = virtual.x + virtual.width
       const vBottom = virtual.y + virtual.height
-      const raf = createDragRaf(stateRef.current.onChange)
+      const session = createDragSession(event, stateRef.current.onChange)
 
-      function onMove(e: PointerEvent) {
+      session.listen((e) => {
         const dx = ((e.clientX - startX) / fw) * 100
         const dy = ((e.clientY - startY) / fh) * 100
         const box = { ...start }
@@ -195,21 +188,14 @@ export function CanvasMultiImageItem({
           box.height = b - start.y
         }
 
-        raf.push({
+        session.push({
           x: round1(box.x),
           y: round1(box.y),
           width: round1(box.width),
           height: round1(box.height),
           crop: cropFromBox(box, virtual),
         })
-      }
-      function onUp() {
-        raf.cancel()
-        window.removeEventListener("pointermove", onMove)
-        window.removeEventListener("pointerup", onUp)
-      }
-      window.addEventListener("pointermove", onMove)
-      window.addEventListener("pointerup", onUp)
+      })
     }
   }
 
@@ -224,21 +210,14 @@ export function CanvasMultiImageItem({
     const startY = event.clientY
     const { x: ox, y: oy } = stateRef.current.item
     const { w: fw, h: fh } = frameVisual()
-    const raf = createDragRaf(stateRef.current.onChange)
+    const session = createDragSession(event, stateRef.current.onChange)
 
-    function onMove(e: PointerEvent) {
-      raf.push({
+    session.listen((e) => {
+      session.push({
         x: Math.round(Math.max(-20, Math.min(95, ox + ((e.clientX - startX) / fw) * 100)) * 10) / 10,
         y: Math.round(Math.max(-20, Math.min(95, oy + ((e.clientY - startY) / fh) * 100)) * 10) / 10,
       })
-    }
-    function onUp() {
-      raf.cancel()
-      window.removeEventListener("pointermove", onMove)
-      window.removeEventListener("pointerup", onUp)
-    }
-    window.addEventListener("pointermove", onMove)
-    window.addEventListener("pointerup", onUp)
+    })
   }
 
   // ── Rotate ──────────────────────────────────────────────────────────────────
@@ -253,21 +232,14 @@ export function CanvasMultiImageItem({
     const cy = rect.top + rect.height / 2
     const startAngle = Math.atan2(event.clientY - cy, event.clientX - cx)
     const startRotation = stateRef.current.item.rotation
-    const raf = createDragRaf(stateRef.current.onChange)
+    const session = createDragSession(event, stateRef.current.onChange)
 
-    function onMove(e: PointerEvent) {
+    session.listen((e) => {
       const angle = Math.atan2(e.clientY - cy, e.clientX - cx)
-      raf.push({
+      session.push({
         rotation: Math.round(startRotation + (angle - startAngle) * (180 / Math.PI)),
       })
-    }
-    function onUp() {
-      raf.cancel()
-      window.removeEventListener("pointermove", onMove)
-      window.removeEventListener("pointerup", onUp)
-    }
-    window.addEventListener("pointermove", onMove)
-    window.addEventListener("pointerup", onUp)
+    })
   }
 
   // ── Corner resize — opposite corner stays fixed ──────────────────────────────
@@ -278,27 +250,20 @@ export function CanvasMultiImageItem({
     const sx = event.clientX, sy = event.clientY
     const { x: ox, y: oy, width: ow, height: oh } = stateRef.current.item
     const { w: fw, h: fh } = frameVisual()
-    const raf = createDragRaf(stateRef.current.onChange)
+    const session = createDragSession(event, stateRef.current.onChange)
 
-    function onMove(e: PointerEvent) {
+    session.listen((e) => {
       const dx = ((e.clientX - sx) / fw) * 100
       const dy = ((e.clientY - sy) / fh) * 100
       const nw = ow - dx, nh = oh - dy
       if (nw < 5 || nh < 5) return
-      raf.push({
+      session.push({
         x: Math.round((ox + dx) * 10) / 10,
         y: Math.round((oy + dy) * 10) / 10,
         width: Math.round(nw * 10) / 10,
         height: Math.round(nh * 10) / 10,
       })
-    }
-    function onUp() {
-      raf.cancel()
-      window.removeEventListener("pointermove", onMove)
-      window.removeEventListener("pointerup", onUp)
-    }
-    window.addEventListener("pointermove", onMove)
-    window.addEventListener("pointerup", onUp)
+    })
   }
 
   function startTRResize(event: React.PointerEvent<HTMLButtonElement>) {
@@ -307,26 +272,19 @@ export function CanvasMultiImageItem({
     const sx = event.clientX, sy = event.clientY
     const { y: oy, width: ow, height: oh } = stateRef.current.item
     const { w: fw, h: fh } = frameVisual()
-    const raf = createDragRaf(stateRef.current.onChange)
+    const session = createDragSession(event, stateRef.current.onChange)
 
-    function onMove(e: PointerEvent) {
+    session.listen((e) => {
       const dx = ((e.clientX - sx) / fw) * 100
       const dy = ((e.clientY - sy) / fh) * 100
       const nw = ow + dx, nh = oh - dy
       if (nw < 5 || nh < 5) return
-      raf.push({
+      session.push({
         y: Math.round((oy + dy) * 10) / 10,
         width: Math.round(nw * 10) / 10,
         height: Math.round(nh * 10) / 10,
       })
-    }
-    function onUp() {
-      raf.cancel()
-      window.removeEventListener("pointermove", onMove)
-      window.removeEventListener("pointerup", onUp)
-    }
-    window.addEventListener("pointermove", onMove)
-    window.addEventListener("pointerup", onUp)
+    })
   }
 
   function startBLResize(event: React.PointerEvent<HTMLButtonElement>) {
@@ -335,26 +293,19 @@ export function CanvasMultiImageItem({
     const sx = event.clientX, sy = event.clientY
     const { x: ox, width: ow, height: oh } = stateRef.current.item
     const { w: fw, h: fh } = frameVisual()
-    const raf = createDragRaf(stateRef.current.onChange)
+    const session = createDragSession(event, stateRef.current.onChange)
 
-    function onMove(e: PointerEvent) {
+    session.listen((e) => {
       const dx = ((e.clientX - sx) / fw) * 100
       const dy = ((e.clientY - sy) / fh) * 100
       const nw = ow - dx, nh = oh + dy
       if (nw < 5 || nh < 5) return
-      raf.push({
+      session.push({
         x: Math.round((ox + dx) * 10) / 10,
         width: Math.round(nw * 10) / 10,
         height: Math.round(nh * 10) / 10,
       })
-    }
-    function onUp() {
-      raf.cancel()
-      window.removeEventListener("pointermove", onMove)
-      window.removeEventListener("pointerup", onUp)
-    }
-    window.addEventListener("pointermove", onMove)
-    window.addEventListener("pointerup", onUp)
+    })
   }
 
   function startBRResize(event: React.PointerEvent<HTMLButtonElement>) {
@@ -363,23 +314,16 @@ export function CanvasMultiImageItem({
     const sx = event.clientX, sy = event.clientY
     const { width: ow, height: oh } = stateRef.current.item
     const { w: fw, h: fh } = frameVisual()
-    const raf = createDragRaf(stateRef.current.onChange)
+    const session = createDragSession(event, stateRef.current.onChange)
 
-    function onMove(e: PointerEvent) {
+    session.listen((e) => {
       const nw = Math.max(5, ow + ((e.clientX - sx) / fw) * 100)
       const nh = Math.max(5, oh + ((e.clientY - sy) / fh) * 100)
-      raf.push({
+      session.push({
         width: Math.round(nw * 10) / 10,
         height: Math.round(nh * 10) / 10,
       })
-    }
-    function onUp() {
-      raf.cancel()
-      window.removeEventListener("pointermove", onMove)
-      window.removeEventListener("pointerup", onUp)
-    }
-    window.addEventListener("pointermove", onMove)
-    window.addEventListener("pointerup", onUp)
+    })
   }
 
   // ── Edge resize ──────────────────────────────────────────────────────────────
@@ -390,19 +334,12 @@ export function CanvasMultiImageItem({
     const sx = event.clientX
     const ow = stateRef.current.item.width
     const { w: fw } = frameVisual()
-    const raf = createDragRaf(stateRef.current.onChange)
-    function onMove(e: PointerEvent) {
-      raf.push({
+    const session = createDragSession(event, stateRef.current.onChange)
+    session.listen((e) => {
+      session.push({
         width: Math.round(Math.max(5, ow + ((e.clientX - sx) / fw) * 100) * 10) / 10,
       })
-    }
-    function onUp() {
-      raf.cancel()
-      window.removeEventListener("pointermove", onMove)
-      window.removeEventListener("pointerup", onUp)
-    }
-    window.addEventListener("pointermove", onMove)
-    window.addEventListener("pointerup", onUp)
+    })
   }
 
   function startLeftResize(event: React.PointerEvent<HTMLButtonElement>) {
@@ -411,23 +348,16 @@ export function CanvasMultiImageItem({
     const sx = event.clientX
     const { x: ox, width: ow } = stateRef.current.item
     const { w: fw } = frameVisual()
-    const raf = createDragRaf(stateRef.current.onChange)
-    function onMove(e: PointerEvent) {
+    const session = createDragSession(event, stateRef.current.onChange)
+    session.listen((e) => {
       const dx = ((e.clientX - sx) / fw) * 100
       const nw = ow - dx
       if (nw < 5) return
-      raf.push({
+      session.push({
         x: Math.round((ox + dx) * 10) / 10,
         width: Math.round(nw * 10) / 10,
       })
-    }
-    function onUp() {
-      raf.cancel()
-      window.removeEventListener("pointermove", onMove)
-      window.removeEventListener("pointerup", onUp)
-    }
-    window.addEventListener("pointermove", onMove)
-    window.addEventListener("pointerup", onUp)
+    })
   }
 
   function startBottomResize(event: React.PointerEvent<HTMLButtonElement>) {
@@ -436,19 +366,12 @@ export function CanvasMultiImageItem({
     const sy = event.clientY
     const oh = stateRef.current.item.height
     const { h: fh } = frameVisual()
-    const raf = createDragRaf(stateRef.current.onChange)
-    function onMove(e: PointerEvent) {
-      raf.push({
+    const session = createDragSession(event, stateRef.current.onChange)
+    session.listen((e) => {
+      session.push({
         height: Math.round(Math.max(5, oh + ((e.clientY - sy) / fh) * 100) * 10) / 10,
       })
-    }
-    function onUp() {
-      raf.cancel()
-      window.removeEventListener("pointermove", onMove)
-      window.removeEventListener("pointerup", onUp)
-    }
-    window.addEventListener("pointermove", onMove)
-    window.addEventListener("pointerup", onUp)
+    })
   }
 
   function startTopResize(event: React.PointerEvent<HTMLButtonElement>) {
@@ -457,23 +380,16 @@ export function CanvasMultiImageItem({
     const sy = event.clientY
     const { y: oy, height: oh } = stateRef.current.item
     const { h: fh } = frameVisual()
-    const raf = createDragRaf(stateRef.current.onChange)
-    function onMove(e: PointerEvent) {
+    const session = createDragSession(event, stateRef.current.onChange)
+    session.listen((e) => {
       const dy = ((e.clientY - sy) / fh) * 100
       const nh = oh - dy
       if (nh < 5) return
-      raf.push({
+      session.push({
         y: Math.round((oy + dy) * 10) / 10,
         height: Math.round(nh * 10) / 10,
       })
-    }
-    function onUp() {
-      raf.cancel()
-      window.removeEventListener("pointermove", onMove)
-      window.removeEventListener("pointerup", onUp)
-    }
-    window.addEventListener("pointermove", onMove)
-    window.addEventListener("pointerup", onUp)
+    })
   }
 
   // ── Render ───────────────────────────────────────────────────────────────────
@@ -596,29 +512,29 @@ export function CanvasMultiImageItem({
             {Math.round(item.width)}% × {Math.round(item.height)}% · {item.rotation > 0 ? `+${item.rotation}` : item.rotation}°
           </div>
 
-          {/* Corner handles — centered on corner point */}
+          {/* Corner handles — larger hit area when zoomed */}
           <button type="button" aria-label="Resize TL" onPointerDown={startTLResize}
-            style={{ top: -5, left: -5 }}
-            className="absolute z-30 h-2.5 w-2.5 cursor-nwse-resize rounded-[1px] border-2 border-indigo-500 bg-white shadow" />
+            style={{ top: -18, left: -18 }}
+            className="absolute z-30 flex h-11 w-11 touch-none cursor-nwse-resize items-center justify-center before:block before:h-2.5 before:w-2.5 before:rounded-[1px] before:border-2 before:border-indigo-500 before:bg-white before:shadow" />
           <button type="button" aria-label="Resize TR" onPointerDown={startTRResize}
-            style={{ top: -5, right: -5 }}
-            className="absolute z-30 h-2.5 w-2.5 cursor-nesw-resize rounded-[1px] border-2 border-indigo-500 bg-white shadow" />
+            style={{ top: -18, right: -18 }}
+            className="absolute z-30 flex h-11 w-11 touch-none cursor-nesw-resize items-center justify-center before:block before:h-2.5 before:w-2.5 before:rounded-[1px] before:border-2 before:border-indigo-500 before:bg-white before:shadow" />
           <button type="button" aria-label="Resize BL" onPointerDown={startBLResize}
-            style={{ bottom: -5, left: -5 }}
-            className="absolute z-30 h-2.5 w-2.5 cursor-nesw-resize rounded-[1px] border-2 border-indigo-500 bg-white shadow" />
+            style={{ bottom: -18, left: -18 }}
+            className="absolute z-30 flex h-11 w-11 touch-none cursor-nesw-resize items-center justify-center before:block before:h-2.5 before:w-2.5 before:rounded-[1px] before:border-2 before:border-indigo-500 before:bg-white before:shadow" />
           <button type="button" aria-label="Resize BR" onPointerDown={startBRResize}
-            style={{ bottom: -5, right: -5 }}
-            className="absolute z-30 h-2.5 w-2.5 cursor-nwse-resize rounded-[1px] border-2 border-indigo-500 bg-white shadow" />
+            style={{ bottom: -18, right: -18 }}
+            className="absolute z-30 flex h-11 w-11 touch-none cursor-nwse-resize items-center justify-center before:block before:h-2.5 before:w-2.5 before:rounded-[1px] before:border-2 before:border-indigo-500 before:bg-white before:shadow" />
 
           {/* Edge handles — midpoint of each edge */}
           <button type="button" aria-label="Tinggi atas" onPointerDown={startTopResize}
-            className="absolute left-1/2 top-0 z-30 h-2.5 w-8 -translate-x-1/2 -translate-y-1/2 cursor-ns-resize rounded-full border-2 border-indigo-400 bg-white shadow" />
+            className="absolute left-1/2 top-0 z-30 h-3 w-12 -translate-x-1/2 -translate-y-1/2 touch-none cursor-ns-resize rounded-full border-2 border-indigo-400 bg-white shadow" />
           <button type="button" aria-label="Tinggi bawah" onPointerDown={startBottomResize}
-            className="absolute bottom-0 left-1/2 z-30 h-2.5 w-8 -translate-x-1/2 translate-y-1/2 cursor-ns-resize rounded-full border-2 border-indigo-400 bg-white shadow" />
+            className="absolute bottom-0 left-1/2 z-30 h-3 w-12 -translate-x-1/2 translate-y-1/2 touch-none cursor-ns-resize rounded-full border-2 border-indigo-400 bg-white shadow" />
           <button type="button" aria-label="Lebar kiri" onPointerDown={startLeftResize}
-            className="absolute left-0 top-1/2 z-30 h-8 w-2.5 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize rounded-full border-2 border-indigo-400 bg-white shadow" />
+            className="absolute left-0 top-1/2 z-30 h-12 w-3 -translate-x-1/2 -translate-y-1/2 touch-none cursor-ew-resize rounded-full border-2 border-indigo-400 bg-white shadow" />
           <button type="button" aria-label="Lebar kanan" onPointerDown={startRightResize}
-            className="absolute right-0 top-1/2 z-30 h-8 w-2.5 translate-x-1/2 -translate-y-1/2 cursor-ew-resize rounded-full border-2 border-indigo-400 bg-white shadow" />
+            className="absolute right-0 top-1/2 z-30 h-12 w-3 translate-x-1/2 -translate-y-1/2 touch-none cursor-ew-resize rounded-full border-2 border-indigo-400 bg-white shadow" />
         </>
       )}
     </div>

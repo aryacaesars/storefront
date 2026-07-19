@@ -6,6 +6,7 @@ import {
   type BoxCorner,
   type BoxEdge,
 } from "@/features/builder/components/canvas/CanvasTextBoundingBox"
+import { createDragSession } from "@/features/builder/components/canvas/visual-frame"
 import {
   labelResizeFromBottomEdge,
   labelResizeFromCorner,
@@ -45,14 +46,12 @@ export function CanvasLabelResizeHandles({
       event.stopPropagation()
       if (!containerRef.current) return
 
-      event.currentTarget.setPointerCapture(event.pointerId)
       const startLayout = { ...layout }
-      const handleEl = event.currentTarget
+      const session = createDragSession<ResizePatch>(event, (patch) => onResizeRef.current(patch))
 
-      function onMove(moveEvent: PointerEvent) {
+      session.listen((moveEvent) => {
         if (!containerRef.current) return
-        moveEvent.preventDefault()
-        const metrics = getContainerMetrics(containerRef.current!)
+        const metrics = getContainerMetrics(containerRef.current)
         let patch: ResizePatch
         switch (edge) {
           case "left":
@@ -68,21 +67,8 @@ export function CanvasLabelResizeHandles({
             patch = labelResizeFromBottomEdge(moveEvent.clientY, metrics, startLayout)
             break
         }
-        onResizeRef.current(patch)
-      }
-
-      function onUp(moveEvent: PointerEvent) {
-        if (handleEl.hasPointerCapture(moveEvent.pointerId)) {
-          handleEl.releasePointerCapture(moveEvent.pointerId)
-        }
-        window.removeEventListener("pointermove", onMove)
-        window.removeEventListener("pointerup", onUp)
-        window.removeEventListener("pointercancel", onUp)
-      }
-
-      window.addEventListener("pointermove", onMove)
-      window.addEventListener("pointerup", onUp)
-      window.addEventListener("pointercancel", onUp)
+        session.push(patch)
+      })
     },
     [containerRef, layout],
   )
@@ -93,31 +79,22 @@ export function CanvasLabelResizeHandles({
       event.stopPropagation()
       if (!containerRef.current) return
 
-      event.currentTarget.setPointerCapture(event.pointerId)
       const startLayout = { ...layout }
-      const handleEl = event.currentTarget
+      const session = createDragSession<ResizePatch>(event, (patch) => onResizeRef.current(patch))
 
-      function onMove(moveEvent: PointerEvent) {
+      session.listen((moveEvent) => {
         if (!containerRef.current) return
-        moveEvent.preventDefault()
-        const metrics = getContainerMetrics(containerRef.current!)
-        onResizeRef.current(
-          labelResizeFromCorner(moveEvent.clientX, moveEvent.clientY, metrics, startLayout, corner),
+        const metrics = getContainerMetrics(containerRef.current)
+        session.push(
+          labelResizeFromCorner(
+            moveEvent.clientX,
+            moveEvent.clientY,
+            metrics,
+            startLayout,
+            corner,
+          ),
         )
-      }
-
-      function onUp(moveEvent: PointerEvent) {
-        if (handleEl.hasPointerCapture(moveEvent.pointerId)) {
-          handleEl.releasePointerCapture(moveEvent.pointerId)
-        }
-        window.removeEventListener("pointermove", onMove)
-        window.removeEventListener("pointerup", onUp)
-        window.removeEventListener("pointercancel", onUp)
-      }
-
-      window.addEventListener("pointermove", onMove)
-      window.addEventListener("pointerup", onUp)
-      window.addEventListener("pointercancel", onUp)
+      })
     },
     [containerRef, layout],
   )

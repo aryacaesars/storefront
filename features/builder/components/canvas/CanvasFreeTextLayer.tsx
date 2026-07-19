@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { CanvasInlineText } from "@/features/builder/components/canvas/CanvasInlineText"
 import {
-  createDragRaf,
+  createDragSession,
   visualFrameSize,
 } from "@/features/builder/components/canvas/visual-frame"
 import {
@@ -163,9 +163,9 @@ function CanvasFreeTextBox({
     const { x: ox, y: oy } = stateRef.current.item
     const { w, h } = frameSize()
     let dragging = false
-    const raf = createDragRaf(stateRef.current.onChange)
+    const session = createDragSession(event, stateRef.current.onChange)
 
-    function onPointerMove(e: PointerEvent) {
+    session.listen((e) => {
       const dx = e.clientX - startX
       const dy = e.clientY - startY
       if (!dragging && Math.abs(dx) + Math.abs(dy) < DRAG_THRESHOLD_PX) return
@@ -175,18 +175,11 @@ function CanvasFreeTextBox({
       if (active instanceof HTMLElement && active.isContentEditable) {
         active.blur()
       }
-      raf.push({
+      session.push({
         x: Math.round(Math.max(-10, Math.min(95, ox + (dx / w) * 100)) * 10) / 10,
         y: Math.round(Math.max(-10, Math.min(95, oy + (dy / h) * 100)) * 10) / 10,
       })
-    }
-    function onUp() {
-      raf.cancel()
-      window.removeEventListener("pointermove", onPointerMove)
-      window.removeEventListener("pointerup", onUp)
-    }
-    window.addEventListener("pointermove", onPointerMove)
-    window.addEventListener("pointerup", onUp)
+    })
   }
 
   function startWidthResize(edge: "left" | "right") {
@@ -197,30 +190,23 @@ function CanvasFreeTextBox({
       const { x: ox, width: ow } = stateRef.current.item
       const { w } = frameSize()
       const rightEdge = ox + ow
-      const raf = createDragRaf(stateRef.current.onChange)
+      const session = createDragSession(event, stateRef.current.onChange)
 
-      function onPointerMove(e: PointerEvent) {
+      session.listen((e) => {
         const dxPct = ((e.clientX - startX) / w) * 100
         if (edge === "right") {
-          raf.push({
+          session.push({
             width:
               Math.round(Math.max(MIN_TEXT_WIDTH_PCT, Math.min(100, ow + dxPct)) * 10) / 10,
           })
         } else {
           const x = Math.max(-10, Math.min(rightEdge - MIN_TEXT_WIDTH_PCT, ox + dxPct))
-          raf.push({
+          session.push({
             x: Math.round(x * 10) / 10,
             width: Math.round((rightEdge - x) * 10) / 10,
           })
         }
-      }
-      function onUp() {
-        raf.cancel()
-        window.removeEventListener("pointermove", onPointerMove)
-        window.removeEventListener("pointerup", onUp)
-      }
-      window.addEventListener("pointermove", onPointerMove)
-      window.addEventListener("pointerup", onUp)
+      })
     }
   }
 
@@ -232,23 +218,16 @@ function CanvasFreeTextBox({
       const startX = event.clientX
       const startY = event.clientY
       const startFont = stateRef.current.item.fontSize
-      const raf = createDragRaf(stateRef.current.onChange)
+      const session = createDragSession(event, stateRef.current.onChange)
 
-      function onPointerMove(e: PointerEvent) {
+      session.listen((e) => {
         const delta =
           ((e.clientX - startX) * flipX + (e.clientY - startY) * flipY) / 2
         const next = startFont + delta / Math.max(scale, 0.05)
-        raf.push({
+        session.push({
           fontSize: Math.round(Math.max(MIN_FONT_PX, Math.min(MAX_FONT_PX, next))),
         })
-      }
-      function onUp() {
-        raf.cancel()
-        window.removeEventListener("pointermove", onPointerMove)
-        window.removeEventListener("pointerup", onUp)
-      }
-      window.addEventListener("pointermove", onPointerMove)
-      window.addEventListener("pointerup", onUp)
+      })
     }
   }
 

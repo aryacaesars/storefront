@@ -9,6 +9,10 @@ import {
 } from "react"
 import { Minus, Plus, Maximize2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import {
+  isPreviewScrollLocked,
+  subscribePreviewScrollLock,
+} from "@/features/builder/components/canvas/visual-frame"
 
 const DESKTOP_ARTBOARD = 1280
 const MOBILE_ARTBOARD = 375
@@ -196,6 +200,26 @@ export function PreviewCanvas({
     }
   }, [bumpZoom])
 
+  // While dragging canvas objects, freeze viewport pan so the screen doesn't
+  // chase the finger (especially bad when zoomed in).
+  useEffect(() => {
+    const vp = viewportRef.current
+    if (!vp) return
+    const apply = () => {
+      if (isPreviewScrollLocked()) {
+        vp.dataset.scrollLocked = "true"
+        vp.style.overflow = "hidden"
+        vp.style.touchAction = "none"
+      } else {
+        delete vp.dataset.scrollLocked
+        vp.style.overflow = ""
+        vp.style.touchAction = ""
+      }
+    }
+    apply()
+    return subscribePreviewScrollLock(apply)
+  }, [])
+
   const scaledW = artboardW * zoom
   const scaledH = contentH * zoom
 
@@ -206,8 +230,7 @@ export function PreviewCanvas({
     >
       <div
         ref={viewportRef}
-        // touch-pan-* keeps finger scroll; pinch handled in JS above.
-        // touch-none was blocking all scroll on mobile.
+        // touch-pan-* for empty canvas; interactive nodes use touch-none.
         className="relative min-h-0 flex-1 touch-pan-x touch-pan-y overflow-auto overscroll-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         data-preview-viewport
       >
@@ -244,7 +267,7 @@ export function PreviewCanvas({
               ref={artboardRef}
               data-preview-device={device}
               data-preview-artboard
-              className="absolute left-0 top-0 origin-top-left"
+              className="absolute left-0 top-0 origin-top-left [&_[data-canvas-element]]:touch-none [&_button]:touch-none"
               style={{
                 width: artboardW,
                 transform: `scale(${zoom})`,

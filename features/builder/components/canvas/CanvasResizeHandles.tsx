@@ -2,6 +2,7 @@
 
 import { useCallback } from "react"
 import { cn } from "@/lib/utils"
+import { createDragSession } from "@/features/builder/components/canvas/visual-frame"
 import {
   getCanvasMetrics,
   resizeFromBottomEdge,
@@ -45,9 +46,11 @@ function HandleDot({
       aria-label={label}
       onPointerDown={onPointerDown}
       className={cn(
-        "absolute z-30 flex h-3 w-3 items-center justify-center rounded-full",
-        "border-2 border-white bg-indigo-500 shadow-md",
-        "transition-transform hover:scale-125 active:scale-110",
+        // Larger hit target with small visual dot — easier when zoomed.
+        "absolute z-30 flex h-11 w-11 touch-none items-center justify-center",
+        "before:block before:h-3.5 before:w-3.5 before:rounded-full",
+        "before:border-2 before:border-white before:bg-indigo-500 before:shadow-md",
+        "transition-transform hover:scale-110 active:scale-105",
         className,
       )}
       style={{ cursor }}
@@ -72,7 +75,7 @@ function HandleBar({
       aria-label={label}
       onPointerDown={onPointerDown}
       className={cn(
-        "absolute z-30 rounded-full bg-white/95 shadow ring-1 ring-indigo-400/70",
+        "absolute z-30 touch-none rounded-full bg-white/95 shadow ring-1 ring-indigo-400/70",
         "transition-transform hover:scale-105 active:bg-indigo-50",
         className,
       )}
@@ -81,7 +84,14 @@ function HandleBar({
   )
 }
 
-export function CanvasResizeHandles({ layout, gridRef, onResize, designWidth, minHeightPx, maxHeightPx }: CanvasResizeHandlesProps) {
+export function CanvasResizeHandles({
+  layout,
+  gridRef,
+  onResize,
+  designWidth,
+  minHeightPx,
+  maxHeightPx,
+}: CanvasResizeHandlesProps) {
   const startEdgeDrag = useCallback(
     (edge: Edge) => (event: React.PointerEvent<HTMLElement>) => {
       event.preventDefault()
@@ -90,36 +100,34 @@ export function CanvasResizeHandles({ layout, gridRef, onResize, designWidth, mi
 
       const startY = event.clientY
       const startLayout = { ...layout }
+      const session = createDragSession(event, onResize)
 
-      function onMove(moveEvent: PointerEvent) {
-        const metrics = { ...getCanvasMetrics(gridRef.current!), designWidth, minHeightPx, maxHeightPx }
+      session.listen((moveEvent) => {
+        const metrics = {
+          ...getCanvasMetrics(gridRef.current!),
+          designWidth,
+          minHeightPx,
+          maxHeightPx,
+        }
         const deltaY = moveEvent.clientY - startY
 
         switch (edge) {
           case "left":
-            onResize(resizeFromLeftEdge(moveEvent.clientX, metrics, startLayout))
+            session.push(resizeFromLeftEdge(moveEvent.clientX, metrics, startLayout))
             break
           case "right":
-            onResize(resizeFromRightEdge(moveEvent.clientX, metrics, startLayout))
+            session.push(resizeFromRightEdge(moveEvent.clientX, metrics, startLayout))
             break
           case "top":
-            onResize(resizeFromTopEdge(deltaY, startLayout, metrics))
+            session.push(resizeFromTopEdge(deltaY, startLayout, metrics))
             break
           case "bottom":
-            onResize(resizeFromBottomEdge(deltaY, startLayout.hPx, metrics))
+            session.push(resizeFromBottomEdge(deltaY, startLayout.hPx, metrics))
             break
         }
-      }
-
-      function onUp() {
-        window.removeEventListener("pointermove", onMove)
-        window.removeEventListener("pointerup", onUp)
-      }
-
-      window.addEventListener("pointermove", onMove)
-      window.addEventListener("pointerup", onUp)
+      })
     },
-    [gridRef, layout, onResize, designWidth],
+    [gridRef, layout, onResize, designWidth, minHeightPx, maxHeightPx],
   )
 
   const startCornerDrag = useCallback(
@@ -130,10 +138,16 @@ export function CanvasResizeHandles({ layout, gridRef, onResize, designWidth, mi
 
       const startY = event.clientY
       const startLayout = { ...layout }
+      const session = createDragSession(event, onResize)
 
-      function onMove(moveEvent: PointerEvent) {
-        const metrics = { ...getCanvasMetrics(gridRef.current!), designWidth, minHeightPx, maxHeightPx }
-        onResize(
+      session.listen((moveEvent) => {
+        const metrics = {
+          ...getCanvasMetrics(gridRef.current!),
+          designWidth,
+          minHeightPx,
+          maxHeightPx,
+        }
+        session.push(
           resizeFromCorner(
             moveEvent.clientX,
             moveEvent.clientY - startY,
@@ -142,17 +156,9 @@ export function CanvasResizeHandles({ layout, gridRef, onResize, designWidth, mi
             corner,
           ),
         )
-      }
-
-      function onUp() {
-        window.removeEventListener("pointermove", onMove)
-        window.removeEventListener("pointerup", onUp)
-      }
-
-      window.addEventListener("pointermove", onMove)
-      window.addEventListener("pointerup", onUp)
+      })
     },
-    [gridRef, layout, onResize, designWidth],
+    [gridRef, layout, onResize, designWidth, minHeightPx, maxHeightPx],
   )
 
   return (
@@ -166,50 +172,50 @@ export function CanvasResizeHandles({ layout, gridRef, onResize, designWidth, mi
         label="Tarik atas"
         cursor="ns-resize"
         onPointerDown={startEdgeDrag("top")}
-        className="left-1/2 top-0 h-1.5 w-8 -translate-x-1/2 -translate-y-1/2"
+        className="left-1/2 top-0 h-3 w-12 -translate-x-1/2 -translate-y-1/2"
       />
       <HandleBar
         label="Tarik bawah"
         cursor="ns-resize"
         onPointerDown={startEdgeDrag("bottom")}
-        className="bottom-0 left-1/2 h-1.5 w-8 -translate-x-1/2 translate-y-1/2"
+        className="bottom-0 left-1/2 h-3 w-12 -translate-x-1/2 translate-y-1/2"
       />
       <HandleBar
         label="Tarik kiri"
         cursor="ew-resize"
         onPointerDown={startEdgeDrag("left")}
-        className="left-0 top-1/2 h-8 w-1.5 -translate-x-1/2 -translate-y-1/2"
+        className="left-0 top-1/2 h-12 w-3 -translate-x-1/2 -translate-y-1/2"
       />
       <HandleBar
         label="Tarik kanan"
         cursor="ew-resize"
         onPointerDown={startEdgeDrag("right")}
-        className="right-0 top-1/2 h-8 w-1.5 translate-x-1/2 -translate-y-1/2"
+        className="right-0 top-1/2 h-12 w-3 translate-x-1/2 -translate-y-1/2"
       />
 
       <HandleDot
         label="Tarik sudut kiri atas"
         cursor="nwse-resize"
         onPointerDown={startCornerDrag("nw")}
-        className="-left-1.5 -top-1.5"
+        className="-left-5 -top-5"
       />
       <HandleDot
         label="Tarik sudut kanan atas"
         cursor="nesw-resize"
         onPointerDown={startCornerDrag("ne")}
-        className="-right-1.5 -top-1.5"
+        className="-right-5 -top-5"
       />
       <HandleDot
         label="Tarik sudut kiri bawah"
         cursor="nesw-resize"
         onPointerDown={startCornerDrag("sw")}
-        className="-bottom-1.5 -left-1.5"
+        className="-bottom-5 -left-5"
       />
       <HandleDot
         label="Tarik sudut kanan bawah"
         cursor="nwse-resize"
         onPointerDown={startCornerDrag("se")}
-        className="-bottom-1.5 -right-1.5"
+        className="-bottom-5 -right-5"
       />
     </>
   )
