@@ -6,6 +6,10 @@ import { CanvasMeasurementBadge } from "@/features/builder/components/canvas/Can
 import { CanvasInlineText } from "@/features/builder/components/canvas/CanvasInlineText"
 import { CanvasResizeHandles } from "@/features/builder/components/canvas/CanvasResizeHandles"
 import {
+  createDragRaf,
+  visualFrameSize,
+} from "@/features/builder/components/canvas/visual-frame"
+import {
   MAX_BUTTON_HEIGHT,
   MIN_BUTTON_HEIGHT,
   type CanvasButtonShape,
@@ -75,9 +79,10 @@ export function CanvasBoundButton({
     const startX = event.clientX
     const startY = event.clientY
     const start = { ...layout }
-    const frameWidth = frame.clientWidth || 1
+    const { w: frameWidth, h: frameHeight } = visualFrameSize(frame)
     const designHeight = (frame.clientHeight || 1) / (scale || 1)
     let dragging = false
+    const raf = createDragRaf(onChange)
 
     function onPointerMove(e: PointerEvent) {
       const dx = e.clientX - startX
@@ -93,16 +98,18 @@ export function CanvasBoundButton({
         0,
         Math.min(100 - start.wPct, start.xPct + (dx / frameWidth) * 100),
       )
+      // Map screen dy through visual height → design px (accounts for CSS zoom).
       const yPx = Math.max(
         0,
-        Math.min(designHeight - start.hPx, start.yPx + dy / (scale || 1)),
+        Math.min(designHeight - start.hPx, start.yPx + dy * (designHeight / frameHeight)),
       )
-      onChange({
+      raf.push({
         xPct: Math.round(xPct * 10) / 10,
         yPx: Math.round(yPx),
       })
     }
     function onUp() {
+      raf.cancel()
       window.removeEventListener("pointermove", onPointerMove)
       window.removeEventListener("pointerup", onUp)
     }

@@ -7,9 +7,16 @@ interface ImageUploadFieldProps {
   value: string | undefined
   placeholder: string
   onChange: (url: string | undefined) => void
+  /** Optional store scope for upload path. */
+  storeId?: string
 }
 
-export function ImageUploadField({ value, placeholder, onChange }: ImageUploadFieldProps) {
+export function ImageUploadField({
+  value,
+  placeholder,
+  onChange,
+  storeId,
+}: ImageUploadFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -20,6 +27,7 @@ export function ImageUploadField({ value, placeholder, onChange }: ImageUploadFi
     try {
       const form = new FormData()
       form.append("file", file)
+      if (storeId) form.append("storeId", storeId)
       const res = await fetch("/api/upload", { method: "POST", body: form })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? "Upload gagal")

@@ -3,7 +3,7 @@ import { randomUUID } from "crypto"
 import { PutObjectCommand } from "@aws-sdk/client-s3"
 import { getSession } from "@/features/auth/dal"
 import { saveLocalUpload } from "@/lib/storage/local-upload"
-import { s3, S3_BUCKET, publicUrl } from "@/lib/storage/s3"
+import { s3, S3_BUCKET, mediaProxyUrl } from "@/lib/storage/s3"
 
 /**
  * Remove background (beta) — proxies ke provider remove.bg lewat server supaya
@@ -121,15 +121,17 @@ export async function POST(request: Request) {
   }
 
   const resultBytes = Buffer.from(await providerRes.arrayBuffer())
-  // @ts-expect-error TODO Sprint 4: upload will pass storeId in request body, session.tenantId removed
-  const tenantId: string = session.tenantId
+  const scope = session.userId
+  const useLocal =
+    process.env.NODE_ENV === "development" ||
+    /127\.0\.0\.1|localhost/.test(process.env.S3_ENDPOINT ?? "")
 
-  if (process.env.NODE_ENV === "development") {
-    const local = await saveLocalUpload(tenantId, "png", resultBytes)
+  if (useLocal) {
+    const local = await saveLocalUpload(scope, "png", resultBytes)
     return NextResponse.json({ url: local.url, key: local.key })
   }
 
-  const key = `tenants/${tenantId}/removebg/${randomUUID()}.png`
+  const key = `tenants/${scope}/removebg/${randomUUID()}.png`
   try {
     await s3.send(
       new PutObjectCommand({
@@ -139,9 +141,14 @@ export async function POST(request: Request) {
         ContentType: "image/png",
       }),
     )
-    return NextResponse.json({ url: publicUrl(key), key })
+    return NextResponse.json({ url: mediaProxyUrl(key), key })
   } catch (err) {
     console.error("[remove-bg] S3 error:", err)
-    return NextResponse.json({ error: "Storage tidak tersedia." }, { status: 503 })
+    try {
+      const local = await saveLocalUpload(scope, "png", resultBytes)
+      return NextResponse.json({ url: local.url, key: local.key })
+    } catch {
+      return NextResponse.json({ error: "Storage tidak tersedia." }, { status: 503 })
+    }
   }
 }

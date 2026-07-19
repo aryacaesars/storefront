@@ -21,7 +21,20 @@ export const S3_BUCKET = process.env.S3_BUCKET ?? "storefront-assets"
 
 const PUBLIC_URL = (process.env.S3_PUBLIC_URL ?? "").replace(/\/$/, "")
 
-/** URL publik file (bucket harus ber-policy anonymous download). */
+/** Direct bucket/CDN URL (requires anonymous download policy). */
 export function publicUrl(key: string): string {
   return `${PUBLIC_URL}/${key}`
+}
+
+/**
+ * Same-origin URL served by `/api/media/[...key]`.
+ * Prefer this for <img src> so images work even when the bucket is private
+ * or S3_PUBLIC_URL points at localhost (broken on phones / other hosts).
+ */
+export function mediaProxyUrl(key: string): string {
+  return `/api/media/${key
+    .split("/")
+    .filter(Boolean)
+    .map(encodeURIComponent)
+    .join("/")}`
 }

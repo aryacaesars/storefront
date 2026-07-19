@@ -3,6 +3,10 @@
 import { useRef } from "react"
 import { cn } from "@/lib/utils"
 import {
+  createDragRaf,
+  visualFrameSize,
+} from "@/features/builder/components/canvas/visual-frame"
+import {
   virtualBoxFromCrop,
   type CanvasImageCrop,
   type CanvasImageItem,
@@ -111,6 +115,10 @@ export function CanvasMultiImageItem({
     return containerRef.current?.parentElement
   }
 
+  function frameVisual() {
+    return visualFrameSize(getFrame())
+  }
+
   // ── Crop mode ────────────────────────────────────────────────────────────────
   // Crop window = the item box; the full image (virtual box) shows as a ghost.
   // Dragging inside slides the image under the window (crop.x/y); corner
@@ -124,21 +132,18 @@ export function CanvasMultiImageItem({
     const startItem = stateRef.current.item
     const virtual = virtualBoxFromCrop(startItem)
     const startCrop = startItem.crop ?? { x: 0, y: 0, w: 1, h: 1 }
-    const frame = getFrame()
-    const fw = frame?.clientWidth || 1
-    const fh = frame?.clientHeight || 1
+    const { w: fw, h: fh } = frameVisual()
+    const raf = createDragRaf(stateRef.current.onChange)
 
     function onMove(e: PointerEvent) {
-      // Moving the image right = decreasing crop.x
       const dxFrac = (((e.clientX - startX) / fw) * 100) / virtual.width
       const dyFrac = (((e.clientY - startY) / fh) * 100) / virtual.height
       const x = clampNum(startCrop.x - dxFrac, 0, 1 - startCrop.w)
       const y = clampNum(startCrop.y - dyFrac, 0, 1 - startCrop.h)
-      stateRef.current.onChange({
-        crop: { ...startCrop, x, y },
-      })
+      raf.push({ crop: { ...startCrop, x, y } })
     }
     function onUp() {
+      raf.cancel()
       window.removeEventListener("pointermove", onMove)
       window.removeEventListener("pointerup", onUp)
     }
@@ -160,13 +165,12 @@ export function CanvasMultiImageItem({
         width: startItem.width,
         height: startItem.height,
       }
-      const frame = getFrame()
-      const fw = frame?.clientWidth || 1
-      const fh = frame?.clientHeight || 1
+      const { w: fw, h: fh } = frameVisual()
       const right = start.x + start.width
       const bottom = start.y + start.height
       const vRight = virtual.x + virtual.width
       const vBottom = virtual.y + virtual.height
+      const raf = createDragRaf(stateRef.current.onChange)
 
       function onMove(e: PointerEvent) {
         const dx = ((e.clientX - startX) / fw) * 100
@@ -191,7 +195,7 @@ export function CanvasMultiImageItem({
           box.height = b - start.y
         }
 
-        stateRef.current.onChange({
+        raf.push({
           x: round1(box.x),
           y: round1(box.y),
           width: round1(box.width),
@@ -200,6 +204,7 @@ export function CanvasMultiImageItem({
         })
       }
       function onUp() {
+        raf.cancel()
         window.removeEventListener("pointermove", onMove)
         window.removeEventListener("pointerup", onUp)
       }
@@ -218,17 +223,17 @@ export function CanvasMultiImageItem({
     const startX = event.clientX
     const startY = event.clientY
     const { x: ox, y: oy } = stateRef.current.item
-    const frame = getFrame()
-    const fw = frame?.clientWidth || 1
-    const fh = frame?.clientHeight || 1
+    const { w: fw, h: fh } = frameVisual()
+    const raf = createDragRaf(stateRef.current.onChange)
 
     function onMove(e: PointerEvent) {
-      stateRef.current.onChange({
+      raf.push({
         x: Math.round(Math.max(-20, Math.min(95, ox + ((e.clientX - startX) / fw) * 100)) * 10) / 10,
         y: Math.round(Math.max(-20, Math.min(95, oy + ((e.clientY - startY) / fh) * 100)) * 10) / 10,
       })
     }
     function onUp() {
+      raf.cancel()
       window.removeEventListener("pointermove", onMove)
       window.removeEventListener("pointerup", onUp)
     }
@@ -248,12 +253,16 @@ export function CanvasMultiImageItem({
     const cy = rect.top + rect.height / 2
     const startAngle = Math.atan2(event.clientY - cy, event.clientX - cx)
     const startRotation = stateRef.current.item.rotation
+    const raf = createDragRaf(stateRef.current.onChange)
 
     function onMove(e: PointerEvent) {
       const angle = Math.atan2(e.clientY - cy, e.clientX - cx)
-      stateRef.current.onChange({ rotation: Math.round(startRotation + (angle - startAngle) * (180 / Math.PI)) })
+      raf.push({
+        rotation: Math.round(startRotation + (angle - startAngle) * (180 / Math.PI)),
+      })
     }
     function onUp() {
+      raf.cancel()
       window.removeEventListener("pointermove", onMove)
       window.removeEventListener("pointerup", onUp)
     }
@@ -268,23 +277,28 @@ export function CanvasMultiImageItem({
     event.stopPropagation()
     const sx = event.clientX, sy = event.clientY
     const { x: ox, y: oy, width: ow, height: oh } = stateRef.current.item
-    const frame = getFrame()
-    const fw = frame?.clientWidth || 1, fh = frame?.clientHeight || 1
+    const { w: fw, h: fh } = frameVisual()
+    const raf = createDragRaf(stateRef.current.onChange)
 
     function onMove(e: PointerEvent) {
       const dx = ((e.clientX - sx) / fw) * 100
       const dy = ((e.clientY - sy) / fh) * 100
       const nw = ow - dx, nh = oh - dy
       if (nw < 5 || nh < 5) return
-      stateRef.current.onChange({
+      raf.push({
         x: Math.round((ox + dx) * 10) / 10,
         y: Math.round((oy + dy) * 10) / 10,
         width: Math.round(nw * 10) / 10,
         height: Math.round(nh * 10) / 10,
       })
     }
-    function onUp() { window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp) }
-    window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp)
+    function onUp() {
+      raf.cancel()
+      window.removeEventListener("pointermove", onMove)
+      window.removeEventListener("pointerup", onUp)
+    }
+    window.addEventListener("pointermove", onMove)
+    window.addEventListener("pointerup", onUp)
   }
 
   function startTRResize(event: React.PointerEvent<HTMLButtonElement>) {
@@ -292,22 +306,27 @@ export function CanvasMultiImageItem({
     event.stopPropagation()
     const sx = event.clientX, sy = event.clientY
     const { y: oy, width: ow, height: oh } = stateRef.current.item
-    const frame = getFrame()
-    const fw = frame?.clientWidth || 1, fh = frame?.clientHeight || 1
+    const { w: fw, h: fh } = frameVisual()
+    const raf = createDragRaf(stateRef.current.onChange)
 
     function onMove(e: PointerEvent) {
       const dx = ((e.clientX - sx) / fw) * 100
       const dy = ((e.clientY - sy) / fh) * 100
       const nw = ow + dx, nh = oh - dy
       if (nw < 5 || nh < 5) return
-      stateRef.current.onChange({
+      raf.push({
         y: Math.round((oy + dy) * 10) / 10,
         width: Math.round(nw * 10) / 10,
         height: Math.round(nh * 10) / 10,
       })
     }
-    function onUp() { window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp) }
-    window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp)
+    function onUp() {
+      raf.cancel()
+      window.removeEventListener("pointermove", onMove)
+      window.removeEventListener("pointerup", onUp)
+    }
+    window.addEventListener("pointermove", onMove)
+    window.addEventListener("pointerup", onUp)
   }
 
   function startBLResize(event: React.PointerEvent<HTMLButtonElement>) {
@@ -315,22 +334,27 @@ export function CanvasMultiImageItem({
     event.stopPropagation()
     const sx = event.clientX, sy = event.clientY
     const { x: ox, width: ow, height: oh } = stateRef.current.item
-    const frame = getFrame()
-    const fw = frame?.clientWidth || 1, fh = frame?.clientHeight || 1
+    const { w: fw, h: fh } = frameVisual()
+    const raf = createDragRaf(stateRef.current.onChange)
 
     function onMove(e: PointerEvent) {
       const dx = ((e.clientX - sx) / fw) * 100
       const dy = ((e.clientY - sy) / fh) * 100
       const nw = ow - dx, nh = oh + dy
       if (nw < 5 || nh < 5) return
-      stateRef.current.onChange({
+      raf.push({
         x: Math.round((ox + dx) * 10) / 10,
         width: Math.round(nw * 10) / 10,
         height: Math.round(nh * 10) / 10,
       })
     }
-    function onUp() { window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp) }
-    window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp)
+    function onUp() {
+      raf.cancel()
+      window.removeEventListener("pointermove", onMove)
+      window.removeEventListener("pointerup", onUp)
+    }
+    window.addEventListener("pointermove", onMove)
+    window.addEventListener("pointerup", onUp)
   }
 
   function startBRResize(event: React.PointerEvent<HTMLButtonElement>) {
@@ -338,79 +362,118 @@ export function CanvasMultiImageItem({
     event.stopPropagation()
     const sx = event.clientX, sy = event.clientY
     const { width: ow, height: oh } = stateRef.current.item
-    const frame = getFrame()
-    const fw = frame?.clientWidth || 1, fh = frame?.clientHeight || 1
+    const { w: fw, h: fh } = frameVisual()
+    const raf = createDragRaf(stateRef.current.onChange)
 
     function onMove(e: PointerEvent) {
       const nw = Math.max(5, ow + ((e.clientX - sx) / fw) * 100)
       const nh = Math.max(5, oh + ((e.clientY - sy) / fh) * 100)
-      stateRef.current.onChange({
+      raf.push({
         width: Math.round(nw * 10) / 10,
         height: Math.round(nh * 10) / 10,
       })
     }
-    function onUp() { window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp) }
-    window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp)
+    function onUp() {
+      raf.cancel()
+      window.removeEventListener("pointermove", onMove)
+      window.removeEventListener("pointerup", onUp)
+    }
+    window.addEventListener("pointermove", onMove)
+    window.addEventListener("pointerup", onUp)
   }
 
   // ── Edge resize ──────────────────────────────────────────────────────────────
 
   function startRightResize(event: React.PointerEvent<HTMLButtonElement>) {
-    event.preventDefault(); event.stopPropagation()
-    const sx = event.clientX, ow = stateRef.current.item.width
-    const fw = getFrame()?.clientWidth || 1
+    event.preventDefault()
+    event.stopPropagation()
+    const sx = event.clientX
+    const ow = stateRef.current.item.width
+    const { w: fw } = frameVisual()
+    const raf = createDragRaf(stateRef.current.onChange)
     function onMove(e: PointerEvent) {
-      stateRef.current.onChange({ width: Math.round(Math.max(5, ow + ((e.clientX - sx) / fw) * 100) * 10) / 10 })
+      raf.push({
+        width: Math.round(Math.max(5, ow + ((e.clientX - sx) / fw) * 100) * 10) / 10,
+      })
     }
-    function onUp() { window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp) }
-    window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp)
+    function onUp() {
+      raf.cancel()
+      window.removeEventListener("pointermove", onMove)
+      window.removeEventListener("pointerup", onUp)
+    }
+    window.addEventListener("pointermove", onMove)
+    window.addEventListener("pointerup", onUp)
   }
 
   function startLeftResize(event: React.PointerEvent<HTMLButtonElement>) {
-    event.preventDefault(); event.stopPropagation()
+    event.preventDefault()
+    event.stopPropagation()
     const sx = event.clientX
     const { x: ox, width: ow } = stateRef.current.item
-    const fw = getFrame()?.clientWidth || 1
+    const { w: fw } = frameVisual()
+    const raf = createDragRaf(stateRef.current.onChange)
     function onMove(e: PointerEvent) {
       const dx = ((e.clientX - sx) / fw) * 100
       const nw = ow - dx
       if (nw < 5) return
-      stateRef.current.onChange({
+      raf.push({
         x: Math.round((ox + dx) * 10) / 10,
         width: Math.round(nw * 10) / 10,
       })
     }
-    function onUp() { window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp) }
-    window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp)
+    function onUp() {
+      raf.cancel()
+      window.removeEventListener("pointermove", onMove)
+      window.removeEventListener("pointerup", onUp)
+    }
+    window.addEventListener("pointermove", onMove)
+    window.addEventListener("pointerup", onUp)
   }
 
   function startBottomResize(event: React.PointerEvent<HTMLButtonElement>) {
-    event.preventDefault(); event.stopPropagation()
-    const sy = event.clientY, oh = stateRef.current.item.height
-    const fh = getFrame()?.clientHeight || 1
+    event.preventDefault()
+    event.stopPropagation()
+    const sy = event.clientY
+    const oh = stateRef.current.item.height
+    const { h: fh } = frameVisual()
+    const raf = createDragRaf(stateRef.current.onChange)
     function onMove(e: PointerEvent) {
-      stateRef.current.onChange({ height: Math.round(Math.max(5, oh + ((e.clientY - sy) / fh) * 100) * 10) / 10 })
+      raf.push({
+        height: Math.round(Math.max(5, oh + ((e.clientY - sy) / fh) * 100) * 10) / 10,
+      })
     }
-    function onUp() { window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp) }
-    window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp)
+    function onUp() {
+      raf.cancel()
+      window.removeEventListener("pointermove", onMove)
+      window.removeEventListener("pointerup", onUp)
+    }
+    window.addEventListener("pointermove", onMove)
+    window.addEventListener("pointerup", onUp)
   }
 
   function startTopResize(event: React.PointerEvent<HTMLButtonElement>) {
-    event.preventDefault(); event.stopPropagation()
+    event.preventDefault()
+    event.stopPropagation()
     const sy = event.clientY
     const { y: oy, height: oh } = stateRef.current.item
-    const fh = getFrame()?.clientHeight || 1
+    const { h: fh } = frameVisual()
+    const raf = createDragRaf(stateRef.current.onChange)
     function onMove(e: PointerEvent) {
       const dy = ((e.clientY - sy) / fh) * 100
       const nh = oh - dy
       if (nh < 5) return
-      stateRef.current.onChange({
+      raf.push({
         y: Math.round((oy + dy) * 10) / 10,
         height: Math.round(nh * 10) / 10,
       })
     }
-    function onUp() { window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp) }
-    window.addEventListener("pointermove", onMove); window.addEventListener("pointerup", onUp)
+    function onUp() {
+      raf.cancel()
+      window.removeEventListener("pointermove", onMove)
+      window.removeEventListener("pointerup", onUp)
+    }
+    window.addEventListener("pointermove", onMove)
+    window.addEventListener("pointerup", onUp)
   }
 
   // ── Render ───────────────────────────────────────────────────────────────────

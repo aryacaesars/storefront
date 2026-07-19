@@ -3,7 +3,7 @@ import { randomUUID } from "crypto"
 import { PutObjectCommand } from "@aws-sdk/client-s3"
 import { getSession } from "@/features/auth/dal"
 import { saveLocalUpload } from "@/lib/storage/local-upload"
-import { s3, S3_BUCKET, publicUrl } from "@/lib/storage/s3"
+import { s3, S3_BUCKET, mediaProxyUrl } from "@/lib/storage/s3"
 
 const MAX_SIZE = 2 * 1024 * 1024 // 2MB (sesuai hint UI builder)
 
@@ -41,6 +41,20 @@ function resolveContentType(ext: string, fileType: string): string {
   return EXT_TO_MIME[ext] ?? "application/octet-stream"
 }
 
+function resolveScope(sessionUserId: string, form: FormData): string {
+  const storeId = form.get("storeId")
+  if (typeof storeId === "string" && /^[a-z0-9_-]{1,64}$/i.test(storeId)) {
+    return storeId
+  }
+  return sessionUserId
+}
+
+function preferLocalStorage(): boolean {
+  if (process.env.NODE_ENV === "development") return true
+  const endpoint = process.env.S3_ENDPOINT ?? ""
+  return /127\.0\.0\.1|localhost/.test(endpoint)
+}
+
 export async function POST(request: Request) {
   const session = await getSession()
   if (!session) {
@@ -66,13 +80,12 @@ export async function POST(request: Request) {
   }
 
   const body = Buffer.from(await file.arrayBuffer())
-  // @ts-expect-error TODO Sprint 4: upload will pass storeId in request body, session.tenantId removed
-  const key = `tenants/${session.tenantId}/branding/${randomUUID()}.${ext}`
+  const scope = resolveScope(session.userId, form)
+  const key = `tenants/${scope}/branding/${randomUUID()}.${ext}`
 
-  // Dev: simpan ke public/uploads — langsung bisa di-load <img> tanpa bucket policy MinIO.
-  if (process.env.NODE_ENV === "development") {
-    // @ts-expect-error TODO Sprint 4: upload will pass storeId in request body, session.tenantId removed
-    const local = await saveLocalUpload(session.tenantId, ext, body)
+  // Dev / local MinIO: simpan ke public/uploads — <img> same-origin, no bucket policy.
+  if (preferLocalStorage()) {
+    const local = await saveLocalUpload(scope, ext, body)
     return NextResponse.json({ url: local.url, key: local.key })
   }
 
@@ -86,9 +99,16 @@ export async function POST(request: Request) {
       }),
     )
 
-    return NextResponse.json({ url: publicUrl(key), key })
+    // Proxy URL — works even when the bucket is private.
+    return NextResponse.json({ url: mediaProxyUrl(key), key })
   } catch (err) {
-    console.error("[upload] S3 error:", err)
-    return NextResponse.json({ error: "Storage tidak tersedia." }, { status: 503 })
+    console.error("[upload] S3 error, falling back to local:", err)
+    try {
+      const local = await saveLocalUpload(scope, ext, body)
+      return NextResponse.json({ url: local.url, key: local.key })
+    } catch (localErr) {
+      console.error("[upload] local fallback failed:", localErr)
+      return NextResponse.json({ error: "Storage tidak tersedia." }, { status: 503 })
+    }
   }
 }

@@ -67,21 +67,6 @@ export default async function AdminThemeBuilderPage({
         onSaveDraft={save}
         onPublish={save}
       />
-      <div className="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1 rounded-full border border-gray-200 bg-white p-1 shadow-lg">
-        <Link
-          href={previewHref}
-          target="_blank"
-          className="rounded-full px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100"
-        >
-          Lihat /preview ↗
-        </Link>
-        <Link
-          href={`/admin/templates/${id}`}
-          className="rounded-full px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100"
-        >
-          Keluar
-        </Link>
-      </div>
     </div>
   )
 }

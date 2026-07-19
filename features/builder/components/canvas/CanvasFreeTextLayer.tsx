@@ -4,6 +4,10 @@ import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { CanvasInlineText } from "@/features/builder/components/canvas/CanvasInlineText"
 import {
+  createDragRaf,
+  visualFrameSize,
+} from "@/features/builder/components/canvas/visual-frame"
+import {
   CanvasTextBoundingBox,
   type BoxCorner,
   type BoxEdge,
@@ -144,8 +148,7 @@ function CanvasFreeTextBox({
   stateRef.current = { item, onChange }
 
   function frameSize() {
-    const el = containerRef.current
-    return { w: el?.clientWidth || 1, h: el?.clientHeight || 1 }
+    return visualFrameSize(containerRef.current)
   }
 
   // Pola sama dengan HeroTitleLine: pointer down = select, drag jalan setelah
@@ -160,6 +163,7 @@ function CanvasFreeTextBox({
     const { x: ox, y: oy } = stateRef.current.item
     const { w, h } = frameSize()
     let dragging = false
+    const raf = createDragRaf(stateRef.current.onChange)
 
     function onPointerMove(e: PointerEvent) {
       const dx = e.clientX - startX
@@ -171,12 +175,13 @@ function CanvasFreeTextBox({
       if (active instanceof HTMLElement && active.isContentEditable) {
         active.blur()
       }
-      stateRef.current.onChange({
+      raf.push({
         x: Math.round(Math.max(-10, Math.min(95, ox + (dx / w) * 100)) * 10) / 10,
         y: Math.round(Math.max(-10, Math.min(95, oy + (dy / h) * 100)) * 10) / 10,
       })
     }
     function onUp() {
+      raf.cancel()
       window.removeEventListener("pointermove", onPointerMove)
       window.removeEventListener("pointerup", onUp)
     }
@@ -192,23 +197,25 @@ function CanvasFreeTextBox({
       const { x: ox, width: ow } = stateRef.current.item
       const { w } = frameSize()
       const rightEdge = ox + ow
+      const raf = createDragRaf(stateRef.current.onChange)
 
       function onPointerMove(e: PointerEvent) {
         const dxPct = ((e.clientX - startX) / w) * 100
         if (edge === "right") {
-          stateRef.current.onChange({
+          raf.push({
             width:
               Math.round(Math.max(MIN_TEXT_WIDTH_PCT, Math.min(100, ow + dxPct)) * 10) / 10,
           })
         } else {
           const x = Math.max(-10, Math.min(rightEdge - MIN_TEXT_WIDTH_PCT, ox + dxPct))
-          stateRef.current.onChange({
+          raf.push({
             x: Math.round(x * 10) / 10,
             width: Math.round((rightEdge - x) * 10) / 10,
           })
         }
       }
       function onUp() {
+        raf.cancel()
         window.removeEventListener("pointermove", onPointerMove)
         window.removeEventListener("pointerup", onUp)
       }
@@ -225,16 +232,18 @@ function CanvasFreeTextBox({
       const startX = event.clientX
       const startY = event.clientY
       const startFont = stateRef.current.item.fontSize
+      const raf = createDragRaf(stateRef.current.onChange)
 
       function onPointerMove(e: PointerEvent) {
         const delta =
           ((e.clientX - startX) * flipX + (e.clientY - startY) * flipY) / 2
         const next = startFont + delta / Math.max(scale, 0.05)
-        stateRef.current.onChange({
+        raf.push({
           fontSize: Math.round(Math.max(MIN_FONT_PX, Math.min(MAX_FONT_PX, next))),
         })
       }
       function onUp() {
+        raf.cancel()
         window.removeEventListener("pointermove", onPointerMove)
         window.removeEventListener("pointerup", onUp)
       }

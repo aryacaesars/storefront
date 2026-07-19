@@ -3,6 +3,10 @@
 import { useRef } from "react"
 import { cn } from "@/lib/utils"
 import {
+  createDragRaf,
+  visualFrameSize,
+} from "@/features/builder/components/canvas/visual-frame"
+import {
   MAX_IMG_SCALE,
   MIN_IMG_SCALE,
   type CategoryImage,
@@ -54,16 +58,17 @@ export function CanvasImageFrame({ image, interactive, domKey, onChange }: Canva
     const startY = event.clientY
     const { x: originX, y: originY } = stateRef.current.image
     const frame = event.currentTarget.parentElement?.parentElement
-    const width = frame?.clientWidth || 1
-    const height = frame?.clientHeight || 1
+    const { w: width, h: height } = visualFrameSize(frame)
+    const raf = createDragRaf(stateRef.current.onChange)
 
     function onMove(e: PointerEvent) {
-      stateRef.current.onChange({
+      raf.push({
         imgX: Math.round(originX + ((e.clientX - startX) / width) * 100),
         imgY: Math.round(originY + ((e.clientY - startY) / height) * 100),
       })
     }
     function onUp() {
+      raf.cancel()
       window.removeEventListener("pointermove", onMove)
       window.removeEventListener("pointerup", onUp)
     }
@@ -83,12 +88,18 @@ export function CanvasImageFrame({ image, interactive, domKey, onChange }: Canva
     const cy = rect.top + rect.height / 2
     const startAngle = Math.atan2(event.clientY - cy, event.clientX - cx)
     const startRotation = stateRef.current.image.rotation
+    const raf = createDragRaf(stateRef.current.onChange)
 
     function onMove(e: PointerEvent) {
       const angle = Math.atan2(e.clientY - cy, e.clientX - cx)
-      stateRef.current.onChange({ imgRotation: Math.round(startRotation + (angle - startAngle) * (180 / Math.PI)) })
+      raf.push({
+        imgRotation: Math.round(
+          startRotation + (angle - startAngle) * (180 / Math.PI),
+        ),
+      })
     }
     function onUp() {
+      raf.cancel()
       window.removeEventListener("pointermove", onMove)
       window.removeEventListener("pointerup", onUp)
     }
@@ -106,12 +117,16 @@ export function CanvasImageFrame({ image, interactive, domKey, onChange }: Canva
       const startScaleVal = stateRef.current.image.scale
       const startX = event.clientX
       const startY = event.clientY
+      const raf = createDragRaf(stateRef.current.onChange)
 
       function onMove(e: PointerEvent) {
         const delta = (e.clientX - startX) * flipX + (e.clientY - startY) * flipY
-        stateRef.current.onChange({ imgScale: clampScale(Math.round(startScaleVal + delta * 0.35)) })
+        raf.push({
+          imgScale: clampScale(Math.round(startScaleVal + delta * 0.35)),
+        })
       }
       function onUp() {
+        raf.cancel()
         window.removeEventListener("pointermove", onMove)
         window.removeEventListener("pointerup", onUp)
       }
