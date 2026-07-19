@@ -11,7 +11,7 @@ import {
 } from "@/features/builder/components/dashboard-ui"
 import type { ThemeConfig } from "@/themes/engine/schema"
 
-export const metadata = { title: "Admin — Template" }
+export const metadata = { title: "Template" }
 
 export default async function AdminTemplatesPage() {
   await requireAdmin()

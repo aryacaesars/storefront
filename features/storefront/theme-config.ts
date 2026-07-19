@@ -5,7 +5,7 @@ import type { ThemeConfig } from "@/themes/engine/schema"
 import { getDefaultThemeConfig } from "@/lib/themes/defaults"
 import { getPublishedThemeBySlug } from "@/server/services/theme.service"
 
-function titleFromSlug(slug: string): string {
+export function titleFromSlug(slug: string): string {
   return slug
     .split(/[-_]+/)
     .filter(Boolean)

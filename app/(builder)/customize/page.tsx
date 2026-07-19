@@ -9,7 +9,7 @@ import { templateIdSchema } from "@/themes/engine/schema"
 import { getDefaultThemeConfig } from "@/lib/themes/defaults"
 import { getStorefrontHost } from "@/lib/tenant/storefront-url"
 
-export const metadata = { title: "Customize — Storefront Builder" }
+export const metadata = { title: "Customize" }
 
 export default async function CustomizePage({
   searchParams,

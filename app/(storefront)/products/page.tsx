@@ -1,5 +1,7 @@
 import { ThemePageContent } from "@/features/storefront/ThemePageContent"
 
+export const metadata = { title: "Products" }
+
 type ProductsPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }

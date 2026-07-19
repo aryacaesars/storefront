@@ -7,7 +7,7 @@ import {
   dashboardTableHeadRow,
 } from "@/features/builder/components/dashboard-ui"
 
-export const metadata = { title: "Admin — Store" }
+export const metadata = { title: "Store" }
 
 export default async function AdminStoresPage() {
   await requireAdmin()

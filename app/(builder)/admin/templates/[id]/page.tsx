@@ -13,7 +13,7 @@ import {
 import { TemplateForm } from "../TemplateForm"
 import { updateTemplateAction, deleteTemplateAction } from "./actions"
 
-export const metadata = { title: "Admin — Edit Template" }
+export const metadata = { title: "Edit Template" }
 
 export default async function EditTemplatePage({
   params,

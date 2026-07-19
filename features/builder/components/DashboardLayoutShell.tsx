@@ -57,7 +57,7 @@ export function DashboardLayoutShell({
           </div>
 
           <div
-            className="flex-1 overflow-y-auto px-3 py-4"
+            className="flex-1 overflow-y-auto px-3 py-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             onClick={() => setMobileOpen(false)}
           >
             {sidebar}

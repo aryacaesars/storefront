@@ -11,7 +11,7 @@ import {
 import { CustomizeWorkspace } from "@/features/builder/components/CustomizeWorkspace"
 import { savePlatformBaseAction } from "./actions"
 
-export const metadata = { title: "Admin — Theme Builder" }
+export const metadata = { title: "Theme Builder" }
 
 export default async function AdminThemeBuilderPage({
   params,

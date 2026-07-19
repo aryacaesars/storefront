@@ -15,7 +15,7 @@ import { getTemplatePreviewHref } from "@/themes/engine/registry"
 import type { ThemeConfig } from "@/themes/engine/schema"
 import { purchaseTemplateForStore } from "./actions"
 
-export const metadata = { title: "Template Library — Etalase" }
+export const metadata = { title: "Template Library" }
 
 function matchesQuery(
   template: { name: string; description: string | null; slug: string },

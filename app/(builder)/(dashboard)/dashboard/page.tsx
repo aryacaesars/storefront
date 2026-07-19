@@ -6,7 +6,7 @@ import { DashboardPageTitle } from "@/features/builder/components/DashboardHeade
 import { DashboardShell } from "@/features/builder/components/DashboardShell"
 import { DashboardStoreSection } from "@/features/builder/components/DashboardStoreSection"
 
-export const metadata = { title: "Dashboard — Etalase" }
+export const metadata = { title: "Dashboard" }
 
 export default async function DashboardPage() {
   const session = await requireSession()

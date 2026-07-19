@@ -11,7 +11,7 @@ import { TEMPLATE_META } from "@/themes/engine/registry"
 import { CustomizeWorkspace } from "@/features/builder/components/CustomizeWorkspace"
 import { saveThemeDraftForStore, publishThemeForStore } from "./actions"
 
-export const metadata = { title: "Kustomisasi — Storefront Builder" }
+export const metadata = { title: "Kustomisasi" }
 
 export default async function StoreCustomizePage({
   params,

@@ -130,6 +130,47 @@ export function updateImageInArray(
   return items.map((img) => (img.id === id ? { ...img, ...patch } : img))
 }
 
+/**
+ * Auto-fit canvas images for mobile when no mobile override exists.
+ * Keeps relative arrangement but clamps into the phone frame so desktop
+ * positions don't overflow / look tiny.
+ */
+export function mobileFitCanvasImages(items: CanvasImageItem[]): CanvasImageItem[] {
+  if (items.length === 0) return items
+
+  if (items.length === 1) {
+    const img = items[0]!
+    const width = clamp(Math.max(img.width, 55), 50, 86)
+    const aspect = img.width > 0 ? img.height / img.width : 1.2
+    const height = clamp(width * aspect, 30, 78)
+    return [
+      {
+        ...img,
+        width,
+        height,
+        x: round1((100 - width) / 2),
+        y: clamp(img.y, 6, 100 - height - 4),
+      },
+    ]
+  }
+
+  return items.map((img) => {
+    const width = clamp(img.width, 28, 88)
+    const height = clamp(img.height, 18, 80)
+    return {
+      ...img,
+      width,
+      height,
+      x: clamp(img.x, 2, 100 - width),
+      y: clamp(img.y, 2, 100 - height),
+    }
+  })
+}
+
+function round1(value: number): number {
+  return Math.round(value * 10) / 10
+}
+
 /** Move an image within the array (array order = Z order, last on top). */
 export function moveImageInArray(
   items: CanvasImageItem[],
