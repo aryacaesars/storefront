@@ -1,8 +1,11 @@
+"use client"
+
 import Link from "next/link"
 import { ShoppingBag, User } from "lucide-react"
 import type { ThemeConfig } from "@/themes/engine/schema"
 import { isNavHrefAvailable } from "@/themes/engine/nav-utils"
 import { withBasePath } from "@/themes/engine/with-base-path"
+import { useDeviceIsMobile } from "@/themes/engine/device-context"
 import { MobileNav } from "@/themes/fashion/sections/MobileNav"
 
 const NAV_LINKS = [
@@ -18,6 +21,7 @@ interface NavbarProps {
 }
 
 export function Navbar({ config, basePath }: NavbarProps) {
+  const isMobile = useDeviceIsMobile()
   const visibleLinks = NAV_LINKS.filter((link) =>
     isNavHrefAvailable(config.templateId, link.href),
   )
@@ -33,17 +37,19 @@ export function Navbar({ config, basePath }: NavbarProps) {
           {config.storeName}
         </Link>
 
-        <div className="hidden items-center gap-8 md:flex">
-          {visibleLinks.map(({ label, href }) => (
-            <Link
-              key={label}
-              href={withBasePath(href, basePath)}
-              className="text-xs tracking-[0.1em] text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
-            >
-              {label}
-            </Link>
-          ))}
-        </div>
+        {!isMobile && (
+          <div className="flex items-center gap-8">
+            {visibleLinks.map(({ label, href }) => (
+              <Link
+                key={label}
+                href={withBasePath(href, basePath)}
+                className="text-xs tracking-[0.1em] text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        )}
 
         <div className="flex items-center gap-3">
           <Link
@@ -62,7 +68,7 @@ export function Navbar({ config, basePath }: NavbarProps) {
               <User className="h-4 w-4" strokeWidth={1.5} />
             </Link>
           )}
-          <MobileNav links={visibleLinks} basePath={basePath} />
+          {isMobile && <MobileNav links={visibleLinks} basePath={basePath} />}
         </div>
       </div>
     </nav>

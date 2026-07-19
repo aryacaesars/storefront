@@ -24,12 +24,12 @@ const itemMotion = {
 
 const ease = [0.22, 1, 0.36, 1] as const
 
-/** Hamburger menu untuk layar < md. Panel menempel di bawah navbar. */
+/** Hamburger menu — visible when device layer is mobile (viewport or forcedDevice). */
 export function MobileNav({ links, basePath }: MobileNavProps) {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="md:hidden">
+    <div>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

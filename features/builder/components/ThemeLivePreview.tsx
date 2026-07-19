@@ -1,13 +1,13 @@
 "use client"
 
 import { useRef } from "react"
-import { cn } from "@/lib/utils"
 import { ThemeProvider } from "@/themes/engine/theme-provider"
 import { isTemplateRegistered } from "@/themes/engine/registry"
 import { ThemeFontScope } from "@/themes/engine/ThemeFontScope"
 import { ThemeHomeView } from "@/themes/engine/ThemeHomeView"
 import type { SectionEditorState } from "@/themes/engine/section-editor"
 import { PreviewLinkGuard } from "@/features/builder/components/PreviewLinkGuard"
+import { PreviewCanvas } from "@/features/builder/components/PreviewCanvas"
 import type { ThemeConfig, TemplateId } from "@/themes/engine/schema"
 import type { PreviewDevice } from "./EditorTopbar"
 import type { PageType } from "@/themes/engine/resolve-page"
@@ -55,7 +55,9 @@ export function ThemeLivePreview({
   const scrollRootRef = previewRootRef ?? fallbackRef
   const ready = isTemplateRegistered(templateId)
   const isNonHomePage = Boolean(selectedPage && selectedPage !== "home")
-  const PageComponent = isNonHomePage ? resolveThemePage(templateId, selectedPage!) : null
+  const PageComponent = isNonHomePage
+    ? resolveThemePage(templateId, selectedPage!)
+    : null
 
   function handlePreviewNavigate(href: string) {
     const pageType = hrefToPageType(href) ?? HREF_TO_PAGE[href.split("?")[0]]
@@ -64,6 +66,69 @@ export function ThemeLivePreview({
     }
   }
 
+  const pageBody = !ready ? (
+    <div className="flex min-h-[480px] flex-col items-center justify-center gap-2 px-8 text-center">
+      <p className="text-sm font-semibold text-gray-900">Preview belum tersedia</p>
+      <p className="text-xs text-gray-500">
+        Template <span className="font-medium">{templateId}</span> masih dalam
+        pengembangan. Aktifkan template ini dulu, lalu kembali setelah halaman
+        theme-nya selesai.
+      </p>
+    </div>
+  ) : isNonHomePage ? (
+    <PreviewLinkGuard onNavigate={handlePreviewNavigate}>
+      <ThemeFontScope templateId={templateId}>
+        <ThemeProvider config={config} forcedDevice={device}>
+          {PageComponent ? (
+            <ThemeChromeView config={config}>
+              <PageComponent
+                config={config}
+                slug={
+                  selectedPage
+                    ? PREVIEW_PAGE_SLUGS[
+                        selectedPage as keyof typeof PREVIEW_PAGE_SLUGS
+                      ]
+                    : undefined
+                }
+              />
+            </ThemeChromeView>
+          ) : (
+            <div className="flex min-h-[480px] flex-col items-center justify-center gap-2 px-8 text-center">
+              <p className="text-sm font-semibold text-gray-900">
+                Halaman belum tersedia
+              </p>
+              <p className="text-xs text-gray-500">
+                Halaman ini belum diimplementasi untuk template ini.
+              </p>
+            </div>
+          )}
+        </ThemeProvider>
+      </ThemeFontScope>
+    </PreviewLinkGuard>
+  ) : (
+    <PreviewLinkGuard onNavigate={handlePreviewNavigate}>
+      <ThemeFontScope templateId={templateId}>
+        <ThemeProvider config={config} forcedDevice={device}>
+          <ThemeHomeView config={config} sectionEditor={sectionEditor} />
+        </ThemeProvider>
+      </ThemeFontScope>
+    </PreviewLinkGuard>
+  )
+
+  const chrome = (
+    <div className="flex items-center gap-1.5 border-b border-gray-100 bg-gray-50 px-4 py-2.5">
+      <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+      <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+      <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+      <div className="mx-auto max-w-xs flex-1 truncate rounded-md border border-gray-200 bg-white px-3 py-1 text-center text-[10px] text-gray-400">
+        {storefrontHost}
+      </div>
+      <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-gray-600">
+        {device === "mobile" ? "Mobile" : "Desktop"}
+      </span>
+    </div>
+  )
+
   return (
     <div className="flex h-full flex-col overflow-hidden bg-gray-100">
       <div className="shrink-0 border-b border-amber-100 bg-amber-50 px-4 py-2 text-center text-[11px] text-amber-800">
@@ -71,75 +136,14 @@ export function ThemeLivePreview({
         <span className="font-semibold">{storefrontHost}</span>
       </div>
 
-      <div
-        ref={scrollRootRef}
-        className="flex flex-1 items-start justify-center overflow-auto p-6"
-      >
-        <div
-          className={cn(
-            "overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl transition-all duration-300",
-            device === "mobile" ? "w-[375px]" : "w-full max-w-7xl",
-          )}
-        >
-          <div className="flex items-center gap-1.5 border-b border-gray-100 bg-gray-50 px-4 py-2.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-            <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-            <div className="mx-auto max-w-xs flex-1 truncate rounded-md border border-gray-200 bg-white px-3 py-1 text-center text-[10px] text-gray-400">
-              {storefrontHost}
-            </div>
-            {device === "mobile" && (
-              <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-700">
-                Mobile
-              </span>
-            )}
-          </div>
-
-          {!ready ? (
-            <div className="flex min-h-[480px] flex-col items-center justify-center gap-2 px-8 text-center">
-              <p className="text-sm font-semibold text-gray-900">Preview belum tersedia</p>
-              <p className="text-xs text-gray-500">
-                Template <span className="font-medium">{templateId}</span> masih dalam
-                pengembangan. Aktifkan template ini dulu, lalu kembali setelah halaman
-                theme-nya selesai.
-              </p>
-            </div>
-          ) : isNonHomePage ? (
-            <PreviewLinkGuard onNavigate={handlePreviewNavigate}>
-              <ThemeFontScope templateId={templateId}>
-                <ThemeProvider config={config} forcedDevice={device}>
-                  {PageComponent ? (
-                    <ThemeChromeView config={config}>
-                      <PageComponent
-                        config={config}
-                        slug={
-                          selectedPage
-                            ? PREVIEW_PAGE_SLUGS[
-                                selectedPage as keyof typeof PREVIEW_PAGE_SLUGS
-                              ]
-                            : undefined
-                        }
-                      />
-                    </ThemeChromeView>
-                  ) : (
-                    <div className="flex min-h-[480px] flex-col items-center justify-center gap-2 px-8 text-center">
-                      <p className="text-sm font-semibold text-gray-900">Halaman belum tersedia</p>
-                      <p className="text-xs text-gray-500">Halaman ini belum diimplementasi untuk template ini.</p>
-                    </div>
-                  )}
-                </ThemeProvider>
-              </ThemeFontScope>
-            </PreviewLinkGuard>
-          ) : (
-            <PreviewLinkGuard onNavigate={handlePreviewNavigate}>
-              <ThemeFontScope templateId={templateId}>
-                <ThemeProvider config={config} forcedDevice={device}>
-                  <ThemeHomeView config={config} sectionEditor={sectionEditor} />
-                </ThemeProvider>
-              </ThemeFontScope>
-            </PreviewLinkGuard>
-          )}
-        </div>
+      {/*
+        previewRootRef stays on the scroll viewport so scrollIntoView for
+        selected sections still works inside the zoomable canvas.
+      */}
+      <div ref={scrollRootRef} className="flex min-h-0 flex-1 flex-col">
+        <PreviewCanvas device={device} chrome={chrome}>
+          {pageBody}
+        </PreviewCanvas>
       </div>
     </div>
   )

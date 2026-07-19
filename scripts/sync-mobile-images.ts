@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client"
+import { Prisma, PrismaClient } from "@prisma/client"
 import {
   syncMobileImagesFromDesktop,
   MOBILE_SETTINGS_KEY,
@@ -78,7 +78,7 @@ async function main() {
     }
     await prisma.storeThemeConfig.update({
       where: { storeId: row.storeId },
-      data: { configJson: cfg },
+      data: { configJson: cfg as Prisma.InputJsonValue },
     })
   }
   console.log("stores", stores.length, "blocks synced", fixed)

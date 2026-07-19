@@ -1,9 +1,12 @@
+"use client"
+
 import Link from "next/link"
 import { ShoppingBag, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ThemeConfig } from "@/themes/engine/schema"
 import { isNavHrefAvailable } from "@/themes/engine/nav-utils"
 import { withBasePath } from "@/themes/engine/with-base-path"
+import { useDeviceIsMobile } from "@/themes/engine/device-context"
 import { NavLinksClient } from "@/themes/bold/sections/NavLinksClient"
 import type { ResolvedNavLink } from "@/themes/bold/sections/NavLinksClient"
 import { MobileNav } from "@/themes/bold/sections/MobileNav"
@@ -33,6 +36,7 @@ export function Navbar({
   activeKey,
   transparent = false,
 }: NavbarProps) {
+  const isMobile = useDeviceIsMobile()
   const visibleLinks = NAV_LINKS.filter((link) =>
     isNavHrefAvailable(config.templateId, link.href),
   )
@@ -90,7 +94,7 @@ export function Navbar({
               </span>
             )}
           </Link>
-          <MobileNav links={resolvedLinks} />
+          {isMobile && <MobileNav links={resolvedLinks} />}
         </div>
       </div>
     </header>

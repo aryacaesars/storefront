@@ -102,14 +102,10 @@ export function CustomizeWorkspace({
   const deviceRef = useRef(device)
   deviceRef.current = device
 
-  // Mobile chrome (< md): auto-switch preview device to mobile layer.
+  // Mobile chrome (< md): track viewport for layout only — device stays desktop by default.
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)")
-    const apply = () => {
-      const narrow = mq.matches
-      setIsNarrowViewport(narrow)
-      if (narrow) setDevice("mobile")
-    }
+    const apply = () => setIsNarrowViewport(mq.matches)
     apply()
     mq.addEventListener("change", apply)
     return () => mq.removeEventListener("change", apply)

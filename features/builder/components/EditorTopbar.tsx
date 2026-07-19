@@ -77,8 +77,8 @@ export function EditorTopbar({
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5 md:gap-2">
-        {/* Device toggle — desktop chrome only */}
-        <div className="hidden items-center gap-1 rounded-lg border border-gray-200 p-0.5 md:flex">
+        {/* Device toggle — available on all viewports */}
+        <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 p-0.5">
           <button
             type="button"
             onClick={() => onDeviceChange("desktop")}
@@ -108,7 +108,7 @@ export function EditorTopbar({
         </div>
 
         {mode === "edit" && device === "mobile" && (
-          <span className="hidden items-center rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-700 md:inline-flex">
+          <span className="hidden items-center rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-700 sm:inline-flex">
             Layer Mobile
           </span>
         )}

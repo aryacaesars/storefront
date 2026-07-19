@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useDeviceIsMobile } from "@/themes/engine/device-context"
 
 export interface ResolvedNavLink {
   label: string
@@ -16,6 +17,7 @@ interface NavLinksClientProps {
 }
 
 export function NavLinksClient({ links, defaultActiveKey }: NavLinksClientProps) {
+  const isMobile = useDeviceIsMobile()
   const [activeKey, setActiveKey] = useState(defaultActiveKey ?? "")
 
   useEffect(() => {
@@ -40,8 +42,10 @@ export function NavLinksClient({ links, defaultActiveKey }: NavLinksClientProps)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [links, defaultActiveKey])
 
+  if (isMobile) return null
+
   return (
-    <nav className="hidden items-center gap-7 md:flex">
+    <nav className="flex items-center gap-7">
       {links.map(({ label, resolvedHref, key }) => {
         const isActive = activeKey === key
 
