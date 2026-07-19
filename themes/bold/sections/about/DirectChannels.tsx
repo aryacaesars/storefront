@@ -63,7 +63,7 @@ export function DirectChannels({ config }: DirectChannelsProps) {
 
         {!hasAny && (
           <p className="text-xs text-zinc-400">
-            Isi informasi kontak di builder → Settings → Kontak.
+            Isi informasi kontak di Pengaturan Store.
           </p>
         )}
       </div>

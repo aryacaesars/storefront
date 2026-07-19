@@ -1,8 +1,9 @@
 import Link from "next/link"
-import { Search, ShoppingBag, Menu, User } from "lucide-react"
+import { ShoppingBag, Menu, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ThemeConfig } from "@/themes/engine/schema"
 import { isNavHrefAvailable } from "@/themes/engine/nav-utils"
+import { withBasePath } from "@/themes/engine/with-base-path"
 import { NavLinksClient } from "@/themes/bold/sections/NavLinksClient"
 import type { ResolvedNavLink } from "@/themes/bold/sections/NavLinksClient"
 
@@ -13,21 +14,8 @@ const NAV_LINKS: Array<{
   sectionId?: string
 }> = [
   { label: "New Arrivals", href: "/new-arrivals", key: "new-arrivals" },
-  { label: "All Products", href: "/all-products", key: "all-products" },
-  { label: "About", href: "/about", key: "about" },
+  { label: "Products", href: "/products", key: "products" },
 ]
-
-const PREVIEW_MAP: Record<string, string> = {
-  "/all-products": "/all-products",
-  "/new-arrivals": "/new-arrivals",
-  "/about": "/about",
-}
-
-function resolveHref(href: string, basePath?: string): string {
-  if (!basePath) return href
-  const suffix = PREVIEW_MAP[href] ?? ""
-  return `${basePath}${suffix}` || basePath
-}
 
 interface NavbarProps {
   config: ThemeConfig
@@ -44,17 +32,13 @@ export function Navbar({
   activeKey,
   transparent = false,
 }: NavbarProps) {
-  const logoDisplay = config.logoDisplay ?? "text"
-  const showLogo = logoDisplay !== "text" && Boolean(config.logoUrl)
-  const showText = logoDisplay === "text" || logoDisplay === "both" || !config.logoUrl
-
   const visibleLinks = NAV_LINKS.filter((link) =>
     isNavHrefAvailable(config.templateId, link.href),
   )
 
   const resolvedLinks: ResolvedNavLink[] = visibleLinks.map((link) => ({
     label: link.label,
-    resolvedHref: resolveHref(link.href, basePath),
+    resolvedHref: withBasePath(link.href, basePath),
     key: link.key,
     sectionId: link.sectionId,
   }))
@@ -71,39 +55,26 @@ export function Navbar({
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
         <Link
           href={basePath ?? "/"}
-          className="flex min-w-0 shrink-0 items-center gap-2.5 text-sm font-black uppercase tracking-[0.2em] text-white"
+          className="text-sm font-black uppercase tracking-[0.2em] text-white"
           style={{ fontFamily: "var(--theme-heading-font)" }}
         >
-          {showLogo && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={config.logoUrl}
-              alt={showText ? "" : config.storeName}
-              className="h-8 w-auto max-w-[140px] object-contain"
-            />
-          )}
-          {showText && <span className="truncate">{config.storeName}</span>}
+          {config.storeName}
         </Link>
 
         <NavLinksClient links={resolvedLinks} defaultActiveKey={activeKey} />
 
         <div className="flex items-center gap-4">
-          <button
-            type="button"
-            className="text-white/80 transition-colors hover:text-white"
-            aria-label="Search"
-          >
-            <Search className="h-4 w-4" strokeWidth={1.5} />
-          </button>
+          {!basePath && (
+            <Link
+              href="/account"
+              className="text-white/80 transition-colors hover:text-white"
+              aria-label="Account"
+            >
+              <User className="h-4 w-4" strokeWidth={1.5} />
+            </Link>
+          )}
           <Link
-            href="/account"
-            className="text-white/80 transition-colors hover:text-white"
-            aria-label="Account"
-          >
-            <User className="h-4 w-4" strokeWidth={1.5} />
-          </Link>
-          <Link
-            href={resolveHref("/cart", basePath)}
+            href={withBasePath("/cart", basePath)}
             className="flex items-center gap-1.5 text-white/80 transition-colors hover:text-white"
             aria-label="Cart"
           >

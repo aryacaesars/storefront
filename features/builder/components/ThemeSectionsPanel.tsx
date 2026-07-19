@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { Eye, EyeOff, GripVertical, Plus, Trash2 } from "lucide-react"
-import { SectionInspector } from "@/features/builder/components/SectionInspector"
 import {
   materializePageTemplate,
   resolvePageTemplate,
@@ -11,31 +10,23 @@ import {
   addSectionToTemplate,
   removeSectionFromTemplate,
   reorderSections,
-  updateSectionBlocks,
-  updateSectionSettings,
 } from "@/themes/engine/section-page-utils"
 import {
   getSectionDefinition,
   getSectionRegistry,
 } from "@/themes/engine/section-registry"
 import type {
-  BlockInstance,
-  HeroConfig,
   PageTemplate,
   SectionPageType,
   ThemeConfig,
 } from "@/themes/engine/schema"
-import type { PreviewDevice } from "@/features/builder/components/EditorTopbar"
 
 interface ThemeSectionsPanelProps {
   config: ThemeConfig
   selectedPage: SectionPageType
   onConfigChange: (config: ThemeConfig) => void
-  onHeroChange: <K extends keyof HeroConfig>(key: K, value: HeroConfig[K]) => void
   selectedSectionId: string | null
-  selectedBlockId?: string | null
   onSelectSection: (sectionId: string | null) => void
-  device?: PreviewDevice
 }
 
 function withPageTemplate(
@@ -56,11 +47,8 @@ export function ThemeSectionsPanel({
   config,
   selectedPage,
   onConfigChange,
-  onHeroChange,
   selectedSectionId,
-  selectedBlockId,
   onSelectSection,
-  device = "desktop",
 }: ThemeSectionsPanelProps) {
   const resolved = resolvePageTemplate(config, selectedPage)
   const registry = getSectionRegistry(config.templateId)
@@ -227,27 +215,6 @@ export function ThemeSectionsPanel({
         </div>
       </div>
 
-      <div className="mt-auto overflow-y-auto border-t border-gray-200">
-        <SectionInspector
-          config={config}
-          selectedPage={selectedPage}
-          selectedSectionId={selectedSectionId}
-          selectedBlockId={selectedBlockId}
-          device={device}
-          onConfigChange={onConfigChange}
-          onHeroChange={onHeroChange}
-          onSectionSettingsChange={(sectionId, settings) =>
-            applyTemplate(
-              updateSectionSettings(ensureStoredTemplate(), sectionId, settings),
-            )
-          }
-          onSectionBlocksChange={(sectionId, blocks: BlockInstance[]) =>
-            applyTemplate(
-              updateSectionBlocks(ensureStoredTemplate(), sectionId, blocks),
-            )
-          }
-        />
-      </div>
     </div>
   )
 }

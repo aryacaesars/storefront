@@ -54,7 +54,7 @@ export function defaultImageLayers(): ImageLayerData[] {
       yPx: 20,
       wPct: 42,
       hPx: 380,
-      image: { url: undefined, scale: 100, x: 0, y: 0, rotation: 0, sliderScale: 1 },
+      image: { url: undefined, scale: 100, x: 0, y: 0, rotation: 0, sliderScale: 1, opacity: 100, flipH: false, flipV: false },
       zIndex: 1,
     },
     {
@@ -63,7 +63,7 @@ export function defaultImageLayers(): ImageLayerData[] {
       yPx: 20,
       wPct: 42,
       hPx: 380,
-      image: { url: undefined, scale: 100, x: 0, y: 0, rotation: 0, sliderScale: 1 },
+      image: { url: undefined, scale: 100, x: 0, y: 0, rotation: 0, sliderScale: 1, opacity: 100, flipH: false, flipV: false },
       zIndex: 2,
     },
   ]

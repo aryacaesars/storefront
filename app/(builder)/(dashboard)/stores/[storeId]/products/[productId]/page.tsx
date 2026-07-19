@@ -60,7 +60,7 @@ export default async function EditProductPage({
           ← Kembali ke daftar produk
         </Link>
 
-        <DashboardPanel className="p-6 lg:p-8">
+        <DashboardPanel className="w-full max-w-3xl p-6 lg:p-8">
           <ProductForm
             storeId={storeId}
             categories={categories}

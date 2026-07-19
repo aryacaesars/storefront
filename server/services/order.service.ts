@@ -11,19 +11,40 @@ export type StoreDashboardStats = {
   totalProducts: number
   totalCategories: number
   totalOrders: number
+  totalCustomers: number
+  totalSoldItems: number
   revenueTotal: number
+  revenueByMonth: number[]
   activeTemplate: string | null
 }
 
 export async function getStoreDashboardStats(storeId: string): Promise<StoreDashboardStats> {
-  const [totalProducts, totalCategories, totalOrders, revenueResult, themeConfig] =
+  const [
+    totalProducts,
+    totalCategories,
+    totalOrders,
+    totalCustomers,
+    revenueResult,
+    soldItemsResult,
+    paidOrders,
+    themeConfig,
+  ] =
     await Promise.all([
       prisma.product.count({ where: { storeId, published: true } }),
       prisma.category.count({ where: { storeId } }),
       prisma.order.count({ where: { storeId } }),
+      prisma.customer.count({ where: { storeId } }),
       prisma.order.aggregate({
         where: { storeId, status: "PAID" },
         _sum: { total: true },
+      }),
+      prisma.orderItem.aggregate({
+        where: { order: { storeId, status: "PAID" } },
+        _sum: { quantity: true },
+      }),
+      prisma.order.findMany({
+        where: { storeId, status: "PAID" },
+        select: { total: true, createdAt: true },
       }),
       prisma.storeThemeConfig.findUnique({
         where: { storeId },
@@ -31,11 +52,28 @@ export async function getStoreDashboardStats(storeId: string): Promise<StoreDash
       }),
     ])
 
+  // Last 7 months revenue trend (oldest -> latest), derived in app layer.
+  const now = new Date()
+  const monthKeys = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - (6 - index), 1)
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`
+  })
+  const monthRevenueMap = new Map(monthKeys.map((key) => [key, 0]))
+  for (const order of paidOrders) {
+    const key = `${order.createdAt.getFullYear()}-${String(order.createdAt.getMonth() + 1).padStart(2, "0")}`
+    if (monthRevenueMap.has(key)) {
+      monthRevenueMap.set(key, (monthRevenueMap.get(key) ?? 0) + order.total)
+    }
+  }
+
   return {
     totalProducts,
     totalCategories,
     totalOrders,
+    totalCustomers,
+    totalSoldItems: soldItemsResult._sum.quantity ?? 0,
     revenueTotal: revenueResult._sum.total ?? 0,
+    revenueByMonth: monthKeys.map((key) => monthRevenueMap.get(key) ?? 0),
     activeTemplate: themeConfig?.templateId ?? null,
   }
 }

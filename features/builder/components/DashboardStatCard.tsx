@@ -1,4 +1,6 @@
 import type { LucideIcon } from "lucide-react"
+import { dashboardCard } from "./dashboard-ui"
+import { cn } from "@/lib/utils"
 
 interface DashboardStatCardProps {
   label: string
@@ -8,16 +10,16 @@ interface DashboardStatCardProps {
 
 export function DashboardStatCard({ label, value, icon: Icon }: DashboardStatCardProps) {
   return (
-    <article className="rounded-3xl bg-linear-to-b from-brand/25 to-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.10)]">
+    <article className={cn(dashboardCard, "p-4 sm:p-5")}>
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="truncate text-3xl font-extrabold leading-none tracking-tight text-brand">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-medium text-dash-muted">{label}</p>
+          <p className="mt-1 truncate text-2xl font-bold tabular-nums tracking-tight text-dash-ink sm:text-[1.75rem]">
             {value}
           </p>
-          <p className="mt-2 text-sm font-semibold text-brand/80">{label}</p>
         </div>
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand text-white shadow-lg shadow-brand/30">
-          <Icon className="h-6 w-6" strokeWidth={2} />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-dash-primary-light text-dash-primary">
+          <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
         </div>
       </div>
     </article>

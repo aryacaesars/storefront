@@ -63,18 +63,6 @@ const BOLD_SECTION_SETTINGS: Record<string, SectionSettingField[]> = {
       type: "textarea",
       placeholder: "Join the elite circle of athletes…",
     },
-    {
-      key: "primaryLabel",
-      label: "Primary button",
-      type: "text",
-      placeholder: "SHOP THE SERIES",
-    },
-    {
-      key: "secondaryLabel",
-      label: "Secondary button",
-      type: "text",
-      placeholder: "OUR STORY",
-    },
   ],
 }
 

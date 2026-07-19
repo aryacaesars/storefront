@@ -19,6 +19,14 @@ export function CommunityGallery() {
         {COMMUNITY_IMAGES.map((img, i) => (
           <div key={i} className="min-w-0 flex-1">
             <div className={`relative aspect-square ${img.imageClass}`}>
+              {img.imageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={img.imageUrl}
+                  alt={img.alt}
+                  className="h-full w-full object-cover"
+                />
+              )}
               {i === 5 && (
                 <div className="absolute inset-0 bg-[var(--theme-text)]/40" />
               )}

@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
         port: "9000",
         pathname: "/storefront-assets/**",
       },
+      // Foto mock untuk preview theme (dev preview + mock catalog).
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
     ],
   },
 };

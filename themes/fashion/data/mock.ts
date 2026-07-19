@@ -4,6 +4,7 @@ export interface MockFashionProduct {
   price: number
   badge?: "NEW" | "SALE"
   imageClass: string
+  imageUrl?: string
 }
 
 export interface MockCategory {
@@ -16,33 +17,67 @@ export interface MockCategory {
 export interface MockGalleryImage {
   imageClass: string
   alt: string
+  imageUrl?: string
 }
 
 export const FEATURED_PRODUCTS: MockFashionProduct[] = [
   {
     id: "1",
     name: "Wool Overcoat",
-    price: 420,
+    price: 4200000,
     imageClass: "bg-gradient-to-b from-stone-300 to-stone-400",
+    imageUrl: "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=800&q=80&auto=format",
   },
   {
     id: "2",
     name: "Silk Essential",
-    price: 185,
+    price: 1850000,
     imageClass: "bg-gradient-to-b from-amber-100 to-stone-300",
+    imageUrl: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&q=80&auto=format",
   },
   {
     id: "3",
-    name: "Soft Loafers",
-    price: 240,
+    name: "Atelier Heels",
+    price: 2400000,
     imageClass: "bg-gradient-to-b from-zinc-700 to-zinc-900",
+    imageUrl: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800&q=80&auto=format",
   },
   {
     id: "4",
     name: "Luna Handbag",
-    price: 590,
+    price: 5900000,
     badge: "NEW",
     imageClass: "bg-gradient-to-b from-stone-200 to-amber-100",
+    imageUrl: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800&q=80&auto=format",
+  },
+  {
+    id: "5",
+    name: "Signature Blazer",
+    price: 3600000,
+    imageClass: "bg-gradient-to-b from-stone-300 to-stone-400",
+    imageUrl: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&q=80&auto=format",
+  },
+  {
+    id: "6",
+    name: "Evening Dress",
+    price: 4850000,
+    imageClass: "bg-gradient-to-b from-amber-100 to-stone-300",
+    imageUrl: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&q=80&auto=format",
+  },
+  {
+    id: "7",
+    name: "Cashmere Wrap",
+    price: 2150000,
+    imageClass: "bg-gradient-to-b from-zinc-700 to-zinc-900",
+    imageUrl: "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=800&q=80&auto=format",
+  },
+  {
+    id: "8",
+    name: "Aurum Watch",
+    price: 6500000,
+    badge: "NEW",
+    imageClass: "bg-gradient-to-b from-stone-200 to-amber-100",
+    imageUrl: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=800&q=80&auto=format",
   },
 ]
 
@@ -68,12 +103,36 @@ export const CATEGORIES: MockCategory[] = [
 ]
 
 export const COMMUNITY_IMAGES: MockGalleryImage[] = [
-  { imageClass: "bg-gradient-to-br from-amber-100 to-stone-300", alt: "Linen texture" },
-  { imageClass: "bg-gradient-to-br from-stone-400 to-stone-600", alt: "Street style" },
-  { imageClass: "bg-gradient-to-br from-amber-50 to-stone-200", alt: "Morning ritual" },
-  { imageClass: "bg-gradient-to-br from-stone-300 to-amber-200", alt: "Interior detail" },
-  { imageClass: "bg-gradient-to-br from-amber-600 to-amber-800", alt: "Golden hour" },
-  { imageClass: "bg-gradient-to-br from-zinc-600 to-zinc-800", alt: "Watch detail" },
+  {
+    imageClass: "bg-gradient-to-br from-amber-100 to-stone-300",
+    alt: "Linen texture",
+    imageUrl: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=600&q=80&auto=format",
+  },
+  {
+    imageClass: "bg-gradient-to-br from-stone-400 to-stone-600",
+    alt: "Street style",
+    imageUrl: "https://images.unsplash.com/photo-1495385794356-15371f348c31?w=600&q=80&auto=format",
+  },
+  {
+    imageClass: "bg-gradient-to-br from-amber-50 to-stone-200",
+    alt: "Morning ritual",
+    imageUrl: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600&q=80&auto=format",
+  },
+  {
+    imageClass: "bg-gradient-to-br from-stone-300 to-amber-200",
+    alt: "Interior detail",
+    imageUrl: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=600&q=80&auto=format",
+  },
+  {
+    imageClass: "bg-gradient-to-br from-amber-600 to-amber-800",
+    alt: "Golden hour",
+    imageUrl: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&q=80&auto=format",
+  },
+  {
+    imageClass: "bg-gradient-to-br from-zinc-600 to-zinc-800",
+    alt: "Watch detail",
+    imageUrl: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&q=80&auto=format",
+  },
 ]
 
 // ── Shop All data ──────────────────────────────────────────────────────────────

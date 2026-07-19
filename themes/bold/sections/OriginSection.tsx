@@ -1,5 +1,3 @@
-import { ArrowRight } from "lucide-react"
-
 export function OriginSection() {
   return (
     <section className="bg-white py-20">
@@ -28,17 +26,6 @@ export function OriginSection() {
             evolved into a global standard for those who refuse to compromise. Every stitch is
             a data point. Every silhouette is an aerodynamic victory.
           </p>
-          <a
-            href="/about"
-            className="mt-8 inline-flex items-center gap-2 border px-6 py-3 text-xs font-bold uppercase tracking-[0.12em] transition-opacity hover:opacity-70"
-            style={{
-              borderColor: "var(--theme-primary)",
-              color: "var(--theme-primary)",
-            }}
-          >
-            READ THE ARCHIVE
-            <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
-          </a>
         </div>
 
         {/* Right column — image mosaic */}

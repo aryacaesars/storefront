@@ -6,11 +6,17 @@ import { CanvasGridOverlay } from "@/features/builder/components/canvas/CanvasGr
 import { CanvasInlineText } from "@/features/builder/components/canvas/CanvasInlineText"
 import { CanvasHeroCta } from "@/features/builder/components/canvas/CanvasHeroCta"
 import { CanvasLabelResizeHandles } from "@/features/builder/components/canvas/CanvasLabelResizeHandles"
+import { CanvasFreeTextLayer } from "@/features/builder/components/canvas/CanvasFreeTextLayer"
 import { parseCanvasImages } from "@/themes/engine/canvas-image"
+import { parseCanvasTexts } from "@/themes/engine/canvas-text"
 import {
   hasMobileOverride,
   MOBILE_OVERRIDE_FLAG,
 } from "@/themes/engine/device-settings"
+import {
+  canvasElementDomKey,
+  type SelectedElementKind,
+} from "@/themes/engine/section-editor"
 import {
   labelMoveFromDelta,
   type CategoryLabelLayout,
@@ -31,15 +37,16 @@ import {
   type HeroTitleLine,
 } from "@/themes/bento/sections/hero-title-layout"
 import {
+  heroTitleOverrideCss,
   parseHeroTitleStyle,
   type HeroTitleStyleOverride,
 } from "@/themes/bento/sections/hero-title-style"
 
 type HeroTitleLayer = "front" | "behind"
 
-const BOLD_HERO_DESIGN_HEIGHT = 700
-const BOLD_DEFAULT_CTA_DESKTOP = { xPct: 5, wPct: 22, yPx: 430, hPx: 48 }
-const BOLD_DEFAULT_CTA_MOBILE = { xPct: 5, wPct: 50, yPx: 430, hPx: 48 }
+const BOLD_HERO_DESIGN_HEIGHT = 580
+const BOLD_DEFAULT_CTA_DESKTOP = { xPct: 5, wPct: 22, yPx: 360, hPx: 48 }
+const BOLD_DEFAULT_CTA_MOBILE = { xPct: 5, wPct: 50, yPx: 360, hPx: 48 }
 const MIN_HERO_ZOOM = 100
 const MAX_HERO_ZOOM = 200
 const Z_TITLE_BEHIND = 5
@@ -68,12 +75,14 @@ function resolveHeroImageUrl(
   configUrl: string | undefined,
   mediaSettings: Record<string, unknown> | undefined,
 ): string | undefined {
+  // Same priority as bento/fashion Hero: a freshly uploaded image (images[])
+  // must win over the block's baked-in default imageUrl, otherwise uploads
+  // never appear because the default is always non-empty.
+  const canvasUrl = parseCanvasImages(mediaSettings).find((img) => img.src)?.src
   const blockUrl =
     typeof mediaSettings?.imageUrl === "string" && mediaSettings.imageUrl.trim()
       ? mediaSettings.imageUrl
       : undefined
-  const canvasUrl = parseCanvasImages(mediaSettings).find((img) => img.src)?.src
-  // Block-level uploads override the theme's default config image.
   return canvasUrl ?? blockUrl ?? configUrl
 }
 
@@ -143,6 +152,7 @@ interface BoldTitleLineProps {
   mediaInteractive: boolean
   editable: boolean
   lineSelected: boolean
+  domKey?: string
   onActivate: () => void
   onHeroKey: "title" | "subtitle"
   onHeroChange?: (key: "title" | "subtitle", value: string) => void
@@ -162,6 +172,7 @@ function BoldTitleLine({
   mediaInteractive,
   editable,
   lineSelected,
+  domKey,
   onActivate,
   onHeroKey,
   onHeroChange,
@@ -177,23 +188,25 @@ function BoldTitleLine({
   const labelStyle: React.CSSProperties = isAccentLine
     ? {
         fontFamily: styleOverride.fontFamily ?? "var(--theme-heading-font)",
-        fontSize: `${Math.max(28, labelBoxHeightPx * 0.72)}px`,
+        fontSize: `${Math.max(28, labelBoxHeightPx * 0.72 * styleOverride.sizeScale)}px`,
         lineHeight: 0.92,
         fontWeight: styleOverride.fontWeight ?? 900,
         textTransform: "uppercase" as const,
         letterSpacing: "-0.02em",
         color: styleOverride.color ?? "var(--theme-accent)",
         fontStyle: styleOverride.fontStyle ?? "normal",
+        ...heroTitleOverrideCss(styleOverride),
       }
     : {
         fontFamily: styleOverride.fontFamily ?? "var(--theme-heading-font)",
-        fontSize: `${Math.max(28, labelBoxHeightPx * 0.72)}px`,
+        fontSize: `${Math.max(28, labelBoxHeightPx * 0.72 * styleOverride.sizeScale)}px`,
         lineHeight: 0.92,
         fontWeight: styleOverride.fontWeight ?? 900,
         textTransform: "uppercase" as const,
         letterSpacing: "-0.02em",
         color: styleOverride.color ?? "#ffffff",
         fontStyle: styleOverride.fontStyle ?? "normal",
+        ...heroTitleOverrideCss(styleOverride),
       }
 
   const labelBoxStyle: React.CSSProperties = {
@@ -289,6 +302,7 @@ function BoldTitleLine({
       {labelMovable && layer === "behind" && (
         <div
           aria-hidden
+          data-canvas-element={domKey}
           className={cn(
             "absolute z-[15] cursor-move rounded-sm",
             lineSelected &&
@@ -302,6 +316,7 @@ function BoldTitleLine({
 
       {layer === "front" && (
         <div
+          data-canvas-element={domKey}
           className={cn(
             "absolute flex items-start overflow-visible",
             labelMovable && "cursor-move",
@@ -324,7 +339,6 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const [measuredWidth, setMeasuredWidth] = useState(
     isMobile ? HERO_MOBILE_DESIGN_WIDTH : HERO_DESIGN_WIDTH,
   )
-  const [activeTitleLine, setActiveTitleLine] = useState<HeroTitleLine | null>(null)
 
   useEffect(() => {
     const element = frameRef.current
@@ -349,6 +363,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const ctaSettings = ctaBlock?.settings as Record<string, unknown> | undefined
   const heroImageUrl = resolveHeroImageUrl(config?.heroImageUrl, mediaSettings)
   const heroImageZoom = parseHeroImageZoom(mediaSettings)
+  const canvasTexts = parseCanvasTexts(mediaSettings)
 
   const title1Layout = parseHeroTitleLayout(mediaSettings, "title1", isMobile)
   const title2Layout = parseHeroTitleLayout(mediaSettings, "title2", isMobile)
@@ -356,8 +371,12 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const title2Layer = parseTitleLayer(mediaSettings?.title2Layer)
 
   const designWidth = isMobile ? HERO_MOBILE_DESIGN_WIDTH : HERO_DESIGN_WIDTH
-  const scale = measuredWidth > 0 ? measuredWidth / designWidth : 1
-  const frameHeight = BOLD_HERO_DESIGN_HEIGHT * scale
+  const layoutScale = measuredWidth > 0 ? measuredWidth / designWidth : 1
+  // Bold full-bleed: kalau height ikut layoutScale, di layar lebar hero jadi ~900px+.
+  // Bento/minimalist di-cap max-w-7xl ≈ design width → tinggi ~580. Samakan di sini.
+  const heightScale = isMobile ? layoutScale : Math.min(layoutScale, 1)
+  const frameHeight = BOLD_HERO_DESIGN_HEIGHT * heightScale
+  const scale = heightScale
 
   const mediaHasMobileOverride = Boolean(
     mediaSettings?.[MOBILE_OVERRIDE_FLAG] ||
@@ -370,13 +389,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   )
   const useMobileCtaSeed = isMobile && !ctaHasMobileOverride
 
-  const parsedCta = parseHeroCta(
-    ctaSettings,
-    hero?.ctaLabel ?? "SHOP NOW",
-    isMobile,
-    { primaryColor: config?.primaryColor },
-    BOLD_HERO_DESIGN_HEIGHT,
-  )
+  const parsedCta = parseHeroCta(ctaSettings, hero?.ctaLabel ?? "SHOP NOW", isMobile)
   const ctaLayout = ctaBlock
     ? useMobileCtaSeed
       ? BOLD_DEFAULT_CTA_MOBILE
@@ -398,9 +411,35 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const mediaInteractive = editable && editor?.selectedBlockId === mediaBlock?.id
   const ctaInteractive = editable && editor?.selectedBlockId === ctaBlock?.id
 
-  useEffect(() => {
-    if (!mediaInteractive) setActiveTitleLine(null)
-  }, [mediaInteractive])
+  // Element-level selection lives in the workspace (Canva-like floating toolbar).
+  const sectionId = canvas?.sectionId
+  const selectedElement = editor?.selectedElement ?? null
+  const activeTitleLine: HeroTitleLine | null =
+    selectedElement?.kind === "text" &&
+    selectedElement.sectionId === sectionId &&
+    selectedElement.blockId === mediaBlock?.id &&
+    (selectedElement.itemId === "title1" || selectedElement.itemId === "title2")
+      ? selectedElement.itemId
+      : null
+
+  const selectElement = (
+    kind: SelectedElementKind,
+    blockId: string | undefined,
+    itemId?: string,
+  ) => {
+    if (!blockId || !sectionId || !editor) return
+    editor.onSelectBlock?.(sectionId, blockId)
+    editor.onSelectElement?.({ kind, sectionId, blockId, itemId })
+  }
+
+  const elementDomKey = (
+    kind: SelectedElementKind,
+    blockId: string | undefined,
+    itemId?: string,
+  ) =>
+    blockId && sectionId
+      ? canvasElementDomKey({ kind, sectionId, blockId, itemId })
+      : undefined
 
   const hasImage = Boolean(heroImageUrl)
 
@@ -483,9 +522,8 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
             mediaInteractive={mediaInteractive}
             editable={editable}
             lineSelected={mediaInteractive && activeTitleLine === item.line}
-            onActivate={() => {
-              setActiveTitleLine(item.line)
-            }}
+            domKey={elementDomKey("text", mediaBlock?.id, item.line)}
+            onActivate={() => selectElement("text", mediaBlock?.id, item.line)}
             onHeroChange={(key, val) => editor?.onHeroChange?.(key, val)}
             onLayoutChange={onMediaChange}
             onSelectMedia={() =>
@@ -514,9 +552,8 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
             mediaInteractive={mediaInteractive}
             editable={editable}
             lineSelected={mediaInteractive && activeTitleLine === item.line}
-            onActivate={() => {
-              setActiveTitleLine(item.line)
-            }}
+            domKey={elementDomKey("text", mediaBlock?.id, item.line)}
+            onActivate={() => selectElement("text", mediaBlock?.id, item.line)}
             onHeroChange={(key, val) => editor?.onHeroChange?.(key, val)}
             onLayoutChange={onMediaChange}
             onSelectMedia={() =>
@@ -524,6 +561,17 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
             }
           />
         ))}
+
+        <CanvasFreeTextLayer
+          items={canvasTexts}
+          editable={editable}
+          interactive={mediaInteractive}
+          sectionId={sectionId}
+          blockId={mediaBlock?.id}
+          editor={editor}
+          designWidth={designWidth}
+          onItemsChange={(texts) => onMediaChange({ texts })}
+        />
       </div>
 
       <div className="pointer-events-none absolute inset-0 z-[25]">
@@ -536,9 +584,8 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
           designWidth={designWidth}
           frameRef={frameRef}
           variant={ctaVariant}
-          onSelect={() =>
-            ctaBlock && editor?.onSelectBlock?.(canvas!.sectionId, ctaBlock.id)
-          }
+          domKey={elementDomKey("button", ctaBlock?.id)}
+          onSelect={() => selectElement("button", ctaBlock?.id)}
           onChange={onCtaChange}
         />
       </div>

@@ -8,6 +8,7 @@ export type SettingFieldType =
   | "segmented"
   | "font-heading"
   | "font-body"
+  | "slider"
 
 export interface SegmentedOption {
   value: string
@@ -23,6 +24,14 @@ export interface SettingFieldDef {
   placeholder?: string
   rows?: number
   options?: SegmentedOption[]
+  /** For type "slider". */
+  min?: number
+  max?: number
+  step?: number
+  /** Value used when the field is unset. */
+  defaultValue?: number
+  /** Suffix shown next to the current value, e.g. "%". */
+  unit?: string
 }
 
 export interface SettingsGroupDef {
@@ -72,15 +81,18 @@ export const THEME_SETTINGS_GROUPS: SettingsGroupDef[] = [
           { value: "both", label: "Keduanya" },
         ],
       },
-    ],
-  },
-  {
-    title: "Kontak",
-    description: "Ditampilkan di halaman About › Direct Channels.",
-    fields: [
-      { id: "contactPhone", scope: "config", type: "text", label: "Nomor Telepon", placeholder: "+62 812 3456 7890" },
-      { id: "contactEmail", scope: "config", type: "text", label: "Email", placeholder: "hello@tokoku.com" },
-      { id: "contactAddress", scope: "config", type: "textarea", label: "Alamat", placeholder: "Jl. Contoh No. 1, Jakarta", rows: 2 },
+      {
+        id: "logoScale",
+        scope: "config",
+        type: "slider",
+        label: "Skala Logo",
+        hint: "Perbesar atau perkecil logo di header & footer.",
+        min: 50,
+        max: 200,
+        step: 5,
+        defaultValue: 100,
+        unit: "%",
+      },
     ],
   },
   {

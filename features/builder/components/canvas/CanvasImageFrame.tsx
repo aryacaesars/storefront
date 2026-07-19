@@ -15,6 +15,8 @@ interface CanvasImageFrameProps {
    * edge handles = not applicable (no separate width/height).
    */
   interactive: boolean
+  /** Stamped as data-canvas-element so the floating toolbar can anchor here. */
+  domKey?: string
   onChange: (patch: Record<string, unknown>) => void
 }
 
@@ -38,7 +40,7 @@ function clampScale(value: number): number {
  *   - Visible 10×10 handle at the corner tip → resize cursor → zoom
  * The image center area responds to drag → pan.
  */
-export function CanvasImageFrame({ image, interactive, onChange }: CanvasImageFrameProps) {
+export function CanvasImageFrame({ image, interactive, domKey, onChange }: CanvasImageFrameProps) {
   const stateRef = useRef({ image, onChange })
   stateRef.current = { image, onChange }
   const containerRef = useRef<HTMLDivElement>(null)
@@ -128,6 +130,7 @@ export function CanvasImageFrame({ image, interactive, onChange }: CanvasImageFr
   return (
     <div
       ref={containerRef}
+      data-canvas-element={interactive ? domKey : undefined}
       className={cn(
         "absolute inset-0 z-1 overflow-hidden",
         interactive && "pointer-events-auto",
@@ -149,8 +152,9 @@ export function CanvasImageFrame({ image, interactive, onChange }: CanvasImageFr
             interactive ? "cursor-move touch-none" : "pointer-events-none",
           )}
           style={{
-            transform: `scale(${(image.scale / 100) * image.sliderScale}) rotate(${image.rotation}deg)`,
+            transform: `rotate(${image.rotation}deg) scale(${(image.scale / 100) * image.sliderScale * (image.flipH ? -1 : 1)}, ${(image.scale / 100) * image.sliderScale * (image.flipV ? -1 : 1)})`,
             transformOrigin: "center center",
+            opacity: image.opacity / 100,
           }}
         />
       </div>
@@ -158,10 +162,10 @@ export function CanvasImageFrame({ image, interactive, onChange }: CanvasImageFr
       {interactive && (
         <>
           {/* Bounding box border */}
-          <div className="pointer-events-none absolute inset-0 z-20 border-2 border-blue-400/80" />
+          <div className="pointer-events-none absolute inset-0 z-20 border-2 border-indigo-400/80" />
 
           {/* Status badge */}
-          <div className="pointer-events-none absolute bottom-2 left-1/2 z-30 -translate-x-1/2 whitespace-nowrap rounded-sm bg-blue-500 px-2 py-0.5 text-[10px] font-semibold text-white">
+          <div className="pointer-events-none absolute bottom-2 left-1/2 z-30 -translate-x-1/2 whitespace-nowrap rounded-sm bg-indigo-500 px-2 py-0.5 text-[10px] font-semibold text-white">
             {Math.round(image.scale * image.sliderScale)}% · {image.rotation > 0 ? `+${image.rotation}` : image.rotation}°
           </div>
 
@@ -178,7 +182,7 @@ export function CanvasImageFrame({ image, interactive, onChange }: CanvasImageFr
               className="absolute inset-0"
               style={{ cursor: ROTATE_CURSOR_TL }} />
             <button type="button" aria-label="Zoom" onPointerDown={scaleTL}
-              className="absolute left-0 top-0 h-2.5 w-2.5 cursor-nwse-resize rounded-[1px] border-2 border-blue-500 bg-white shadow" />
+              className="absolute left-0 top-0 h-2.5 w-2.5 cursor-nwse-resize rounded-[1px] border-2 border-indigo-500 bg-white shadow" />
           </div>
 
           {/* Top-right */}
@@ -187,7 +191,7 @@ export function CanvasImageFrame({ image, interactive, onChange }: CanvasImageFr
               className="absolute inset-0"
               style={{ cursor: ROTATE_CURSOR_TR }} />
             <button type="button" aria-label="Zoom" onPointerDown={scaleTR}
-              className="absolute right-0 top-0 h-2.5 w-2.5 cursor-nesw-resize rounded-[1px] border-2 border-blue-500 bg-white shadow" />
+              className="absolute right-0 top-0 h-2.5 w-2.5 cursor-nesw-resize rounded-[1px] border-2 border-indigo-500 bg-white shadow" />
           </div>
 
           {/* Bottom-left */}
@@ -196,7 +200,7 @@ export function CanvasImageFrame({ image, interactive, onChange }: CanvasImageFr
               className="absolute inset-0"
               style={{ cursor: ROTATE_CURSOR_BL }} />
             <button type="button" aria-label="Zoom" onPointerDown={scaleBL}
-              className="absolute bottom-0 left-0 h-2.5 w-2.5 cursor-nesw-resize rounded-[1px] border-2 border-blue-500 bg-white shadow" />
+              className="absolute bottom-0 left-0 h-2.5 w-2.5 cursor-nesw-resize rounded-[1px] border-2 border-indigo-500 bg-white shadow" />
           </div>
 
           {/* Bottom-right */}
@@ -205,7 +209,7 @@ export function CanvasImageFrame({ image, interactive, onChange }: CanvasImageFr
               className="absolute inset-0"
               style={{ cursor: ROTATE_CURSOR_BR }} />
             <button type="button" aria-label="Zoom" onPointerDown={scaleBR}
-              className="absolute bottom-0 right-0 h-2.5 w-2.5 cursor-nwse-resize rounded-[1px] border-2 border-blue-500 bg-white shadow" />
+              className="absolute bottom-0 right-0 h-2.5 w-2.5 cursor-nwse-resize rounded-[1px] border-2 border-indigo-500 bg-white shadow" />
           </div>
         </>
       )}

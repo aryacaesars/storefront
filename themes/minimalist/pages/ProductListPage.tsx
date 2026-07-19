@@ -1,33 +1,57 @@
 import { ProductCard } from "@/themes/minimalist/sections/ProductCard"
+import { ProductCatalogFilters } from "@/features/storefront/ProductCatalogFilters"
 import { mockProductToCatalog, TRENDING_PRODUCTS } from "@/themes/minimalist/data/mock"
 import type { ThemePageProps } from "@/themes/engine/page-props"
 
-export function ProductListPage({ config: _config, products = [] }: ThemePageProps) {
+export function ProductListPage({
+  config: _config,
+  products = [],
+  categories = [],
+  priceBounds = null,
+  catalogFilters = {},
+}: ThemePageProps) {
+  const isLive = products.length > 0 || Boolean(categories.length) || priceBounds != null
   const items =
-    products.length > 0 ? products : TRENDING_PRODUCTS.map(mockProductToCatalog)
+    isLive || products.length > 0
+      ? products
+      : TRENDING_PRODUCTS.map(mockProductToCatalog)
 
   return (
-    <section className="mx-auto max-w-7xl px-6 py-12">
+    <section className="mx-auto max-w-7xl px-6 py-8">
       <p className="text-[10px] font-semibold tracking-[0.15em] text-[var(--theme-muted)] uppercase">
         Shop
       </p>
       <h1
-        className="mt-2 text-3xl font-semibold text-[var(--theme-text)] @2xl:text-4xl"
+        className="mt-1 text-2xl font-semibold text-[var(--theme-text)] @2xl:text-3xl"
         style={{ fontFamily: "var(--theme-heading-font)" }}
       >
         All Products
       </h1>
-      <p className="mt-2 max-w-xl text-sm text-[var(--theme-muted)]">
-        {products.length > 0
-          ? "Produk langsung dari katalog toko Anda."
-          : "Belum ada katalog terhubung — menampilkan contoh produk."}
-      </p>
+
+      {isLive && (
+        <div className="mt-4">
+          <ProductCatalogFilters
+            categories={categories}
+            priceBounds={priceBounds}
+            active={catalogFilters}
+            resultCount={products.length}
+            variant="minimalist"
+          />
+        </div>
+      )}
+
+      {!isLive && (
+        <p className="mt-2 max-w-xl text-sm text-[var(--theme-muted)]">
+          Belum ada katalog terhubung — menampilkan contoh produk.
+        </p>
+      )}
+
       {items.length === 0 ? (
-        <p className="mt-10 text-sm text-[var(--theme-muted)]">
-          Belum ada produk visible di storefront.
+        <p className="mt-8 text-sm text-[var(--theme-muted)]">
+          Tidak ada produk yang cocok dengan filter.
         </p>
       ) : (
-        <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-8 @3xl:grid-cols-4 @3xl:gap-x-6 @3xl:gap-y-10">
+        <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-8 @3xl:grid-cols-4 @3xl:gap-x-6 @3xl:gap-y-10">
           {items.map((product) => (
             <ProductCard key={product.slug} product={product} />
           ))}

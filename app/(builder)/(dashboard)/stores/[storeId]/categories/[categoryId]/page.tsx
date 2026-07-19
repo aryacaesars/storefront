@@ -48,7 +48,7 @@ export default async function EditCategoryPage({
           ← Kembali ke daftar kategori
         </Link>
 
-        <DashboardPanel className="p-6 lg:p-8">
+        <DashboardPanel className="w-full max-w-3xl p-6 lg:p-8">
           <CategoryForm
             action={updateAction}
             defaultValues={{ name: category.name, slug: category.slug }}

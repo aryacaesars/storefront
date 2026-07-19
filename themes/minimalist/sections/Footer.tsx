@@ -9,6 +9,7 @@ export function Footer({ config }: FooterProps) {
   // Sama dengan Header: tanpa logoUrl selalu jatuh ke teks.
   const showLogo = logoDisplay !== "text" && Boolean(config.logoUrl)
   const showText = logoDisplay === "text" || logoDisplay === "both" || !config.logoUrl
+  const logoScale = (config.logoScale ?? 100) / 100
 
   return (
     <footer className="border-t border-black/5 bg-white">
@@ -24,7 +25,8 @@ export function Footer({ config }: FooterProps) {
               <img
                 src={config.logoUrl}
                 alt={showText ? "" : config.storeName}
-                className="h-8 w-auto max-w-[160px] object-contain"
+                className="w-auto object-contain"
+                style={{ height: 32 * logoScale, maxWidth: 160 * logoScale }}
               />
             )}
             {showText && config.storeName}
@@ -33,6 +35,30 @@ export function Footer({ config }: FooterProps) {
             {config.tagline ??
               "Curated essentials for the intentional lifestyle."}
           </p>
+          {(config.contactPhone || config.contactEmail || config.contactAddress) && (
+            <div className="mt-5 space-y-1.5 text-sm text-[var(--theme-muted)]">
+              {config.contactAddress && (
+                <p className="leading-relaxed">{config.contactAddress}</p>
+              )}
+              {config.contactPhone && (
+                <p>
+                  <a href={`tel:${config.contactPhone}`} className="hover:text-[var(--theme-text)]">
+                    {config.contactPhone}
+                  </a>
+                </p>
+              )}
+              {config.contactEmail && (
+                <p>
+                  <a
+                    href={`mailto:${config.contactEmail}`}
+                    className="hover:text-[var(--theme-text)]"
+                  >
+                    {config.contactEmail}
+                  </a>
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         <div>

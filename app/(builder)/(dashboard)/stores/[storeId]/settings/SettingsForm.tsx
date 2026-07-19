@@ -1,20 +1,34 @@
 "use client"
 
-import { useActionState } from "react"
-import { updateStoreSettingsAction } from "./actions"
-import type { SettingsState } from "./actions"
+import { useActionState, useState } from "react"
+import {
+  deleteStoreAction,
+  updateStoreSettingsAction,
+  type DeleteStoreState,
+  type SettingsState,
+} from "./actions"
 import { useDashboardActionNotice } from "@/features/builder/hooks/useDashboardActionNotice"
-import { dashboardBtnPrimary, dashboardInput, dashboardLabel } from "@/features/builder/components/dashboard-ui"
+import {
+  dashboardBtnPrimary,
+  dashboardInput,
+  dashboardLabel,
+} from "@/features/builder/components/dashboard-ui"
 
 export function SettingsForm({
   storeId,
   defaultName,
   defaultSlug,
+  defaultPhone,
+  defaultEmail,
+  defaultAddress,
   rootDomain,
 }: {
   storeId: string
   defaultName: string
   defaultSlug: string
+  defaultPhone: string
+  defaultEmail: string
+  defaultAddress: string
   rootDomain: string
 }) {
   const action = updateStoreSettingsAction.bind(null, storeId)
@@ -28,45 +42,147 @@ export function SettingsForm({
   })
 
   return (
-    <form action={formAction} className="flex max-w-xl flex-col gap-4">
-      <div>
-        <label className={dashboardLabel}>Nama Store</label>
-        <input
-          name="name"
-          type="text"
-          required
-          defaultValue={defaultName}
-          className={dashboardInput}
-        />
-      </div>
+    <form action={formAction} className="flex w-full flex-col gap-8">
+      <section className="flex flex-col gap-4">
+        <div>
+          <h2 className="text-sm font-semibold text-dash-ink">Identitas</h2>
+          <p className="mt-1 text-xs text-dash-muted">
+            Nama dan subdomain toko di platform.
+          </p>
+        </div>
 
-      <div>
-        <label className={dashboardLabel}>Subdomain</label>
-        <div className="flex items-stretch">
+        <div>
+          <label className={dashboardLabel}>Nama Store</label>
           <input
-            name="slug"
+            name="name"
             type="text"
             required
-            defaultValue={defaultSlug}
-            pattern="[a-zA-Z0-9\-]+"
-            className={`${dashboardInput} rounded-r-none`}
+            defaultValue={defaultName}
+            className={dashboardInput}
           />
-          <span className="inline-flex items-center rounded-r-lg border border-l-0 border-gray-200 bg-gray-50 px-3 text-sm text-gray-500">
-            .{rootDomain}
-          </span>
         </div>
-        <p className="mt-1.5 text-xs text-gray-400">
-          Huruf, angka, dan tanda hubung. Alamat storefront kamu akan berubah.
-        </p>
-      </div>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className={dashboardBtnPrimary}
-      >
+        <div>
+          <label className={dashboardLabel}>Subdomain</label>
+          <div className="flex items-stretch">
+            <input
+              name="slug"
+              type="text"
+              required
+              defaultValue={defaultSlug}
+              pattern="[a-zA-Z0-9\-]+"
+              className={`${dashboardInput} rounded-r-none`}
+            />
+            <span className="inline-flex items-center rounded-r-lg border border-l-0 border-dash-border bg-dash-bg px-3 text-sm text-dash-muted">
+              .{rootDomain}
+            </span>
+          </div>
+          <p className="mt-1.5 text-xs text-dash-muted">
+            Huruf, angka, dan tanda hubung. Alamat storefront kamu akan berubah.
+          </p>
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-4 border-t border-dash-border pt-8">
+        <div>
+          <h2 className="text-sm font-semibold text-dash-ink">Kontak & alamat</h2>
+          <p className="mt-1 text-xs text-dash-muted">
+            Ditampilkan di footer storefront pelanggan.
+          </p>
+        </div>
+
+        <div>
+          <label className={dashboardLabel}>No. HP / WhatsApp</label>
+          <input
+            name="contactPhone"
+            type="tel"
+            defaultValue={defaultPhone}
+            placeholder="08xxxxxxxxxx"
+            className={dashboardInput}
+          />
+        </div>
+
+        <div>
+          <label className={dashboardLabel}>Email toko</label>
+          <input
+            name="contactEmail"
+            type="email"
+            defaultValue={defaultEmail}
+            placeholder="hello@toko.com"
+            className={dashboardInput}
+          />
+        </div>
+
+        <div>
+          <label className={dashboardLabel}>Alamat</label>
+          <textarea
+            name="contactAddress"
+            rows={3}
+            defaultValue={defaultAddress}
+            placeholder="Jl. Contoh No. 1, Jakarta"
+            className={`${dashboardInput} resize-y`}
+          />
+        </div>
+      </section>
+
+      <button type="submit" disabled={pending} className={dashboardBtnPrimary}>
         {pending ? "Menyimpan..." : "Simpan"}
       </button>
     </form>
+  )
+}
+
+export function DeleteStorePanel({
+  storeId,
+  storeName,
+}: {
+  storeId: string
+  storeName: string
+}) {
+  const [confirmName, setConfirmName] = useState("")
+  const action = deleteStoreAction.bind(null, storeId)
+  const [state, formAction, pending] = useActionState<DeleteStoreState, FormData>(
+    action,
+    undefined,
+  )
+
+  const canDelete = confirmName.trim() === storeName
+
+  return (
+    <div className="rounded-2xl border border-red-200 bg-red-50/40 p-6">
+      <h2 className="text-sm font-semibold text-red-700">Hapus toko</h2>
+      <p className="mt-1.5 text-xs leading-relaxed text-red-700/80">
+        Menghapus toko akan menghapus produk, order, pelanggan, dan konfigurasi
+        tema. Tindakan ini tidak bisa dibatalkan.
+      </p>
+
+      <form action={formAction} className="mt-5 flex flex-col gap-3">
+        <div>
+          <label className={dashboardLabel}>
+            Ketik <span className="font-semibold text-dash-ink">{storeName}</span> untuk
+            konfirmasi
+          </label>
+          <input
+            name="confirmName"
+            type="text"
+            value={confirmName}
+            onChange={(e) => setConfirmName(e.target.value)}
+            autoComplete="off"
+            className={dashboardInput}
+            placeholder={storeName}
+          />
+        </div>
+
+        {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+
+        <button
+          type="submit"
+          disabled={pending || !canDelete}
+          className="inline-flex cursor-pointer items-center justify-center rounded-full bg-red-600 px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {pending ? "Menghapus..." : "Hapus toko permanen"}
+        </button>
+      </form>
+    </div>
   )
 }

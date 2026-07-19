@@ -1,4 +1,5 @@
 import type { ComponentType } from "react"
+import type { CatalogProduct } from "@/features/storefront/catalog-types"
 import type { BlockInstance, SectionPageType, ThemeConfig } from "@/themes/engine/schema"
 import type { SectionEditorState } from "@/themes/engine/section-editor"
 import { CallToActionSection as BoldCallToActionSection } from "@/themes/bold/sections/CallToActionSection"
@@ -35,6 +36,12 @@ export type SectionProps = {
   canvas?: SectionCanvasContext
   /** True when rendering the mobile layer (viewport <640px or forced in preview). */
   isMobile?: boolean
+  /**
+   * Live catalog products for the current tenant.
+   * - `undefined` — builder / preview (sections may fall back to mock)
+   * - array — storefront tenant (may be empty)
+   */
+  products?: CatalogProduct[]
 }
 
 export type SectionDefinition = {

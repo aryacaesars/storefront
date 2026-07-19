@@ -9,6 +9,18 @@
   --brand-dark: #4a3ed0;
   --ink: #0e0e1a;
   --surface: #f4f2ef;
+
+  /* Dashboard shell */
+  --dash-bg: #f4f6f9;
+  --dash-surface: #ffffff;
+  --dash-border: #e8eaef;
+  --dash-muted: #8e92a8;
+  --dash-ink: #1a1d1f;
+  --dash-primary: #5b4bff;
+  --dash-primary-dark: #4a3ed0;
+  --dash-primary-light: #f0efff;
+  --dash-success: #16a34a;
+  --dash-danger: #dc2626;
 }
 
 @theme inline {
@@ -18,15 +30,25 @@
   --color-brand-dark: var(--brand-dark);
   --color-ink: var(--ink);
   --color-surface: var(--surface);
-  --font-sans: var(--font-geist-sans);
+  --color-dash-bg: var(--dash-bg);
+  --color-dash-surface: var(--dash-surface);
+  --color-dash-border: var(--dash-border);
+  --color-dash-muted: var(--dash-muted);
+  --color-dash-ink: var(--dash-ink);
+  --color-dash-primary: var(--dash-primary);
+  --color-dash-primary-dark: var(--dash-primary-dark);
+  --color-dash-primary-light: var(--dash-primary-light);
+  --color-dash-success: var(--dash-success);
+  --color-dash-danger: var(--dash-danger);
+  --font-sans: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-display);
+  --font-display: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
 }
 
 @keyframes notice-modal-in {
@@ -46,5 +68,33 @@ body {
   }
   to {
     transform: scaleX(0);
+  }
+}
+
+@keyframes blur-fade-in-up {
+  from {
+    opacity: 0;
+    filter: blur(12px);
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+.animate-blur-fade-in {
+  opacity: 0;
+  animation: blur-fade-in-up 700ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity, filter;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-blur-fade-in {
+    opacity: 1;
+    animation: none;
+    filter: none;
+    transform: none;
   }
 }

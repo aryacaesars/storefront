@@ -53,6 +53,10 @@ export type CategoryImage = {
   rotation: number
   /** Precision scale multiplier (0.1–5, default 1). */
   sliderScale: number
+  /** Opacity 0–100 (100 = opaque). */
+  opacity: number
+  flipH: boolean
+  flipV: boolean
 }
 
 export type CategoryCardLayout = {
@@ -352,6 +356,9 @@ export function parseImageTransform(settings: Record<string, unknown> | undefine
     y: Math.round(num(settings?.imgY, 0)),
     rotation: clamp(Math.round(num(settings?.imgRotation, 0)), -180, 180),
     sliderScale: clamp(num(settings?.imgSliderScale, 1), 0.1, 5),
+    opacity: clamp(num(settings?.imgOpacity, 100), 0, 100),
+    flipH: settings?.imgFlipH === true,
+    flipV: settings?.imgFlipV === true,
   }
 }
 
@@ -398,7 +405,17 @@ export function defaultCategoryCards(): CategoryCardData[] {
   return DEFAULT_META.slice(0, MAX_CATEGORY_CARDS).map((meta, index) => ({
     id: `bento-cat-${index}`,
     ...meta,
-    image: { url: undefined, scale: DEFAULT_IMG_SCALE, x: 0, y: 0, rotation: 0, sliderScale: 1 },
+    image: {
+      url: undefined,
+      scale: DEFAULT_IMG_SCALE,
+      x: 0,
+      y: 0,
+      rotation: 0,
+      sliderScale: 1,
+      opacity: 100,
+      flipH: false,
+      flipV: false,
+    },
     layout: DEFAULT_CARD_LAYOUTS[index],
     labelLayer: "front",
     labelLayout: DEFAULT_LABEL_LAYOUTS[inferLabelSize(DEFAULT_CARD_LAYOUTS[index])],

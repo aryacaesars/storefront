@@ -1,6 +1,5 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 import { requireSession } from "@/features/auth/dal"
@@ -43,9 +42,6 @@ export async function createStoreAction(
   }
 
   const store = await createStore({ name, slug, ownerId: session.userId })
-
-  revalidatePath("/dashboard")
-  revalidatePath("/", "layout")
 
   redirect(`/stores/${store.id}/dashboard`)
 }

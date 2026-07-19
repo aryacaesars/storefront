@@ -1,44 +1,62 @@
 import Link from "next/link"
 import type { Template } from "@prisma/client"
 import { cn } from "@/lib/utils"
+import { ThemeHeroThumbnail } from "@/features/builder/components/ThemeHeroThumbnail"
 import { TemplateThumbnail } from "@/features/builder/components/TemplateThumbnail"
+import { LiveStoreButton } from "@/features/builder/components/LiveStoreButton"
 import { dashboardBtnOutline, dashboardBtnPrimary } from "@/features/builder/components/dashboard-ui"
 import { normalizeThemeSlug } from "@/server/services/template.service"
-import type { TemplateId } from "@/themes/engine/schema"
+import { getTemplatePreviewHref } from "@/themes/engine/registry"
+import type { TemplateId, ThemeConfig } from "@/themes/engine/schema"
+import type { ActivateForLiveResult } from "@/app/(builder)/(dashboard)/stores/[storeId]/templates/actions"
 
 interface StoreTemplateCardProps {
   storeId: string
+  storefrontUrl: string
   template: Template
   isPurchased: boolean
   isActive: boolean
   buyAction: (storeId: string, templateId: string) => Promise<void>
+  activateForLiveAction: (
+    storeId: string,
+    templateId: string,
+  ) => Promise<ActivateForLiveResult>
+  /** Config thumbnail: vault Livestore bila sudah dikustomisasi, selain itu platform base. */
+  themeConfig?: ThemeConfig | null
 }
 
 export function StoreTemplateCard({
   storeId,
+  storefrontUrl,
   template,
   isPurchased,
   isActive,
   buyAction,
+  activateForLiveAction,
+  themeConfig,
 }: StoreTemplateCardProps) {
   const themeId = normalizeThemeSlug(template.slug)
   const isFree = template.price === 0
+  const isOwned = isPurchased || isFree || isActive
   const priceLabel = isFree ? "Gratis" : `Rp ${template.price.toLocaleString("id-ID")}`
   const customizeHref = `/stores/${storeId}/customize?template=${themeId ?? template.slug}`
   const activate = buyAction.bind(null, storeId, template.id)
+  const activateForLive = activateForLiveAction.bind(null, storeId, template.id)
 
   return (
     <article className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-black/5">
       <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
-        {template.previewUrl ? (
+        {themeConfig ? (
+          <ThemeHeroThumbnail config={themeConfig} className="absolute inset-0 h-full w-full" />
+        ) : themeId ? (
+          <TemplateThumbnail id={themeId as TemplateId} className="aspect-auto h-full w-full" />
+        ) : template.previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={template.previewUrl}
             alt={template.name}
             className="h-full w-full object-cover object-top"
           />
-        ) : themeId ? (
-          <TemplateThumbnail id={themeId as TemplateId} className="aspect-auto h-full w-full" />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-gray-400">
             Preview tidak tersedia
@@ -57,6 +75,10 @@ export function StoreTemplateCard({
           {isActive ? (
             <span className="shrink-0 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-white">
               aktif
+            </span>
+          ) : isOwned ? (
+            <span className="shrink-0 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-500">
+              tidak aktif
             </span>
           ) : (
             <span className="shrink-0 text-sm font-semibold text-brand">{priceLabel}</span>
@@ -82,16 +104,31 @@ export function StoreTemplateCard({
             </form>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
-            <Link href={customizeHref} className={cn(dashboardBtnOutline, "py-2.5")}>
-              customize
-            </Link>
-            <Link
-              href={`${customizeHref}&mode=preview`}
-              className={cn(dashboardBtnOutline, "py-2.5")}
-            >
-              preview
-            </Link>
+          <div className={cn("grid gap-3", isOwned && themeId ? "grid-cols-2" : "grid-cols-1")}>
+            {themeId ? (
+              <Link
+                href={getTemplatePreviewHref(themeId)}
+                target="_blank"
+                className={cn(dashboardBtnOutline, "py-2.5")}
+              >
+                preview
+              </Link>
+            ) : (
+              <span
+                aria-disabled
+                className={cn(dashboardBtnOutline, "py-2.5 cursor-not-allowed opacity-40")}
+              >
+                preview
+              </span>
+            )}
+            {isOwned && (
+              <LiveStoreButton
+                isActive={isActive}
+                storefrontUrl={storefrontUrl}
+                templateName={template.name}
+                activateAction={activateForLive}
+              />
+            )}
           </div>
         </div>
       </div>

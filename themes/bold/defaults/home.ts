@@ -21,7 +21,7 @@ export const DEFAULT_BOLD_HOME: PageTemplate = {
           id: "bold-hero-media",
           type: "hero-media",
           settings: {
-            imageUrl: "/themes/bold/hero-athlete.png",
+            imageUrl: "",
             imgScale: 100,
             title1Layer: "front",
             title2Layer: "front",
@@ -36,7 +36,7 @@ export const DEFAULT_BOLD_HOME: PageTemplate = {
             label: "SHOP NOW",
             xPct: 5,
             wPct: 22,
-            yPx: 430,
+            yPx: 360,
             hPx: 48,
             ctaBgColor: "transparent",
             ctaTextColor: "#ffffff",
@@ -96,8 +96,8 @@ export const DEFAULT_BOLD_HOME: PageTemplate = {
           id: "bold-cat-3",
           type: "category-card",
           settings: {
-            label: "All Products",
-            slug: "all-products",
+            label: "Products",
+            slug: "products",
             cardBgColor: "#3f3f46",
             imageUrl: "",
             imgScale: 100,
@@ -116,16 +116,6 @@ export const DEFAULT_BOLD_HOME: PageTemplate = {
         },
       ],
     },
-    "call-to-action": {
-      type: "call-to-action",
-      settings: {
-        title: "BECOME PART OF THE MOMENTUM.",
-        subtitle:
-          "Join the elite circle of athletes and innovators redefining the boundaries of the possible.",
-        primaryLabel: "SHOP THE SERIES",
-        secondaryLabel: "OUR STORY",
-      },
-      blocks: [],
-    },
+    "call-to-action": { type: "call-to-action" },
   },
 }

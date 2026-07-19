@@ -6,18 +6,25 @@ import type { ThemePageProps } from "@/themes/engine/page-props"
 import { formatIdr } from "@/features/storefront/catalog-types"
 import { placeOrderAction } from "@/app/(storefront)/checkout/actions"
 import type { CheckoutState } from "@/app/(storefront)/checkout/actions"
-import { UseMyLocationButton } from "@/features/storefront/UseMyLocationButton"
+import { CheckoutCartLines } from "@/features/storefront/CheckoutCartLines"
 
-const inputClass =
-  "h-11 w-full border border-gray-200 px-4 text-sm text-[var(--theme-text)] outline-none transition-colors focus:border-[var(--theme-primary)] placeholder:text-[var(--theme-muted)]"
-
-export function CheckoutPage({ cart = [], storeId, checkoutPrefill }: ThemePageProps) {
+export function CheckoutPage({
+  cart = [],
+  storeId,
+  checkoutCustomer,
+  checkoutAddress,
+}: ThemePageProps) {
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const action = storeId
     ? placeOrderAction.bind(null, storeId)
-    : async (_prev: CheckoutState, _fd: FormData): Promise<CheckoutState> => ({ error: "Store tidak ditemukan." })
+    : async (_prev: CheckoutState, _fd: FormData): Promise<CheckoutState> => ({
+        error: "Store tidak ditemukan.",
+      })
 
-  const [state, formAction, pending] = useActionState<CheckoutState, FormData>(action, undefined)
+  const [state, formAction, pending] = useActionState<CheckoutState, FormData>(
+    action,
+    undefined,
+  )
 
   useEffect(() => {
     if (state && "ok" in state && state.ok) {
@@ -25,69 +32,126 @@ export function CheckoutPage({ cart = [], storeId, checkoutPrefill }: ThemePageP
     }
   }, [state])
 
+  const canPlaceOrder =
+    Boolean(checkoutCustomer?.name?.trim()) &&
+    Boolean(checkoutCustomer?.phone?.trim()) &&
+    Boolean(checkoutAddress) &&
+    cart.length > 0 &&
+    Boolean(storeId)
+
   return (
-    <section className="mx-auto max-w-5xl px-6 py-12">
-      <h1
-        className="text-3xl font-semibold text-[var(--theme-text)]"
-        style={{ fontFamily: "var(--theme-heading-font)" }}
-      >
-        Checkout
-      </h1>
-      {checkoutPrefill && (
-        <p className="mt-2 text-sm text-[var(--theme-muted)]">
-          Masuk sebagai <span className="font-semibold text-[var(--theme-text)]">{checkoutPrefill.email}</span>
+    <section className="mx-auto max-w-5xl px-6 py-8">
+      {state && "error" in state && state.error && (
+        <p className="mb-5 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">
+          {state.error}
         </p>
       )}
-      {state && "error" in state && state.error && (
-        <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">{state.error}</p>
-      )}
 
-      <div className="mt-10 grid gap-10 @3xl:grid-cols-5">
-        <form action={formAction} className="space-y-5 @3xl:col-span-3">
-          <fieldset className="space-y-4">
-            <legend className="text-sm font-semibold text-[var(--theme-text)]">Contact</legend>
-            <input name="name" type="text" required placeholder="Nama lengkap" defaultValue={checkoutPrefill?.name ?? ""} className={inputClass} />
-            <input name="email" type="email" required placeholder="Email" defaultValue={checkoutPrefill?.email ?? ""} className={inputClass} />
-            <input name="phone" type="tel" required placeholder="No. HP" defaultValue={checkoutPrefill?.phone ?? ""} className={inputClass} />
-          </fieldset>
-          <fieldset className="space-y-4">
-            <legend className="text-sm font-semibold text-[var(--theme-text)]">Shipping Address</legend>
-            <UseMyLocationButton className="text-xs font-bold uppercase tracking-[0.14em] underline transition-opacity hover:opacity-70 disabled:opacity-50" />
-            <input name="street" type="text" required placeholder="Alamat" defaultValue={checkoutPrefill?.street ?? ""} className={inputClass} />
-            <div className="grid gap-3 @2xl:grid-cols-2">
-              <input name="city" type="text" required placeholder="Kota" defaultValue={checkoutPrefill?.city ?? ""} className={inputClass} />
-              <input name="province" type="text" required placeholder="Provinsi" defaultValue={checkoutPrefill?.province ?? ""} className={inputClass} />
+      <div className="space-y-6">
+        <div className="border border-black/5 bg-white p-6">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[var(--theme-muted)]">
+                Shipping
+              </p>
+              <h2 className="mt-1 text-lg font-semibold text-[var(--theme-text)]">
+                Informasi pesanan
+              </h2>
             </div>
-            <input name="postalCode" type="text" required placeholder="Kode pos" defaultValue={checkoutPrefill?.postalCode ?? ""} className={inputClass} />
-          </fieldset>
+            {checkoutCustomer && (
+              <Link
+                href="/account"
+                className="border border-[var(--theme-text)]/20 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-[var(--theme-text)]"
+              >
+                {checkoutAddress ? "Ubah alamat" : "Tambah alamat"}
+              </Link>
+            )}
+          </div>
 
-          <aside className="rounded-lg p-6" style={{ backgroundColor: "var(--theme-accent)" }}>
-            <h2 className="text-sm font-semibold text-[var(--theme-text)]">Order Summary</h2>
-            <div className="mt-4 space-y-2 text-sm">
-              {cart.map((item) => (
-                <div key={item.slug} className="flex justify-between text-[var(--theme-muted)]">
-                  <span>{item.name} ×{item.quantity}</span>
-                  <span>{formatIdr(item.price * item.quantity)}</span>
-                </div>
-              ))}
-              <div className="flex justify-between border-t border-black/5 pt-3 font-semibold text-[var(--theme-text)]">
-                <span>Total</span>
-                <span>{formatIdr(subtotal)}</span>
+          {!checkoutCustomer ? (
+            <div className="mt-5 border border-dashed border-black/10 px-4 py-6 text-center">
+              <p className="text-sm text-[var(--theme-muted)]">
+                Masuk ke akun untuk memakai alamat tersimpan.
+              </p>
+              <Link
+                href="/signin"
+                className="mt-3 inline-block text-sm font-semibold text-[var(--theme-primary)]"
+              >
+                Masuk
+              </Link>
+            </div>
+          ) : (
+            <div className="mt-5 grid gap-3 @2xl:grid-cols-2">
+              <div className="bg-[var(--theme-bg)] p-4">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[var(--theme-muted)]">
+                  Penerima
+                </p>
+                <p className="mt-1.5 text-sm font-semibold text-[var(--theme-text)]">
+                  {checkoutCustomer.name || "—"}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-[var(--theme-muted)]">
+                  {checkoutCustomer.email}
+                  {checkoutCustomer.phone ? (
+                    <>
+                      <br />
+                      {checkoutCustomer.phone}
+                    </>
+                  ) : null}
+                </p>
               </div>
+              {!checkoutAddress ? (
+                <div className="flex flex-col items-center justify-center border border-dashed border-black/10 px-4 py-5 text-center">
+                  <p className="text-sm text-[var(--theme-muted)]">Belum ada alamat.</p>
+                  <Link
+                    href="/account"
+                    className="mt-2 text-sm font-semibold text-[var(--theme-primary)]"
+                  >
+                    Tambah alamat
+                  </Link>
+                </div>
+              ) : (
+                <div className="bg-[var(--theme-bg)] p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[var(--theme-muted)]">
+                    Alamat
+                  </p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-[var(--theme-text)]">
+                    {checkoutAddress.street}
+                    <br />
+                    {checkoutAddress.city}, {checkoutAddress.province}{" "}
+                    {checkoutAddress.postalCode}
+                  </p>
+                </div>
+              )}
             </div>
+          )}
+        </div>
+
+        <aside className="border border-black/5 bg-white p-6">
+          <h2 className="text-sm font-semibold text-[var(--theme-text)]">Order Summary</h2>
+          <div className="mt-5">
+            <CheckoutCartLines cart={cart} />
+          </div>
+          <div className="mt-5 flex justify-between border-t border-black/5 pt-4 text-sm font-semibold text-[var(--theme-text)]">
+            <span>Total</span>
+            <span>{formatIdr(subtotal)}</span>
+          </div>
+          <form action={formAction}>
             <button
               type="submit"
-              disabled={pending || cart.length === 0}
+              disabled={pending || !canPlaceOrder}
               className="mt-6 h-11 w-full text-xs font-bold uppercase tracking-[0.14em] text-white transition-opacity hover:opacity-90 disabled:opacity-50"
               style={{ backgroundColor: "var(--theme-primary)" }}
             >
               {pending ? "Memproses..." : "Place Order"}
             </button>
-            <Link href="/cart" className="mt-3 block text-center text-xs text-[var(--theme-muted)] hover:text-[var(--theme-text)]">
-              Return to cart
-            </Link>
-          </aside>
-        </form>
+          </form>
+          <Link
+            href="/cart"
+            className="mt-3 block text-center text-xs text-[var(--theme-muted)] hover:text-[var(--theme-text)]"
+          >
+            Kembali ke cart
+          </Link>
+        </aside>
       </div>
     </section>
   )

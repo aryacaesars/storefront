@@ -85,8 +85,8 @@ function SettingFieldRenderer({
 }: SettingFieldRendererProps) {
   const value =
     field.scope === "hero"
-      ? (hero[field.id as keyof HeroConfig] as string | undefined)
-      : (config[field.id as keyof ThemeConfig] as string | undefined)
+      ? (hero[field.id as keyof HeroConfig] as string | number | undefined)
+      : (config[field.id as keyof ThemeConfig] as string | number | undefined)
 
   return (
     <SettingsField label={field.label} hint={field.hint}>
@@ -139,7 +139,7 @@ function SettingFieldRenderer({
 
       {field.type === "image" && (
         <ImageUploadField
-          value={value}
+          value={typeof value === "string" ? value : undefined}
           placeholder={field.placeholder ?? "Upload"}
           onChange={(url) =>
             field.scope === "hero"
@@ -174,6 +174,34 @@ function SettingFieldRenderer({
             <option key={font}>{font}</option>
           ))}
         </select>
+      )}
+
+      {field.type === "slider" && (
+        <div className="flex items-center gap-3">
+          <input
+            type="range"
+            min={field.min ?? 0}
+            max={field.max ?? 100}
+            step={field.step ?? 1}
+            value={typeof value === "number" ? value : field.defaultValue ?? 0}
+            onChange={(e) =>
+              field.scope === "hero"
+                ? onHeroChange(
+                    field.id as keyof HeroConfig,
+                    Number(e.target.value) as unknown as HeroConfig[keyof HeroConfig],
+                  )
+                : onConfigChange(
+                    field.id as keyof ThemeConfig,
+                    Number(e.target.value) as unknown as ThemeConfig[keyof ThemeConfig],
+                  )
+            }
+            className="h-1.5 flex-1 cursor-pointer accent-indigo-600"
+          />
+          <span className="w-12 shrink-0 text-right text-xs font-medium text-gray-500">
+            {typeof value === "number" ? value : field.defaultValue ?? 0}
+            {field.unit ?? ""}
+          </span>
+        </div>
       )}
 
       {field.type === "font-body" && (

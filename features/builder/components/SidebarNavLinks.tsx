@@ -1,8 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useEffect, useState } from "react"
+import { usePathname, useRouter } from "next/navigation"
+import { useEffect, useState, useTransition } from "react"
 import {
   LayoutDashboard,
   Store,
@@ -15,11 +15,16 @@ import {
   ChevronDown,
   LayoutTemplate,
   Shield,
+  HelpCircle,
+  Compass,
+  Loader2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { sidebarNavItemClass, sidebarSectionLabel } from "./dashboard-ui"
 
 const TOP_NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/templates", label: "Browse Template", icon: Compass },
 ]
 
 const STORE_NAV = [
@@ -33,6 +38,8 @@ const STORE_NAV = [
   { href: "settings", label: "Pengaturan", icon: Settings },
 ]
 
+const TOOLS_NAV = [{ href: "/support", label: "Bantuan", icon: HelpCircle }]
+
 type StoreItem = { id: string; name: string }
 
 export function SidebarNavLinks({
@@ -43,7 +50,16 @@ export function SidebarNavLinks({
   isAdmin?: boolean
 }) {
   const pathname = usePathname()
+  const router = useRouter()
   const [stores, setStores] = useState(initialStores)
+  const [isPending, startTransition] = useTransition()
+  const [pendingStoreId, setPendingStoreId] = useState<string | null>(null)
+
+  const storeMatch = pathname.match(/^\/stores\/([^/]+)/)
+  const activeStoreId = storeMatch?.[1] ?? null
+
+  // Accordion: toko mana yang submenu-nya terbuka.
+  const [openStoreId, setOpenStoreId] = useState<string | null>(activeStoreId)
 
   useEffect(() => {
     setStores(initialStores)
@@ -69,110 +85,169 @@ export function SidebarNavLinks({
     }
   }, [pathname])
 
-  const storeMatch = pathname.match(/^\/stores\/([^/]+)/)
-  const activeStoreId = storeMatch?.[1] ?? null
+  // Sinkron accordion dengan konteks URL:
+  // di dalam /stores/:id → buka toko itu; ke menu merchant utama → tutup.
+  useEffect(() => {
+    setOpenStoreId(activeStoreId)
+  }, [activeStoreId])
+
+  useEffect(() => {
+    if (pendingStoreId && activeStoreId === pendingStoreId) {
+      setPendingStoreId(null)
+    }
+  }, [activeStoreId, pendingStoreId])
+
+  function onStoreClick(storeId: string) {
+    const isOpen = openStoreId === storeId
+
+    // Sudah terbuka → tutup saja (tetap di halaman sekarang).
+    if (isOpen) {
+      setOpenStoreId(null)
+      return
+    }
+
+    // Buka accordion.
+    setOpenStoreId(storeId)
+
+    // Belum jadi toko aktif di URL → navigasi ke dashboard toko itu.
+    if (storeId !== activeStoreId) {
+      setPendingStoreId(storeId)
+      startTransition(() => {
+        router.push(`/stores/${storeId}/dashboard`)
+      })
+    }
+  }
 
   return (
-    <nav className="flex flex-col gap-0.5 px-2">
-      {TOP_NAV.map(({ href, label, icon: Icon }) => {
-        const active =
-          pathname === href ||
-          (href !== "/dashboard" && pathname.startsWith(href + "/"))
-        return (
-          <Link
-            key={href}
-            href={href}
-            className={cn(
-              "group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-              active
-                ? "bg-indigo-50 text-indigo-700"
-                : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
-            )}
-          >
-            {active && (
-              <span className="absolute left-0 top-2 bottom-2 w-0.5 bg-indigo-600 rounded-r-full" />
-            )}
-            <Icon className="w-4 h-4 shrink-0" />
-            {label}
-          </Link>
-        )
-      })}
+    <nav className="flex flex-col gap-6">
+      <div>
+        <p className={sidebarSectionLabel}>Menu</p>
+        <div className="flex flex-col gap-1">
+          {TOP_NAV.map(({ href, label, icon: Icon }) => {
+            const active =
+              pathname === href || (href !== "/dashboard" && pathname.startsWith(href + "/"))
+            return (
+              <Link key={href} href={href} className={sidebarNavItemClass(active)}>
+                <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.75} />
+                {label}
+              </Link>
+            )
+          })}
 
-      {isAdmin && (
-        <Link
-          href="/admin"
-          className={cn(
-            "group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-            pathname.startsWith("/admin")
-              ? "bg-indigo-50 text-indigo-700"
-              : "text-gray-500 hover:bg-gray-100 hover:text-gray-900",
+          {isAdmin && (
+            <Link href="/admin" className={sidebarNavItemClass(pathname.startsWith("/admin"))}>
+              <Shield className="h-[18px] w-[18px] shrink-0" strokeWidth={1.75} />
+              Admin Panel
+            </Link>
           )}
-        >
-          {pathname.startsWith("/admin") && (
-            <span className="absolute left-0 top-2 bottom-2 w-0.5 bg-indigo-600 rounded-r-full" />
-          )}
-          <Shield className="w-4 h-4 shrink-0" />
-          Admin Panel
-        </Link>
-      )}
+        </div>
+      </div>
 
       {stores.length > 0 && (
-        <div className="mt-3">
-          <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-            Toko Saya
-          </p>
-          {stores.map((store) => {
-            const isActive = activeStoreId === store.id
-            return (
-              <div key={store.id}>
-                <Link
-                  href={`/stores/${store.id}/dashboard`}
+        <div>
+          <p className={sidebarSectionLabel}>Toko Saya</p>
+          <div className="flex flex-col gap-1">
+            {stores.map((store) => {
+              const isActive = activeStoreId === store.id
+              const isOpen = openStoreId === store.id
+              const isSwitchingTo = pendingStoreId === store.id && isPending
+              const isHighlighted = isOpen || isActive || isSwitchingTo
+
+              return (
+                <div
+                  key={store.id}
                   className={cn(
-                    "relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-indigo-50 text-indigo-700"
-                      : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                    "rounded-2xl transition-colors duration-200",
+                    isOpen && "bg-dash-bg/70 ring-1 ring-dash-border/70",
                   )}
                 >
-                  {isActive && (
-                    <span className="absolute left-0 top-2 bottom-2 w-0.5 bg-indigo-600 rounded-r-full" />
-                  )}
-                  <Store className="w-4 h-4 shrink-0" />
-                  <span className="flex-1 truncate">{store.name}</span>
-                  {isActive && (
-                    <ChevronDown className="w-3 h-3 shrink-0 opacity-60" />
-                  )}
-                </Link>
+                  <button
+                    type="button"
+                    onClick={() => onStoreClick(store.id)}
+                    disabled={isSwitchingTo}
+                    className={cn(
+                      sidebarNavItemClass(isHighlighted),
+                      "w-full text-left shadow-none",
+                      isSwitchingTo && "opacity-90",
+                    )}
+                    aria-expanded={isOpen}
+                    aria-current={isActive ? "page" : undefined}
+                    aria-busy={isSwitchingTo || undefined}
+                  >
+                    <Store className="h-[18px] w-[18px] shrink-0" strokeWidth={1.75} />
+                    <span className="flex-1 truncate">{store.name}</span>
+                    {isSwitchingTo ? (
+                      <Loader2
+                        className="h-4 w-4 shrink-0 animate-spin text-white/90"
+                        strokeWidth={2}
+                      />
+                    ) : (
+                      <ChevronDown
+                        className={cn(
+                          "h-4 w-4 shrink-0 transition-transform duration-200 ease-out",
+                          isOpen
+                            ? "rotate-0 text-white/80"
+                            : "-rotate-90 opacity-50",
+                          isHighlighted && !isOpen && "text-white/80 opacity-80",
+                        )}
+                      />
+                    )}
+                  </button>
 
-                {isActive && (
-                  <div className="ml-3 pl-3 border-l border-gray-200 mt-0.5 mb-1 flex flex-col gap-0.5">
-                    {STORE_NAV.map(({ href: sub, label, icon: Icon }) => {
-                      const subPath = `/stores/${store.id}/${sub}`
-                      const subActive =
-                        pathname === subPath || pathname.startsWith(subPath + "/")
-                      return (
-                        <Link
-                          key={sub}
-                          href={subPath}
-                          className={cn(
-                            "flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm transition-colors",
-                            subActive
-                              ? "text-indigo-700 font-medium bg-indigo-50"
-                              : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
-                          )}
-                        >
-                          <Icon className="w-3.5 h-3.5 shrink-0" />
-                          {label}
-                        </Link>
-                      )
-                    })}
+                  <div
+                    className={cn(
+                      "grid transition-[grid-template-rows,opacity] duration-200 ease-out",
+                      isOpen
+                        ? "grid-rows-[1fr] opacity-100"
+                        : "grid-rows-[0fr] opacity-0",
+                    )}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="ml-4 mt-1 border-l border-dash-border/80 pb-2 pl-2.5">
+                        <div className="flex flex-col gap-0.5 pt-1">
+                          {STORE_NAV.map(({ href: sub, label, icon: Icon }) => {
+                            const subPath = `/stores/${store.id}/${sub}`
+                            const subActive =
+                              pathname === subPath || pathname.startsWith(subPath + "/")
+                            return (
+                              <Link
+                                key={sub}
+                                href={subPath}
+                                className={cn(
+                                  sidebarNavItemClass(subActive, true),
+                                  isSwitchingTo && "pointer-events-none opacity-60",
+                                )}
+                              >
+                                <Icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+                                {label}
+                              </Link>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <p className={sidebarSectionLabel}>Tools</p>
+        <div className="flex flex-col gap-1">
+          {TOOLS_NAV.map(({ href, label, icon: Icon }) => {
+            const active = pathname === href || pathname.startsWith(href + "/")
+            return (
+              <Link key={href} href={href} className={sidebarNavItemClass(active)}>
+                <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.75} />
+                {label}
+              </Link>
             )
           })}
         </div>
-      )}
+      </div>
     </nav>
   )
 }

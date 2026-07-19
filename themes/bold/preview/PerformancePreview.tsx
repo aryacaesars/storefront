@@ -8,7 +8,7 @@ export function PerformancePreview() {
   return (
     <BoldPreviewShell activeKey="performance">
       <main>
-        <PerformancePage allProductsHref={`${BOLD_PREVIEW_BASE}/all-products`} />
+        <PerformancePage allProductsHref={`${BOLD_PREVIEW_BASE}/products`} />
       </main>
       <PerformanceFooter config={DEFAULT_BOLD_CONFIG} />
     </BoldPreviewShell>

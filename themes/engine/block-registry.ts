@@ -50,70 +50,14 @@ const BENTO_CATEGORY_BLOCK: BlockDefinition = {
   ],
 }
 
-const CTA_TITLE_BLOCK: BlockDefinition = {
-  type: "cta-title",
-  label: "Judul CTA",
-  defaultSettings: {
-    label: "Experience the Art of Less",
-    xPct: 15,
-    wPct: 70,
-    yPx: 48,
-    hPx: 88,
-  },
-  fields: [
-    {
-      key: "label",
-      label: "Judul",
-      type: "text",
-      placeholder: "Experience the Art of Less",
-    },
-  ],
-}
-
-const CTA_PRIMARY_BLOCK: BlockDefinition = {
-  type: "hero-cta",
-  label: "Tombol Utama",
-  defaultSettings: {
-    label: "Explore Collections",
-    xPct: 28,
-    wPct: 20,
-    yPx: 200,
-    hPx: 44,
-    ctaBgColor: "transparent",
-    ctaTextColor: "#ffffff",
-    ctaVariant: "outline",
-  },
-  fields: [
-    { key: "label", label: "Teks Tombol", type: "text", placeholder: "Explore Collections" },
-    {
-      key: "ctaBgColor",
-      label: "Warna Latar",
-      type: "color",
-      hint: "Kosongkan untuk transparan.",
-    },
-    {
-      key: "ctaTextColor",
-      label: "Warna Teks",
-      type: "color",
-      hint: "Kosongkan untuk putih (#ffffff).",
-    },
-  ],
-}
-
 const CTA_IMAGE_BLOCK: BlockDefinition = {
   type: "cta-image",
   label: "Gambar CTA",
   defaultSettings: {
     imageUrl: "",
-    xPct: 0,
-    wPct: 100,
-    yPx: 0,
-    hPx: 400,
     imgScale: 100,
     imgX: 0,
     imgY: 0,
-    imgRotation: 0,
-    imgSliderScale: 1,
   },
   fields: [
     {
@@ -150,22 +94,12 @@ const MINIMALIST_HERO_CTA_BLOCK: BlockDefinition = {
   defaultSettings: {
     label: "Shop Collection",
     ctaBgColor: "",
-    ctaTextColor: "",
+    ctaTextColor: "#ffffff",
   },
   fields: [
     { key: "label", label: "Teks Tombol", type: "text", placeholder: "Shop Collection" },
-    {
-      key: "ctaBgColor",
-      label: "Warna Latar",
-      type: "color",
-      hint: "Kosongkan untuk mengikuti Warna Utama di Theme Settings.",
-    },
-    {
-      key: "ctaTextColor",
-      label: "Warna Teks",
-      type: "color",
-      hint: "Kosongkan untuk putih (#ffffff).",
-    },
+    { key: "ctaBgColor", label: "Warna Latar", type: "color" },
+    { key: "ctaTextColor", label: "Warna Teks", type: "color" },
   ],
 }
 
@@ -235,8 +169,6 @@ const MINIMALIST_BLOCK_DEFS: Record<string, Record<string, BlockDefinition>> = {
   },
   "call-to-action": {
     "cta-image": CTA_IMAGE_BLOCK,
-    "cta-title": CTA_TITLE_BLOCK,
-    "hero-cta": CTA_PRIMARY_BLOCK,
   },
 }
 
@@ -433,9 +365,6 @@ const BOLD_BLOCK_DEFS: Record<string, Record<string, BlockDefinition>> = {
         },
       ],
     },
-  },
-  "call-to-action": {
-    "cta-image": CTA_IMAGE_BLOCK,
   },
 }
 

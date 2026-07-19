@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import type { StorefrontCategory } from "@/features/storefront/catalog"
+import type { StorefrontCategory } from "@/features/storefront/catalog-types"
 
 function FilterLabel({ children }: { children: React.ReactNode }) {
   return (

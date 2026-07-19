@@ -8,6 +8,7 @@ export function Footer({ config }: FooterProps) {
   const logoDisplay = config.logoDisplay ?? "logo"
   const showLogo = logoDisplay !== "text" && Boolean(config.logoUrl)
   const showText = logoDisplay === "text" || logoDisplay === "both" || !config.logoUrl
+  const logoScale = (config.logoScale ?? 100) / 100
 
   return (
     <footer className="px-4 pb-10 pt-6 @2xl:px-6">
@@ -22,7 +23,8 @@ export function Footer({ config }: FooterProps) {
               <img
                 src={config.logoUrl}
                 alt={showText ? "" : config.storeName}
-                className="h-6 w-auto max-w-[32px] object-contain"
+                className="w-auto object-contain"
+                style={{ height: 24 * logoScale, maxWidth: 32 * logoScale }}
               />
             )}
             {showText && config.storeName}
@@ -31,6 +33,26 @@ export function Footer({ config }: FooterProps) {
             {config.tagline ?? "Bold products. Bolder design."}
           </p>
         </div>
+
+        {(config.contactPhone || config.contactEmail || config.contactAddress) && (
+          <div className="mt-8 space-y-1.5 text-sm text-[#515160]">
+            {config.contactAddress && <p className="leading-relaxed">{config.contactAddress}</p>}
+            {config.contactPhone && (
+              <p>
+                <a href={`tel:${config.contactPhone}`} className="hover:text-[#1a1c1b]">
+                  {config.contactPhone}
+                </a>
+              </p>
+            )}
+            {config.contactEmail && (
+              <p>
+                <a href={`mailto:${config.contactEmail}`} className="hover:text-[#1a1c1b]">
+                  {config.contactEmail}
+                </a>
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="mt-10 border-t border-gray-100 pt-6 text-xs text-[#515160]">
           <p>© {new Date().getFullYear()} {config.storeName}. All rights reserved.</p>

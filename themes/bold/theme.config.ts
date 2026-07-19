@@ -9,7 +9,6 @@ export const DEFAULT_BOLD_CONFIG: ThemeConfig = {
   headingFont: "var(--font-barlow)",
   bodyFont: "var(--font-geist-sans)",
   bannerText: "Free shipping on orders over $200 — Elite members get priority dispatch",
-  heroImageUrl: "/themes/bold/hero-athlete.png",
   hero: {
     title: "NO LIMITS.",
     subtitle: "MORE MOTION",

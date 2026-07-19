@@ -4,7 +4,14 @@ export function BrandStory() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-14">
       <div className="grid items-center gap-12 md:grid-cols-2">
-        <div className="aspect-[3/4] overflow-hidden rounded-sm bg-gradient-to-br from-stone-200 via-amber-50 to-stone-300" />
+        <div className="aspect-[3/4] overflow-hidden rounded-sm bg-gradient-to-br from-stone-200 via-amber-50 to-stone-300">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=900&q=80&auto=format"
+            alt="Luna Soft atelier"
+            className="h-full w-full object-cover"
+          />
+        </div>
 
         <div>
           <p className="mb-4 text-[10px] tracking-[0.2em] uppercase text-[var(--theme-primary)]">

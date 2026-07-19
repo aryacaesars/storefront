@@ -29,7 +29,7 @@ const SESSION_COOKIE = "sf_session";
 // Cookie sesi end user storefront (set saat Sprint 5 — gate sudah dipasang).
 const SF_CUSTOMER_COOKIE = "sf_customer_session";
 // Path builder yang wajib login.
-const PROTECTED = ["/dashboard", "/templates", "/customize", "/stores", "/admin"];
+const PROTECTED = ["/dashboard", "/customize", "/stores", "/admin"];
 // Path storefront yang wajib login end user.
 const PROTECTED_STOREFRONT = ["/account"];
 
@@ -128,7 +128,9 @@ export function proxy(request: NextRequest) {
   const headers = new Headers(request.headers);
   headers.delete(CTX_HEADER);
   headers.delete(TENANT_HEADER);
+  headers.delete("x-pathname");
   headers.set(CTX_HEADER, context);
+  headers.set("x-pathname", pathname);
   if (tenant) headers.set(TENANT_HEADER, tenant);
 
   return NextResponse.next({ request: { headers } });

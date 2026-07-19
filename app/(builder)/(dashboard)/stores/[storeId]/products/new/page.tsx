@@ -35,7 +35,7 @@ export default async function NewProductPage({
         <Link href={`/stores/${storeId}/products`} className={dashboardBackLink}>
           ← Kembali ke daftar produk
         </Link>
-        <DashboardPanel className="p-6 lg:p-8">
+        <DashboardPanel className="w-full p-6 lg:p-8">
           <ProductForm
             storeId={storeId}
             categories={categories}

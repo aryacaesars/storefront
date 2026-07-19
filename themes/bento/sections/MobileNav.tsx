@@ -3,16 +3,11 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
+import { withBasePath } from "@/themes/engine/with-base-path"
 
 interface MobileNavProps {
   links: readonly { label: string; href: string }[]
   basePath?: string
-}
-
-function resolveHref(href: string, basePath?: string): string {
-  if (!basePath) return href
-  if (href === "/") return basePath
-  return `${basePath}${href}`
 }
 
 export function MobileNav({ links, basePath }: MobileNavProps) {
@@ -40,7 +35,7 @@ export function MobileNav({ links, basePath }: MobileNavProps) {
             {links.map(({ label, href }) => (
               <li key={href}>
                 <Link
-                  href={resolveHref(href, basePath)}
+                  href={withBasePath(href, basePath)}
                   onClick={() => setOpen(false)}
                   className="block rounded-xl px-4 py-3 text-sm font-medium text-[#515160] transition-colors hover:text-[var(--theme-primary)]"
                 >
