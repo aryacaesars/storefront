@@ -28,6 +28,23 @@ export type CanvasImageItem = {
   flipV: boolean
   /** Visible region of the virtual box; box geometry always equals the crop region. */
   crop?: CanvasImageCrop
+  /**
+   * Mobile-only: keep this `src` independent from desktop.
+   * Default (undefined/false) = share src across devices.
+   */
+  srcOverride?: boolean
+  /** True when image is pinned as full-bleed hero background. */
+  isHeroBackground?: boolean
+  /** Layout snapshot before becoming hero background (for toggle restore). */
+  preBackground?: {
+    x: number
+    y: number
+    width: number
+    height: number
+    rotation: number
+    scale: number
+    crop?: CanvasImageCrop
+  }
 }
 
 export const DEFAULT_CANVAS_IMAGE_ITEM: Omit<CanvasImageItem, "id" | "src"> = {
@@ -78,7 +95,95 @@ function normalizeCanvasImage(raw: Record<string, unknown>): CanvasImageItem {
     flipH: raw.flipH === true,
     flipV: raw.flipV === true,
     crop: parseCanvasImageCrop(raw.crop),
+    ...(raw.srcOverride === true ? { srcOverride: true } : {}),
+    ...(raw.isHeroBackground === true ? { isHeroBackground: true } : {}),
+    ...(parsePreBackground(raw.preBackground)
+      ? { preBackground: parsePreBackground(raw.preBackground)! }
+      : {}),
   }
+}
+
+function parsePreBackground(
+  value: unknown,
+): CanvasImageItem["preBackground"] | undefined {
+  if (typeof value !== "object" || value === null) return undefined
+  const raw = value as Record<string, unknown>
+  return {
+    x: num(raw.x, DEFAULT_CANVAS_IMAGE_ITEM.x),
+    y: num(raw.y, DEFAULT_CANVAS_IMAGE_ITEM.y),
+    width: num(raw.width, DEFAULT_CANVAS_IMAGE_ITEM.width),
+    height: num(raw.height, DEFAULT_CANVAS_IMAGE_ITEM.height),
+    rotation: num(raw.rotation, 0),
+    scale: num(raw.scale, 1),
+    crop: parseCanvasImageCrop(raw.crop),
+  }
+}
+
+export function isImageHeroBackground(item: CanvasImageItem): boolean {
+  if (item.isHeroBackground) return true
+  return (
+    item.x === 0 &&
+    item.y === 0 &&
+    item.width === 100 &&
+    item.height === 100 &&
+    item.rotation === 0 &&
+    !item.crop
+  )
+}
+
+/**
+ * Toggle full-bleed hero background. On → snapshot layout + expand.
+ * Off → restore snapshot (or default box).
+ */
+export function toggleImageHeroBackground(
+  items: CanvasImageItem[],
+  id: string,
+): CanvasImageItem[] {
+  const target = items.find((img) => img.id === id)
+  if (!target) return items
+  const rest = items.filter((img) => img.id !== id)
+
+  if (isImageHeroBackground(target)) {
+    const restored: CanvasImageItem = {
+      ...target,
+      x: target.preBackground?.x ?? DEFAULT_CANVAS_IMAGE_ITEM.x,
+      y: target.preBackground?.y ?? DEFAULT_CANVAS_IMAGE_ITEM.y,
+      width: target.preBackground?.width ?? DEFAULT_CANVAS_IMAGE_ITEM.width,
+      height: target.preBackground?.height ?? DEFAULT_CANVAS_IMAGE_ITEM.height,
+      rotation: target.preBackground?.rotation ?? 0,
+      scale: target.preBackground?.scale ?? 1,
+      crop: target.preBackground?.crop,
+      isHeroBackground: undefined,
+      preBackground: undefined,
+    }
+    delete restored.isHeroBackground
+    delete restored.preBackground
+    // Put back on top of stack (normal floating image).
+    return [...rest, restored]
+  }
+
+  const background: CanvasImageItem = {
+    ...target,
+    preBackground: {
+      x: target.x,
+      y: target.y,
+      width: target.width,
+      height: target.height,
+      rotation: target.rotation,
+      scale: target.scale,
+      crop: target.crop,
+    },
+    isHeroBackground: true,
+    x: 0,
+    y: 0,
+    width: 100,
+    height: 100,
+    rotation: 0,
+    scale: 1,
+    crop: undefined,
+  }
+  // Array order = Z order (last on top) → background first.
+  return [background, ...rest]
 }
 
 export function parseCanvasImages(
@@ -92,7 +197,8 @@ export function parseCanvasImages(
         typeof img === "object" &&
         img !== null &&
         typeof (img as Record<string, unknown>).id === "string" &&
-        typeof (img as Record<string, unknown>).src === "string",
+        typeof (img as Record<string, unknown>).src === "string" &&
+        String((img as Record<string, unknown>).src).trim().length > 0,
     )
     .map(normalizeCanvasImage)
 }
@@ -127,7 +233,14 @@ export function updateImageInArray(
   id: string,
   patch: Partial<CanvasImageItem>,
 ): CanvasImageItem[] {
-  return items.map((img) => (img.id === id ? { ...img, ...patch } : img))
+  return items.map((img) => {
+    if (img.id !== id) return img
+    const next: CanvasImageItem = { ...img, ...patch }
+    if ("srcOverride" in patch && patch.srcOverride !== true) {
+      delete next.srcOverride
+    }
+    return next
+  })
 }
 
 /**

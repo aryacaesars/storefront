@@ -25,6 +25,7 @@ import {
   canvasElementDomKey,
   type SelectedElementKind,
 } from "@/themes/engine/section-editor"
+import { parseFrameBackground } from "@/themes/engine/frame-background"
 import {
   labelMoveFromDelta,
   parseImageTransform,
@@ -296,7 +297,17 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
 
   const mediaSettings = mediaBlock?.settings as Record<string, unknown> | undefined
   const parsed = parseImageTransform(mediaSettings)
-  const image = { ...parsed, url: parsed.url ?? config?.heroImageUrl }
+  // Explicit empty imageUrl = intentionally cleared — do not resurrect config.heroImageUrl.
+  const inBuilder = Boolean(canvas?.editor)
+  const image = {
+    ...parsed,
+    url:
+      mediaSettings && "imageUrl" in mediaSettings
+        ? parsed.url
+        : inBuilder
+          ? parsed.url
+          : (parsed.url ?? config?.heroImageUrl),
+  }
   const canvasTexts = parseCanvasTexts(mediaSettings)
 
   const title1Layer = parseTitleLayer(mediaSettings?.title1Layer)
@@ -459,6 +470,8 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const behindTitles = visibleTitleLines.filter((item) => item.layer === "behind")
   const frontTitles = visibleTitleLines.filter((item) => item.layer === "front")
 
+  const frameBgStyle = parseFrameBackground(mediaSettings)
+
   return (
     <>
       {config?.bannerText && (
@@ -472,14 +485,27 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
 
       <div
         ref={frameRef}
+        data-canvas-element={elementDomKey("frame", mediaBlock?.id)}
         className="relative w-full overflow-visible bg-gradient-to-br from-stone-300 via-amber-100 to-stone-400"
-        style={{ height: frameHeight }}
+        style={{ height: frameHeight, ...frameBgStyle }}
       >
         {editable && (
           <CanvasGridOverlay canvasHeight={HERO_DESIGN_HEIGHT} scale={scale} />
         )}
 
-        <div className="absolute inset-0 overflow-hidden">
+        <div
+          className="absolute inset-0 overflow-hidden"
+          onClick={
+            editable
+              ? (event) => {
+                  // Klik area kosong frame = pilih latar hero.
+                  if (event.target !== event.currentTarget) return
+                  event.stopPropagation()
+                  selectElement("frame", mediaBlock?.id)
+                }
+              : undefined
+          }
+        >
           {behindTitles.map((item) => (
             <FashionTitleLine
               key={`${item.line}-behind`}
@@ -507,6 +533,11 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
                 editable
                   ? (event) => {
                       event.stopPropagation()
+                      // Klik area kosong (bukan gambar) = pilih latar hero.
+                      if (event.target === event.currentTarget) {
+                        selectElement("frame", mediaBlock.id)
+                        return
+                      }
                       editor?.onSelectBlock?.(canvas!.sectionId, mediaBlock.id)
                       editor?.onSelectElement?.(null)
                     }
@@ -540,7 +571,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
           )}
 
           {/* Fallback: single legacy image when images array is empty */}
-          {canvasImages.length === 0 && (image.url || editable) && mediaBlock && (
+          {canvasImages.length === 0 && Boolean(image.url) && mediaBlock && (
             <div
               className={cn("absolute inset-0", !editable && "pointer-events-none")}
               style={{ zIndex: Z_IMAGE }}

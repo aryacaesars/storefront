@@ -50,6 +50,14 @@ const BENTO_CATEGORY_BLOCK: BlockDefinition = {
   ],
 }
 
+/** Host block CTA tanpa gambar — menampung canvas `texts[]`/`buttons[]`. */
+const CTA_CONTENT_BLOCK: BlockDefinition = {
+  type: "cta-content",
+  label: "Konten CTA",
+  defaultSettings: {},
+  fields: [],
+}
+
 const CTA_IMAGE_BLOCK: BlockDefinition = {
   type: "cta-image",
   label: "Gambar CTA",
@@ -256,6 +264,9 @@ const FASHION_BLOCK_DEFS: Record<string, Record<string, BlockDefinition>> = {
     "hero-media": FASHION_HERO_MEDIA_BLOCK,
     "hero-cta": FASHION_HERO_CTA_BLOCK,
   },
+  "newsletter-cta": {
+    "cta-content": CTA_CONTENT_BLOCK,
+  },
   "category-cards": {
     "category-card": {
       type: "category-card",
@@ -332,6 +343,9 @@ const BOLD_BLOCK_DEFS: Record<string, Record<string, BlockDefinition>> = {
       ],
     },
     "hero-cta": BOLD_HERO_CTA_BLOCK,
+  },
+  "call-to-action": {
+    "cta-content": CTA_CONTENT_BLOCK,
   },
   "category-grid": {
     "category-card": {

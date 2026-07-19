@@ -5,8 +5,10 @@ import {
   Crop,
   FlipHorizontal2,
   FlipVertical2,
+  Image as ImageIcon,
   Loader2,
   Trash2,
+  Upload,
   Wand2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -18,19 +20,32 @@ import {
   type SelectedElement,
 } from "@/themes/engine/section-editor"
 import {
+  deleteImageFromArray,
+  isImageHeroBackground,
   parseCanvasImages,
+  toggleImageHeroBackground,
   updateImageInArray,
   virtualBoxFromCrop,
   type CanvasImageItem,
 } from "@/themes/engine/canvas-image"
 import {
   deleteTextFromArray,
-  parseCanvasTexts,
   stylePayloadToTextPatch,
   textItemToStylePayload,
   updateTextInArray,
   type CanvasTextItem,
 } from "@/themes/engine/canvas-text"
+import {
+  deleteButtonFromArray,
+  updateButtonInArray,
+  MAX_BUTTON_HEIGHT,
+  MIN_BUTTON_HEIGHT,
+  type CanvasButtonItem,
+} from "@/themes/engine/canvas-button"
+import {
+  resolveSectionCanvasButtons,
+  resolveSectionCanvasTexts,
+} from "@/themes/engine/cta-canvas"
 import {
   applyHeroTitleStylePatch,
   extractHeroTitleStyle,
@@ -50,6 +65,7 @@ interface CanvasElementToolbarProps {
   device: "desktop" | "mobile"
   element: SelectedElement
   croppingKey: string | null
+  storeId?: string
   onCroppingKeyChange: (key: string | null) => void
   copiedTextStyle: Record<string, unknown> | null
   onCopiedTextStyleChange: (style: Record<string, unknown> | null) => void
@@ -59,15 +75,19 @@ interface CanvasElementToolbarProps {
     patch: Record<string, unknown>,
   ) => void
   onPosition: () => void
+  /** Buka panel warna di sidebar (bukan dropdown toolbar). */
+  onColor: () => void
   onDeselect: () => void
+  /** Mobile Canva chrome — contextual strip above bottom nav. */
+  mobile?: boolean
 }
 
 const TITLE_LINES = new Set(["title1", "title2"])
 
 /** Font size di canvas = tinggi box × 0.72 (design px, HERO_DESIGN_HEIGHT). */
 const FONT_BOX_RATIO = 0.72
-const MIN_FONT_PX = 12
-const MAX_FONT_PX = 320
+const MIN_FONT_PX = 10
+const MAX_FONT_PX = 1000
 
 type WeightOption = "light" | "normal" | "bold"
 
@@ -94,17 +114,21 @@ export function CanvasElementToolbar({
   device,
   element,
   croppingKey,
+  storeId,
   onCroppingKeyChange,
   copiedTextStyle,
   onCopiedTextStyleChange,
   onPatchBlock,
   onPosition,
+  onColor,
   onDeselect,
+  mobile = false,
 }: CanvasElementToolbarProps) {
   const [removingBg, setRemovingBg] = useState(false)
   const [removeBgError, setRemoveBgError] = useState<string | null>(null)
   /** null = belum dicek; false = API key belum dikonfigurasi. */
   const [removeBgAvailable, setRemoveBgAvailable] = useState<boolean | null>(null)
+  const [replacingImage, setReplacingImage] = useState(false)
 
   useEffect(() => {
     if (element.kind !== "image" || removeBgAvailable !== null) return
@@ -129,7 +153,24 @@ export function CanvasElementToolbar({
     const itemId = element.itemId
     const isTitleLine = TITLE_LINES.has(itemId)
 
-    function resolveSettings(): Record<string, unknown> | undefined {
+    function resolveTexts(): CanvasTextItem[] {
+      const instance = resolvePageTemplate(config, selectedPage).sections[
+        element.sectionId
+      ]
+      const block = instance?.blocks?.find((b) => b.id === element.blockId)
+      const settings = resolveDeviceSettings(
+        block?.settings as Record<string, unknown> | undefined,
+        device === "mobile",
+      ) as Record<string, unknown> | undefined
+      return resolveSectionCanvasTexts(
+        config.templateId,
+        instance?.type,
+        instance?.settings as Record<string, unknown> | undefined,
+        settings,
+      )
+    }
+
+    function resolveHeroSettings(): Record<string, unknown> | undefined {
       const blocks = resolvePageTemplate(config, selectedPage).sections[
         element.sectionId
       ]?.blocks
@@ -146,11 +187,10 @@ export function CanvasElementToolbar({
       if (k !== "c" && k !== "v") return
 
       if (k === "c") {
-        const settings = resolveSettings()
         const style = isTitleLine
-          ? extractHeroTitleStyle(settings, itemId as "title1" | "title2")
+          ? extractHeroTitleStyle(resolveHeroSettings(), itemId as "title1" | "title2")
           : (() => {
-              const item = parseCanvasTexts(settings).find((t) => t.id === itemId)
+              const item = resolveTexts().find((t) => t.id === itemId)
               return item ? textItemToStylePayload(item) : null
             })()
         if (style) {
@@ -166,7 +206,7 @@ export function CanvasElementToolbar({
             applyHeroTitleStylePatch(copiedTextStyle, itemId as "title1" | "title2"),
           )
         } else {
-          const texts = parseCanvasTexts(resolveSettings())
+          const texts = resolveTexts()
           if (texts.some((t) => t.id === itemId)) {
             onPatchBlock(element.sectionId, element.blockId, {
               texts: updateTextInArray(
@@ -193,10 +233,11 @@ export function CanvasElementToolbar({
   ])
 
   const template = resolvePageTemplate(config, selectedPage)
-  const block = template.sections[element.sectionId]?.blocks?.find(
-    (b) => b.id === element.blockId,
-  )
+  const instance = template.sections[element.sectionId]
+  const block = instance?.blocks?.find((b) => b.id === element.blockId)
   if (!block) return null
+
+  const sectionSettings = instance?.settings as Record<string, unknown> | undefined
 
   const settings = resolveDeviceSettings(
     block.settings as Record<string, unknown> | undefined,
@@ -238,10 +279,42 @@ export function CanvasElementToolbar({
   }
 
   let editPanel: React.ReactNode
-  let colorPanel: React.ReactNode
+  let hasColor = false
   let onCopyStyle: (() => void) | undefined
 
-  if (element.kind === "image" && element.itemId) {
+  if (element.kind === "frame") {
+    // ── Card & latar hero (settings block hero-media) ──────────────────────────
+    // bento/minimalist: card rounded + latar section terpisah; bold/fashion:
+    // frame full-bleed = latar hero (satu warna).
+    const hasCardWrapper =
+      config.templateId === "bento" || config.templateId === "minimalist"
+    hasColor = true
+
+    editPanel = (
+      <div className="space-y-3">
+        <p className="text-[11px] leading-snug text-gray-500">
+          {hasCardWrapper
+            ? "Atur warna card hero dan latar section lewat panel Warna di sidebar."
+            : "Atur warna latar hero lewat panel Warna di sidebar."}
+        </p>
+        <button
+          type="button"
+          onClick={() =>
+            patch({
+              frameBgColor: "",
+              frameBgColor2: "",
+              frameBgMode: "",
+              frameBgAngle: "",
+              sectionBgColor: "",
+            })
+          }
+          className="inline-flex h-7 w-full items-center justify-center rounded-lg border border-gray-200 text-[11px] font-medium text-gray-500 hover:bg-gray-50"
+        >
+          Reset warna ke default tema
+        </button>
+      </div>
+    )
+  } else if (element.kind === "image" && element.itemId) {
     // ── Multi-image canvas item ────────────────────────────────────────────────
     const items = parseCanvasImages(settings)
     const item = items.find((img) => img.id === element.itemId)
@@ -263,8 +336,105 @@ export function CanvasElementToolbar({
       })
     }
 
+    const isBackground = isImageHeroBackground(item)
+
+    const toggleBackground = () => {
+      const nextImages = toggleImageHeroBackground(items, item.id)
+      const nextItem = nextImages.find((img) => img.id === item.id)
+      patch({
+        images: nextImages,
+        // Bold / legacy readers also look at imageUrl for full-bleed.
+        imageUrl: nextItem && isImageHeroBackground(nextItem) ? nextItem.src : "",
+      })
+    }
+
+    const replaceImage = () => {
+      const input = document.createElement("input")
+      input.type = "file"
+      input.accept = "image/png,image/jpeg,image/webp,image/svg+xml"
+      input.onchange = () => {
+        const file = input.files?.[0]
+        if (!file) return
+        void (async () => {
+          setReplacingImage(true)
+          setRemoveBgError(null)
+          try {
+            const form = new FormData()
+            form.append("file", file)
+            if (storeId) form.append("storeId", storeId)
+            const res = await fetch("/api/upload", { method: "POST", body: form })
+            const data = (await res.json()) as { url?: string; error?: string }
+            if (!res.ok || !data.url) {
+              throw new Error(data.error ?? "Upload gagal")
+            }
+            // Mobile: foto baru khusus device ini. Desktop: shared src.
+            patchItem(
+              device === "mobile"
+                ? { src: data.url, srcOverride: true }
+                : { src: data.url, srcOverride: undefined },
+            )
+          } catch (err) {
+            setRemoveBgError(
+              err instanceof Error ? err.message : "Gagal ganti foto.",
+            )
+          } finally {
+            setReplacingImage(false)
+          }
+        })()
+      }
+      input.click()
+    }
+
     editPanel = (
       <div className="space-y-3">
+        <button
+          type="button"
+          onClick={toggleBackground}
+          className={cn(
+            "inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border px-2.5 text-[11px] font-semibold transition-colors",
+            isBackground
+              ? "border-indigo-300 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+              : "border-gray-200 bg-white text-gray-800 hover:bg-gray-50",
+          )}
+        >
+          <ImageIcon className="h-3.5 w-3.5" />
+          {isBackground ? "Kembalikan ukuran normal" : "Jadikan background hero"}
+        </button>
+        <button
+          type="button"
+          disabled={replacingImage}
+          onClick={replaceImage}
+          className="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 text-[11px] font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-60"
+        >
+          {replacingImage ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Upload className="h-3.5 w-3.5" />
+          )}
+          {device === "mobile" ? "Ganti foto (khusus mobile)" : "Ganti foto"}
+        </button>
+        {device === "mobile" && (
+          <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-gray-100 bg-gray-50 px-2.5 py-2">
+            <input
+              type="checkbox"
+              checked={item.srcOverride === true}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  patchItem({ srcOverride: true })
+                } else {
+                  patchItem({ srcOverride: undefined })
+                }
+              }}
+              className="mt-0.5 h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            <span className="text-[11px] leading-snug text-gray-600">
+              Foto terpisah dari desktop
+              <span className="mt-0.5 block text-[10px] text-gray-400">
+                Matikan untuk ikut foto desktop lagi
+              </span>
+            </span>
+          </label>
+        )}
         <PanelSlider
           label="Opacity"
           value={item.opacity}
@@ -328,9 +498,33 @@ export function CanvasElementToolbar({
             available={removeBgAvailable}
             removing={removingBg}
             error={removeBgError}
-            onClick={() => removeBackground(item.src, (url) => patchItem({ src: url }))}
+            onClick={() =>
+              removeBackground(item.src, (url) =>
+                patchItem(
+                  device === "mobile"
+                    ? { src: url, srcOverride: true }
+                    : { src: url },
+                ),
+              )
+            }
           />
         </div>
+        <button
+          type="button"
+          onClick={() => {
+            const next = deleteImageFromArray(items, item.id)
+            patch({
+              images: next,
+              ...(next.length === 0 ? { imageUrl: "" } : {}),
+            })
+            onDeselect()
+            onCroppingKeyChange(null)
+          }}
+          className="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 text-[11px] font-semibold text-red-700 hover:bg-red-100"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          Hapus gambar
+        </button>
       </div>
     )
   } else if (element.kind === "image") {
@@ -387,6 +581,19 @@ export function CanvasElementToolbar({
             />
           </div>
         )}
+        {imageUrl && (
+          <button
+            type="button"
+            onClick={() => {
+              patch({ imageUrl: "", images: [] })
+              onDeselect()
+            }}
+            className="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 text-[11px] font-semibold text-red-700 hover:bg-red-100"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Hapus gambar
+          </button>
+        )}
       </div>
     )
   } else if (element.kind === "text" && element.itemId && TITLE_LINES.has(element.itemId)) {
@@ -405,7 +612,6 @@ export function CanvasElementToolbar({
     const letterSpacing = num(val("LetterSpacing"), 0)
     const lineHeight = num(val("LineHeight"), 1.05)
     const opacity = num(val("Opacity"), 100)
-    const color = typeof val("Color") === "string" ? (val("Color") as string) : "#ffffff"
     const copyableStyle = extractHeroTitleStyle(settings, line)
 
     // Ukuran font (design px) ↔ tinggi box label — sumber data sama dengan
@@ -561,20 +767,63 @@ export function CanvasElementToolbar({
       </div>
     )
 
-    colorPanel = (
-      <ColorPickerPanel
-        label="Warna teks"
-        value={color}
-        onChange={(v) => patch({ [key("Color")]: v })}
-      />
-    )
+    hasColor = true
 
     if (copyableStyle) {
       onCopyStyle = () => onCopiedTextStyleChange(copyableStyle)
     }
+  } else if (
+    element.kind === "text" &&
+    element.itemId === "label" &&
+    block.type === "category-card"
+  ) {
+    // ── Label kartu kategori ───────────────────────────────────────────────────
+    const label = typeof settings?.label === "string" ? settings.label : ""
+    const labelLayer = settings?.labelLayer === "behind" ? "behind" : "front"
+
+    editPanel = (
+      <div className="space-y-3">
+        <PanelRow label="Label">
+          <input
+            type="text"
+            value={label}
+            placeholder="Judul kategori"
+            onChange={(e) => patch({ label: e.target.value })}
+            className="h-7 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-[11px] text-gray-800 outline-none focus:border-indigo-300"
+          />
+        </PanelRow>
+        <PanelRow label="Layer">
+          <div className="flex flex-1 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+            {(["front", "behind"] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() => patch({ labelLayer: option })}
+                className={cn(
+                  "h-6 flex-1 rounded-md text-[11px] transition-colors",
+                  labelLayer === option
+                    ? "bg-white text-indigo-700 shadow-sm"
+                    : "text-gray-500 hover:text-gray-800",
+                )}
+              >
+                {option === "front" ? "Depan gambar" : "Belakang gambar"}
+              </button>
+            ))}
+          </div>
+        </PanelRow>
+        <p className="text-[10px] text-gray-400">
+          Ukuran & posisi label: drag box label / handle ungu di kartu.
+        </p>
+      </div>
+    )
   } else if (element.kind === "text" && element.itemId) {
     // ── Teks bebas (canvas text item) ──────────────────────────────────────────
-    const texts = parseCanvasTexts(settings)
+    const texts = resolveSectionCanvasTexts(
+      config.templateId,
+      instance?.type,
+      sectionSettings,
+      settings,
+    )
     const item = texts.find((t) => t.id === element.itemId)
     if (!item) return null
 
@@ -722,31 +971,93 @@ export function CanvasElementToolbar({
       </div>
     )
 
-    colorPanel = (
-      <ColorPickerPanel
-        label="Warna teks"
-        value={item.color ?? "#111111"}
-        onChange={(v) => patchText({ color: v })}
-      />
-    )
+    hasColor = true
 
     const payload = textItemToStylePayload(item)
     if (payload) {
       onCopyStyle = () => onCopiedTextStyleChange(payload)
     }
+  } else if (element.kind === "button" && element.itemId) {
+    // ── Tombol canvas (buttons[] item) ─────────────────────────────────────────
+    const buttons = resolveSectionCanvasButtons(
+      config.templateId,
+      instance?.type,
+      sectionSettings,
+      settings,
+    )
+    const item = buttons.find((b) => b.id === element.itemId)
+    if (!item) return null
+
+    const patchButton = (p: Partial<CanvasButtonItem>) =>
+      patch({ buttons: updateButtonInArray(buttons, item.id, p) })
+
+    editPanel = (
+      <div className="space-y-3">
+        <PanelRow label="Label">
+          <input
+            type="text"
+            value={item.label}
+            placeholder="Teks tombol"
+            onChange={(e) => patchButton({ label: e.target.value })}
+            className="h-7 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-[11px] text-gray-800 outline-none focus:border-indigo-300"
+          />
+        </PanelRow>
+        <PanelSlider
+          label="Lebar"
+          value={item.wPct}
+          min={5}
+          max={100}
+          step={1}
+          suffix="%"
+          onChange={(v) => patchButton({ wPct: v })}
+        />
+        <PanelSlider
+          label="Tinggi"
+          value={item.hPx}
+          min={MIN_BUTTON_HEIGHT}
+          max={MAX_BUTTON_HEIGHT}
+          step={1}
+          suffix="px"
+          onChange={(v) => patchButton({ hPx: v })}
+        />
+        <PanelSlider
+          label="Rounded"
+          value={
+            item.radius ??
+            (item.shape === "square"
+              ? 0
+              : item.shape === "pill"
+                ? Math.round(item.hPx / 2)
+                : 47)
+          }
+          min={0}
+          max={100}
+          step={1}
+          suffix="px"
+          onChange={(v) => patchButton({ radius: v })}
+        />
+        <div className="border-t border-gray-100 pt-3">
+          <button
+            type="button"
+            onClick={() => {
+              patch({ buttons: deleteButtonFromArray(buttons, item.id) })
+              onDeselect()
+            }}
+            className="inline-flex h-7 w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 text-[11px] font-medium text-red-600 hover:bg-red-50"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Hapus tombol
+          </button>
+        </div>
+      </div>
+    )
+
+    hasColor = true
   } else if (element.kind === "button") {
-    // ── Hero CTA button ────────────────────────────────────────────────────────
+    // ── Hero CTA button (settings block hero-cta legacy) ───────────────────────
     const label = typeof settings?.label === "string" ? settings.label : ""
     const wPct = num(settings?.wPct, 24)
     const hPx = num(settings?.hPx, 56)
-    const bgColor =
-      typeof settings?.ctaBgColor === "string" && settings.ctaBgColor
-        ? settings.ctaBgColor
-        : "#ffffff"
-    const textColor =
-      typeof settings?.ctaTextColor === "string" && settings.ctaTextColor
-        ? settings.ctaTextColor
-        : "#4f46e5"
 
     editPanel = (
       <div className="space-y-3">
@@ -777,36 +1088,37 @@ export function CanvasElementToolbar({
           suffix="px"
           onChange={(v) => patch({ hPx: v })}
         />
+        <PanelSlider
+          label="Rounded"
+          value={num(
+            settings?.ctaRadius,
+            settings?.ctaVariant === "outline" ? Math.round(hPx / 2) : 47,
+          )}
+          min={0}
+          max={100}
+          step={1}
+          suffix="px"
+          onChange={(v) => patch({ ctaRadius: v })}
+        />
       </div>
     )
 
-    colorPanel = (
-      <div className="space-y-4">
-        <ColorPickerPanel
-          label="Warna tombol"
-          value={bgColor}
-          onChange={(v) => patch({ ctaBgColor: v })}
-        />
-        <ColorPickerPanel
-          label="Warna teks"
-          value={textColor}
-          onChange={(v) => patch({ ctaTextColor: v })}
-        />
-      </div>
-    )
+    hasColor = true
   }
 
   return (
     <CanvasFloatingToolbar
       element={element}
       onPosition={onPosition}
+      onColor={onColor}
       onDeselect={() => {
         onCroppingKeyChange(null)
         onDeselect()
       }}
       editPanel={editPanel}
-      colorPanel={colorPanel}
+      hasColor={hasColor}
       onCopyStyle={onCopyStyle}
+      mobile={mobile}
     />
   )
 }
@@ -855,90 +1167,6 @@ function RemoveBgAction({
         <p className="mt-1.5 text-[10px] font-medium text-red-600">{error}</p>
       )}
     </>
-  )
-}
-
-const COLOR_PRESETS = [
-  "#000000", "#ffffff", "#6b7280", "#ef4444", "#f97316", "#f59e0b",
-  "#22c55e", "#14b8a6", "#3b82f6", "#4f46e5", "#8b5cf6", "#ec4899",
-]
-
-const HEX_RE = /^#[0-9a-fA-F]{3,8}$/
-
-/** Warna aman untuk <input type="color"> (butuh #rrggbb valid). */
-function toPickerHex(value: string): string {
-  return /^#[0-9a-fA-F]{6}$/.test(value) ? value : "#000000"
-}
-
-function ColorPickerPanel({
-  label,
-  value,
-  onChange,
-}: {
-  label: string
-  value: string
-  onChange: (value: string) => void
-}) {
-  const [draft, setDraft] = useState(value)
-  const [lastValue, setLastValue] = useState(value)
-  if (lastValue !== value) {
-    setLastValue(value)
-    setDraft(value)
-  }
-
-  const commitDraft = () => {
-    const next = draft.startsWith("#") ? draft : `#${draft}`
-    if (HEX_RE.test(next)) onChange(next)
-    else setDraft(value)
-  }
-
-  return (
-    <div className="space-y-2.5">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-        {label}
-      </p>
-      <div className="grid grid-cols-6 gap-1.5">
-        {COLOR_PRESETS.map((preset) => (
-          <button
-            key={preset}
-            type="button"
-            aria-label={`Warna ${preset}`}
-            onClick={() => onChange(preset)}
-            className={cn(
-              "h-7 w-7 rounded-full border border-gray-200 transition-transform hover:scale-110",
-              value.toLowerCase() === preset &&
-                "ring-2 ring-indigo-500 ring-offset-1",
-            )}
-            style={{ backgroundColor: preset }}
-          />
-        ))}
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full border border-gray-200 shadow-sm">
-          <input
-            type="color"
-            aria-label={`${label} — custom`}
-            value={toPickerHex(value)}
-            onChange={(e) => onChange(e.target.value)}
-            className="absolute -inset-2 h-12 w-12 cursor-pointer"
-          />
-        </div>
-        <input
-          type="text"
-          value={draft}
-          placeholder="#000000"
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={commitDraft}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault()
-              commitDraft()
-            }
-          }}
-          className="h-8 flex-1 rounded-lg border border-gray-200 px-2 font-mono text-[11px] text-gray-800 outline-none focus:border-indigo-300"
-        />
-      </div>
-    </div>
   )
 }
 

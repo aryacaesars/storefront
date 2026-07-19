@@ -1,6 +1,6 @@
 import type { HeroConfig, SectionPageType } from "./schema"
 
-export type SelectedElementKind = "image" | "text" | "button"
+export type SelectedElementKind = "image" | "text" | "button" | "frame"
 
 /**
  * Canvas-level element selection (Canva-like). More granular than block
@@ -49,6 +49,11 @@ export type SectionEditorState = {
     settings: Record<string, unknown>,
   ) => void
   onHeroChange?: <K extends keyof HeroConfig>(key: K, value: HeroConfig[K]) => void
+  /** Patch section.settings (CTA heading/button labels, etc.). */
+  onSectionSettingsChange?: (
+    sectionId: string,
+    patch: Record<string, unknown>,
+  ) => void
   /** Canva-like element selection — floating toolbar anchors to this. */
   selectedElement?: SelectedElement | null
   onSelectElement?: (element: SelectedElement | null) => void

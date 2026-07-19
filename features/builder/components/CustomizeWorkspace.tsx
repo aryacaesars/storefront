@@ -1,14 +1,13 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { cn } from "@/lib/utils"
 import { EditorTopbar } from "./EditorTopbar"
 import { ThemeLivePreview } from "./ThemeLivePreview"
-import { ThemeSettingsPanel } from "./ThemeSettingsPanel"
-import { ThemeSectionsPanel } from "./ThemeSectionsPanel"
-import { BuilderToolRail, type BuilderTool } from "./BuilderToolRail"
-import { BuilderImageToolPanel } from "./BuilderImageToolPanel"
-import { BuilderTextToolPanel } from "./BuilderTextToolPanel"
-import { BuilderLayersPanel } from "./BuilderLayersPanel"
+import { BuilderToolRail, BUILDER_TOOLS, type BuilderTool } from "./BuilderToolRail"
+import { BuilderToolPanels } from "./BuilderToolPanels"
+import { BuilderMobileNav } from "./BuilderMobileNav"
+import { BuilderMobileSheet } from "./BuilderMobileSheet"
 import { CanvasElementToolbar } from "./CanvasElementToolbar"
 import { publishTheme, saveThemeDraft } from "@/features/builder/actions/theme-actions"
 import {
@@ -92,6 +91,8 @@ export function CustomizeWorkspace({
   const [paymentRequired, setPaymentRequired] = useState(false)
   const [selectedPage, setSelectedPage] = useState<PageType>("home")
   const [activeTool, setActiveTool] = useState<BuilderTool>("sections")
+  const [mobilePanelOpen, setMobilePanelOpen] = useState(false)
+  const [isNarrowViewport, setIsNarrowViewport] = useState(false)
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null)
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null)
   const [selectedElement, setSelectedElement] = useState<SelectedElement | null>(null)
@@ -100,6 +101,19 @@ export function CustomizeWorkspace({
   const previewRootRef = useRef<HTMLDivElement>(null)
   const deviceRef = useRef(device)
   deviceRef.current = device
+
+  // Mobile chrome (< md): auto-switch preview device to mobile layer.
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)")
+    const apply = () => {
+      const narrow = mq.matches
+      setIsNarrowViewport(narrow)
+      if (narrow) setDevice("mobile")
+    }
+    apply()
+    mq.addEventListener("change", apply)
+    return () => mq.removeEventListener("change", apply)
+  }, [])
 
   const persistDraft = useCallback(async (next: ThemeConfig) => {
     setIsSaving(true)
@@ -186,6 +200,27 @@ export function CustomizeWorkspace({
           prev,
           pageType,
           updateSectionSettings(template, sectionId, nextSettings),
+        )
+      })
+      setStatus(null)
+    },
+    [selectedPage],
+  )
+
+  const patchSectionSettings = useCallback(
+    (sectionId: string, patch: Record<string, unknown>) => {
+      const pageType = selectedPage as SectionPageType
+      setConfig((prev) => {
+        const template = materializePageTemplate(prev, pageType)
+        const section = template.sections[sectionId]
+        if (!section) return prev
+        return applyPageTemplate(
+          prev,
+          pageType,
+          updateSectionSettings(template, sectionId, {
+            ...(section.settings ?? {}),
+            ...patch,
+          }),
         )
       })
       setStatus(null)
@@ -313,6 +348,7 @@ export function CustomizeWorkspace({
       onBlockChange: (sectionId: string, blockId: string, patch: Record<string, unknown>) =>
         handleBlockChange(pageType, sectionId, blockId, patch),
       onHeroChange: updateHero,
+      onSectionSettingsChange: patchSectionSettings,
       previewSectionIdPrefix: "preview-section",
     }
   }, [
@@ -328,6 +364,7 @@ export function CustomizeWorkspace({
     handleSelectElement,
     handleBlockChange,
     updateHero,
+    patchSectionSettings,
   ])
 
   useEffect(() => {
@@ -349,6 +386,7 @@ export function CustomizeWorkspace({
   const handleModeChange = useCallback((next: "edit" | "preview") => {
     setMode(next)
     clearElementSelection()
+    if (next === "preview") setMobilePanelOpen(false)
   }, [clearElementSelection])
 
   const handleDeviceChange = useCallback((next: "desktop" | "mobile") => {
@@ -453,6 +491,51 @@ export function CustomizeWorkspace({
     }
   }
 
+  const handleMobileToolChange = useCallback((tool: BuilderTool) => {
+    setActiveTool((prev) => {
+      if (prev === tool) {
+        setMobilePanelOpen((open) => !open)
+        return prev
+      }
+      setMobilePanelOpen(true)
+      return tool
+    })
+  }, [])
+
+  const openMobileTool = useCallback((tool: BuilderTool) => {
+    setActiveTool(tool)
+    setMobilePanelOpen(true)
+  }, [])
+
+  const activeToolLabel =
+    BUILDER_TOOLS.find((t) => t.id === activeTool)?.label ?? "Tools"
+
+  const toolPanelProps = {
+    activeTool,
+    config,
+    selectedPage: selectedPage as SectionPageType,
+    device,
+    showSectionsTab,
+    isCatalogPage,
+    selectedSectionId,
+    selectedBlockId,
+    selectedElement,
+    onConfigChange: handleConfigChange,
+    onSelectSection: handleSelectSection,
+    onSelectBlock: handleSelectBlock,
+    onSelectElement: handleSelectElement,
+    onPatchBlock: patchBlock,
+    onUpdateBlockSetting: patchBlockSetting,
+    onUpdateSectionSetting: patchSectionSetting,
+    onReorderBlocks: reorderBlocks,
+    onConfigKeyChange: updateConfig,
+    onHeroChange: updateHero,
+    onCloseColor: () => {
+      if (isNarrowViewport) setMobilePanelOpen(false)
+      else setActiveTool("sections")
+    },
+  }
+
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       {paymentRequired && (
@@ -474,7 +557,7 @@ export function CustomizeWorkspace({
               <button
                 type="button"
                 onClick={() => setPaymentRequired(false)}
-                className="flex-1 py-2 px-4 border border-gray-200 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex-1 py-2 px-4 border border-gray-200 text-sm font-medium rounded-lg text-center hover:bg-gray-50 transition-colors"
               >
                 Nanti
               </button>
@@ -501,9 +584,9 @@ export function CustomizeWorkspace({
         </div>
       )}
 
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
         {mode === "edit" && (
-          <>
+          <div className="hidden md:flex md:min-h-0 md:shrink-0">
             <BuilderToolRail
               activeTool={activeTool}
               onToolChange={setActiveTool}
@@ -512,94 +595,19 @@ export function CustomizeWorkspace({
             />
 
             <aside className="flex w-80 shrink-0 flex-col overflow-hidden border-r border-gray-200 bg-white">
-              <div className="min-h-0 flex-1 overflow-y-auto">
-                {activeTool === "sections" && showSectionsTab ? (
-                  <ThemeSectionsPanel
-                    config={config}
-                    selectedPage={selectedPage as SectionPageType}
-                    onConfigChange={handleConfigChange}
-                    selectedSectionId={selectedSectionId}
-                    onSelectSection={handleSelectSection}
-                  />
-                ) : activeTool === "image" && showSectionsTab ? (
-                  <BuilderImageToolPanel
-                    config={config}
-                    selectedPage={selectedPage as SectionPageType}
-                    selectedSectionId={selectedSectionId}
-                    selectedElement={selectedElement}
-                    device={device}
-                    onSelectBlock={handleSelectBlock}
-                    onSelectElement={handleSelectElement}
-                    onPatchBlock={patchBlock}
-                    onUpdateBlockSetting={patchBlockSetting}
-                    onUpdateSectionSetting={patchSectionSetting}
-                  />
-                ) : activeTool === "text" && showSectionsTab ? (
-                  <BuilderTextToolPanel
-                    config={config}
-                    selectedPage={selectedPage as SectionPageType}
-                    selectedSectionId={selectedSectionId}
-                    selectedElement={selectedElement}
-                    device={device}
-                    onSelectBlock={handleSelectBlock}
-                    onSelectElement={handleSelectElement}
-                    onPatchBlock={patchBlock}
-                  />
-                ) : activeTool === "layers" && showSectionsTab ? (
-                  <BuilderLayersPanel
-                    config={config}
-                    selectedPage={selectedPage as SectionPageType}
-                    selectedSectionId={selectedSectionId}
-                    selectedBlockId={selectedBlockId}
-                    selectedElement={selectedElement}
-                    device={device}
-                    onSelectBlock={handleSelectBlock}
-                    onSelectElement={handleSelectElement}
-                    onPatchBlock={patchBlock}
-                    onReorderBlocks={reorderBlocks}
-                  />
-                ) : activeTool === "page" ? (
-                  <div className="flex flex-col gap-4 p-5">
-                    <div>
-                      <h2 className="text-sm font-semibold text-gray-900">Konten Halaman</h2>
-                      <p className="mt-1 text-xs text-gray-400">
-                        Edit teks, gambar, dan kartu untuk halaman ini.
-                      </p>
-                    </div>
-                    <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center">
-                      <p className="text-xs font-medium text-gray-500">
-                        Editor konten halaman akan tersedia segera.
-                      </p>
-                      <p className="mt-1 text-[11px] text-gray-400">
-                        Teks, gambar, dan kartu akan bisa diedit dari sini.
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    {isCatalogPage && (
-                      <div className="border-b border-amber-100 bg-amber-50 px-4 py-3">
-                        <p className="text-xs font-medium text-amber-800">
-                          Halaman dikontrol katalog
-                        </p>
-                        <p className="mt-0.5 text-[11px] text-amber-700">
-                          Data produk, harga, dan inventori ditarik dari katalog toko — tidak diedit di builder.
-                        </p>
-                      </div>
-                    )}
-                    <ThemeSettingsPanel
-                      config={config}
-                      onConfigChange={updateConfig}
-                      onHeroChange={updateHero}
-                    />
-                  </>
-                )}
+              <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                <BuilderToolPanels {...toolPanelProps} />
               </div>
             </aside>
-          </>
+          </div>
         )}
 
-        <div className="relative flex-1 min-w-0 overflow-hidden">
+        <div
+          className={cn(
+            "relative min-h-0 min-w-0 flex-1 overflow-hidden",
+            mode === "edit" && isNarrowViewport && selectedElement && "pb-14",
+          )}
+        >
           <ThemeLivePreview
             templateId={templateId}
             config={config}
@@ -617,15 +625,46 @@ export function CustomizeWorkspace({
               device={device}
               element={selectedElement}
               croppingKey={croppingKey}
+              storeId={storeId}
               onCroppingKeyChange={setCroppingKey}
               copiedTextStyle={copiedTextStyle}
               onCopiedTextStyleChange={setCopiedTextStyle}
               onPatchBlock={patchBlock}
-              onPosition={() => setActiveTool("layers")}
+              onPosition={() => {
+                if (isNarrowViewport) openMobileTool("layers")
+                else setActiveTool("layers")
+              }}
+              onColor={() => {
+                if (isNarrowViewport) openMobileTool("color")
+                else setActiveTool("color")
+              }}
               onDeselect={() => setSelectedElement(null)}
+              mobile={isNarrowViewport}
             />
           )}
+
+          {mode === "edit" && (
+            <BuilderMobileSheet
+              open={mobilePanelOpen && isNarrowViewport}
+              title={activeToolLabel}
+              onClose={() => setMobilePanelOpen(false)}
+              className={selectedElement ? "bottom-14" : undefined}
+            >
+              <BuilderToolPanels {...toolPanelProps} />
+            </BuilderMobileSheet>
+          )}
         </div>
+
+        {mode === "edit" && (
+          <div className="shrink-0 md:hidden">
+            <BuilderMobileNav
+              activeTool={activeTool}
+              onToolChange={handleMobileToolChange}
+              showSectionsTools={showSectionsTab}
+              showMarketingTool={isMarketingPage}
+            />
+          </div>
+        )}
       </div>
     </div>
   )

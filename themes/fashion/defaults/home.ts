@@ -71,7 +71,10 @@ export const DEFAULT_FASHION_HOME: PageTemplate = {
     "signature-series":  { type: "signature-series" },
     "brand-story":       { type: "brand-story" },
     "community-gallery": { type: "community-gallery" },
-    "newsletter-cta":    { type: "newsletter-cta" },
+    "newsletter-cta": {
+      type: "newsletter-cta",
+      blocks: [{ id: "fashion-cta-content", type: "cta-content", settings: {} }],
+    },
     footer:              { type: "footer" },
   },
 }

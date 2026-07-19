@@ -126,6 +126,10 @@ export function BuilderImageToolPanel({
       ) as Record<string, unknown> | undefined)
     : undefined
   const canvasImages = parseCanvasImages(mediaSettings)
+  const legacyImageUrl =
+    typeof mediaSettings?.imageUrl === "string" && mediaSettings.imageUrl.trim()
+      ? mediaSettings.imageUrl.trim()
+      : undefined
 
   const legacySlots =
     selectedSectionId && !mediaBlock
@@ -136,7 +140,8 @@ export function BuilderImageToolPanel({
     if (!url || !selectedSectionId || !mediaBlock) return
     const next = addImageToArray(canvasImages, url)
     const newId = next[next.length - 1].id
-    onPatchBlock(selectedSectionId, mediaBlock.id, { images: next })
+    // Drop legacy full-bleed imageUrl so it cannot reappear after canvas edits.
+    onPatchBlock(selectedSectionId, mediaBlock.id, { images: next, imageUrl: "" })
     onSelectBlock(selectedSectionId, mediaBlock.id)
     onSelectElement?.({
       kind: "image",
@@ -144,6 +149,12 @@ export function BuilderImageToolPanel({
       blockId: mediaBlock.id,
       itemId: newId,
     })
+  }
+
+  function clearLegacyImage() {
+    if (!selectedSectionId || !mediaBlock) return
+    onPatchBlock(selectedSectionId, mediaBlock.id, { imageUrl: "", images: [] })
+    onSelectElement?.(null)
   }
 
   return (
@@ -169,6 +180,43 @@ export function BuilderImageToolPanel({
             placeholder="Upload gambar baru"
             onChange={addImage}
           />
+
+          {/* Legacy single imageUrl (pre-canvas) — must be clearable or it ghosts after delete */}
+          {canvasImages.length === 0 && legacyImageUrl && (
+            <div>
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                Gambar lama (full section)
+              </p>
+              <div className="group relative">
+                <div className="aspect-square w-full overflow-hidden rounded-xl border border-amber-200 bg-gray-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={legacyImageUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <button
+                  type="button"
+                  aria-label="Hapus gambar lama"
+                  onClick={clearLegacyImage}
+                  className="absolute -right-1.5 -top-1.5 z-10 inline-flex h-5 w-5 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-400 opacity-0 shadow-sm transition-opacity hover:bg-red-50 hover:text-red-600 focus-visible:opacity-100 group-hover:opacity-100"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => addImage(legacyImageUrl)}
+                className="mt-2 w-full rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-indigo-100"
+              >
+                Ubah ke canvas (bisa digeser/crop)
+              </button>
+              <p className="mt-1.5 text-[10px] text-amber-700/80">
+                Atau hapus, lalu upload ulang dari tombol di atas.
+              </p>
+            </div>
+          )}
 
           {canvasImages.length > 0 && (
             <div>
@@ -211,8 +259,11 @@ export function BuilderImageToolPanel({
                         type="button"
                         aria-label={`Hapus gambar ${index + 1}`}
                         onClick={() => {
+                          const next = deleteImageFromArray(canvasImages, img.id)
                           onPatchBlock(selectedSectionId, mediaBlock.id, {
-                            images: deleteImageFromArray(canvasImages, img.id),
+                            images: next,
+                            // Prevent legacy full-bleed fallback after last canvas image is removed.
+                            ...(next.length === 0 ? { imageUrl: "" } : {}),
                           })
                           if (isSelected) onSelectElement?.(null)
                         }}

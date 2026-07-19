@@ -116,6 +116,9 @@ export const DEFAULT_BOLD_HOME: PageTemplate = {
         },
       ],
     },
-    "call-to-action": { type: "call-to-action" },
+    "call-to-action": {
+      type: "call-to-action",
+      blocks: [{ id: "bold-cta-content", type: "cta-content", settings: {} }],
+    },
   },
 }

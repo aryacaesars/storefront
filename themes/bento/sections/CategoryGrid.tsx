@@ -31,6 +31,10 @@ import {
   hasMobileOverride,
   MOBILE_OVERRIDE_FLAG,
 } from "@/themes/engine/device-settings"
+import {
+  canvasElementDomKey,
+  isSameSelectedElement,
+} from "@/themes/engine/section-editor"
 
 /** Breakpoint (px) below which the free-form canvas collapses to a stack. */
 const STACK_BELOW = 640
@@ -57,11 +61,14 @@ interface CategoryCardProps {
   card: CategoryCardData
   editable: boolean
   selected: boolean
+  labelSelected: boolean
+  labelDomKey?: string
   useFreeForm: boolean
   scale: number
   designWidth: number
   gridRef: React.RefObject<HTMLDivElement | null>
   onSelect: () => void
+  onSelectLabel: () => void
   onChange: (patch: Record<string, unknown>) => void
 }
 
@@ -69,11 +76,14 @@ function CategoryCard({
   card,
   editable,
   selected,
+  labelSelected,
+  labelDomKey,
   useFreeForm,
   scale,
   designWidth,
   gridRef,
   onSelect,
+  onSelectLabel,
   onChange,
 }: CategoryCardProps) {
   const cardBoundsRef = useRef<HTMLDivElement>(null)
@@ -104,7 +114,7 @@ function CategoryCard({
   const labelStyle: React.CSSProperties = {
     textShadow: "0px 0px 24px rgba(0,0,0,0.25)",
     fontFamily: "var(--theme-heading-font)",
-    fontSize: `${Math.max(14, Math.min(96, labelBoxHeightPx * 0.72))}px`,
+    fontSize: `${Math.max(10, labelBoxHeightPx * 0.72)}px`,
     lineHeight: 1.05,
   }
 
@@ -118,6 +128,7 @@ function CategoryCard({
       if (!labelMovable || !cardBoundsRef.current || isLabelHandleTarget(event.target)) return
 
       event.stopPropagation()
+      onSelectLabel()
 
       const startX = event.clientX
       const startY = event.clientY
@@ -145,7 +156,7 @@ function CategoryCard({
       window.addEventListener("pointermove", onMove)
       window.addEventListener("pointerup", onUp)
     },
-    [card.labelLayout, labelMovable, onChange],
+    [card.labelLayout, labelMovable, onChange, onSelectLabel],
   )
 
   const labelBoxStyle: React.CSSProperties = {
@@ -180,9 +191,11 @@ function CategoryCard({
 
         {labelLayer === "behind" && (
           <div
+            data-canvas-element={labelDomKey}
             className={cn(
               "absolute flex items-start p-0",
               labelMovable && "cursor-move",
+              labelSelected && "ring-2 ring-indigo-400",
             )}
             style={{ ...labelBoxStyle, zIndex: Z_LABEL_BEHIND }}
             onPointerDown={labelMovable ? startLabelMove : undefined}
@@ -207,13 +220,22 @@ function CategoryCard({
 
         {labelLayer === "front" && (
           <div
+            data-canvas-element={labelDomKey}
             className={cn(
               "absolute flex items-start overflow-visible",
               labelMovable && "cursor-move",
+              labelSelected && "ring-2 ring-indigo-400",
             )}
             style={{ ...labelBoxStyle, zIndex: Z_LABEL_FRONT }}
             onPointerDown={labelMovable ? startLabelMove : undefined}
-            onClick={(event) => event.stopPropagation()}
+            onClick={
+              editable
+                ? (event) => {
+                    event.stopPropagation()
+                    onSelectLabel()
+                  }
+                : (event) => event.stopPropagation()
+            }
           >
             {labelContent}
           </div>
@@ -362,11 +384,40 @@ export function CategoryGrid({ blocks, canvas, isMobile = false }: SectionProps)
               card={card}
               editable={editable}
               selected={editor?.selectedBlockId === card.id}
+              labelSelected={Boolean(
+                canvas &&
+                  isSameSelectedElement(editor?.selectedElement, {
+                    kind: "text",
+                    sectionId: canvas.sectionId,
+                    blockId: card.id,
+                    itemId: "label",
+                  }),
+              )}
+              labelDomKey={
+                canvas
+                  ? canvasElementDomKey({
+                      kind: "text",
+                      sectionId: canvas.sectionId,
+                      blockId: card.id,
+                      itemId: "label",
+                    })
+                  : undefined
+              }
               useFreeForm={useFreeForm}
               scale={scale}
               designWidth={designWidth}
               gridRef={gridRef}
               onSelect={() => editor?.onSelectBlock?.(canvas!.sectionId, card.id)}
+              onSelectLabel={() => {
+                if (!editor || !canvas) return
+                editor.onSelectBlock?.(canvas.sectionId, card.id)
+                editor.onSelectElement?.({
+                  kind: "text",
+                  sectionId: canvas.sectionId,
+                  blockId: card.id,
+                  itemId: "label",
+                })
+              }}
               onChange={(patch) => {
                 const full = useStackSeed
                   ? {

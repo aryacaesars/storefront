@@ -20,7 +20,7 @@ import { fontLabelToCss } from "@/lib/themes/fonts"
 
 const MIN_TEXT_WIDTH_PCT = 8
 const MIN_FONT_PX = 10
-const MAX_FONT_PX = 320
+const MAX_FONT_PX = 1000
 /** Sama dengan title hero — drag baru aktif setelah pointer geser melewati ambang ini. */
 const DRAG_THRESHOLD_PX = 4
 

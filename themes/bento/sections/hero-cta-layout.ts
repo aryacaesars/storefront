@@ -25,6 +25,8 @@ export type HeroCtaData = {
   label: string
   bgColor: string
   textColor: string
+  /** Border radius dalam design px — override preset visual bila diisi. */
+  radius?: number
   layout: CategoryCardLayout
 }
 
@@ -103,6 +105,14 @@ function parseLayout(
   }
 }
 
+function parseRadius(value: unknown): number | undefined {
+  if (typeof value !== "number" && (typeof value !== "string" || value === "")) {
+    return undefined
+  }
+  const n = Number(value)
+  return Number.isFinite(n) ? n : undefined
+}
+
 export function parseHeroCta(
   settings: Record<string, unknown> | undefined,
   fallbackLabel: string,
@@ -120,6 +130,7 @@ export function parseHeroCta(
         ? settings.ctaBgColor
         : "#ffffff",
     textColor: typeof settings?.ctaTextColor === "string" ? settings.ctaTextColor : "",
+    radius: parseRadius(settings?.ctaRadius),
     layout: parseLayout(settings, layoutFallback),
   }
 }

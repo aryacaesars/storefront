@@ -3,10 +3,10 @@
  * keys that differ on mobile (conceptually like Tailwind `sm:` overrides, but
  * stored as data because the values are numbers applied via inline styles).
  *
- * Only LAYOUT keys are device-specific — content (imageUrl, label, text) always
- * lives on the base so it's shared across devices. The `images` array holds
- * per-device canvas layout (position, size, zoom); image `src` is duplicated in
- * each layer so uploads stay independent until we add src-only base merging.
+ * Layout (position/size) is always device-specific when a mobile layer exists.
+ * Image `src` is shared by default across devices. Exception: set
+ * `srcOverride: true` on a mobile image item to keep a different photo on
+ * mobile only (see mergeDeviceImages).
  */
 
 export type DeviceMode = "desktop" | "mobile"
@@ -50,6 +50,198 @@ export function hasMobileOverride(settings: Record<string, unknown> | undefined)
   return typeof mobile === "object" && mobile !== null
 }
 
+function asImageRecord(value: unknown): Record<string, unknown> | null {
+  if (typeof value !== "object" || value === null) return null
+  return value as Record<string, unknown>
+}
+
+function imageId(value: unknown): string | null {
+  const img = asImageRecord(value)
+  return typeof img?.id === "string" ? img.id : null
+}
+
+function imageSrc(value: unknown): string | null {
+  const img = asImageRecord(value)
+  return typeof img?.src === "string" && img.src.length > 0 ? img.src : null
+}
+
+function hasSrcOverride(value: unknown): boolean {
+  return asImageRecord(value)?.srcOverride === true
+}
+
+/**
+ * Merge desktop + mobile `images` for render.
+ * - Layout prefers mobile when the same id exists
+ * - `src` shared from desktop unless mobile item has `srcOverride: true`
+ * - Desktop-only new images surface on mobile
+ * - Mobile orphans (removed on desktop) are dropped
+ */
+export function mergeDeviceImages(baseImages: unknown, mobileImages: unknown): unknown {
+  const base = Array.isArray(baseImages) ? baseImages : null
+  const mobile = Array.isArray(mobileImages) ? mobileImages : null
+
+  // Desktop emptied the list → stay empty (do not resurrect mobile orphans).
+  if (base && base.length === 0) return []
+  if (!mobile || mobile.length === 0) return base ?? mobile ?? []
+  if (!base) return mobile
+
+  const baseById = new Map<string, Record<string, unknown>>()
+  for (const img of base) {
+    const id = imageId(img)
+    const rec = asImageRecord(img)
+    if (id && rec) baseById.set(id, rec)
+  }
+
+  const seen = new Set<string>()
+  const merged: Record<string, unknown>[] = []
+
+  for (const img of mobile) {
+    const id = imageId(img)
+    const rec = asImageRecord(img)
+    if (!id || !rec) continue
+    const fromBase = baseById.get(id)
+    if (!fromBase) continue
+    seen.add(id)
+    const override = hasSrcOverride(rec)
+    const src = override
+      ? imageSrc(rec) || imageSrc(fromBase) || ""
+      : imageSrc(fromBase) || imageSrc(rec) || ""
+    if (!src) continue
+    merged.push({
+      ...fromBase,
+      ...rec,
+      src,
+      ...(override ? { srcOverride: true } : {}),
+    })
+  }
+
+  for (const [id, img] of baseById) {
+    if (!seen.has(id)) merged.push(img)
+  }
+
+  return merged
+}
+
+/**
+ * After a desktop `images` write, mirror ids into the mobile layer:
+ * keep per-id mobile layout; refresh shared `src` unless `srcOverride`.
+ */
+export function syncMobileImagesFromDesktop(
+  mobileImages: unknown,
+  desktopImages: unknown,
+): unknown[] {
+  const desktop = Array.isArray(desktopImages) ? desktopImages : []
+  const mobileList = Array.isArray(mobileImages) ? mobileImages : []
+  const mobileById = new Map<string, Record<string, unknown>>()
+  for (const img of mobileList) {
+    const id = imageId(img)
+    const rec = asImageRecord(img)
+    if (id && rec) mobileById.set(id, rec)
+  }
+
+  return desktop.map((img) => {
+    const id = imageId(img)
+    const desk = asImageRecord(img)
+    if (!id || !desk) return img as Record<string, unknown>
+    const existing = mobileById.get(id)
+    if (!existing) return { ...desk }
+    if (hasSrcOverride(existing)) {
+      return { ...existing, id }
+    }
+    return {
+      ...existing,
+      src: imageSrc(desk) || imageSrc(existing) || "",
+      id,
+    }
+  })
+}
+
+/**
+ * Mark mobile items whose `src` diverged from desktop as `srcOverride`.
+ * New ids (uploaded on mobile) stay shared (no flag).
+ */
+export function annotateMobileSrcOverrides(
+  desktopImages: unknown,
+  mobileImages: unknown,
+): unknown[] {
+  const mobile = Array.isArray(mobileImages) ? mobileImages : []
+  const desktopList = Array.isArray(desktopImages) ? desktopImages : []
+  const desktopById = new Map<string, Record<string, unknown>>()
+  for (const img of desktopList) {
+    const id = imageId(img)
+    const rec = asImageRecord(img)
+    if (id && rec) desktopById.set(id, rec)
+  }
+
+  return mobile.map((img) => {
+    const id = imageId(img)
+    const mob = asImageRecord(img)
+    if (!id || !mob) return img as Record<string, unknown>
+    if (hasSrcOverride(mob)) return mob
+    const desk = desktopById.get(id)
+    const mobSrc = imageSrc(mob)
+    const deskSrc = desk ? imageSrc(desk) : null
+    if (desk && mobSrc && deskSrc && mobSrc !== deskSrc) {
+      return { ...mob, srcOverride: true }
+    }
+    return mob
+  })
+}
+
+/**
+ * After a mobile `images` write, sync membership + shared src to desktop.
+ * Items with `srcOverride` keep their mobile src and do not overwrite desktop.
+ */
+export function syncDesktopImagesFromMobile(
+  desktopImages: unknown,
+  mobileImages: unknown,
+): unknown[] {
+  const mobile = Array.isArray(mobileImages) ? mobileImages : []
+  const desktopList = Array.isArray(desktopImages) ? desktopImages : []
+  const desktopById = new Map<string, Record<string, unknown>>()
+  for (const img of desktopList) {
+    const id = imageId(img)
+    const rec = asImageRecord(img)
+    if (id && rec) desktopById.set(id, rec)
+  }
+
+  const result: Record<string, unknown>[] = []
+  const seen = new Set<string>()
+
+  for (const img of mobile) {
+    const id = imageId(img)
+    const mob = asImageRecord(img)
+    if (!id || !mob) continue
+    seen.add(id)
+    const existing = desktopById.get(id)
+    if (!existing) {
+      // New on mobile → shared (strip override flag on base copy)
+      const { srcOverride: _o, ...shared } = mob
+      result.push(shared)
+      continue
+    }
+    if (hasSrcOverride(mob)) {
+      // Keep desktop src; membership only
+      result.push(existing)
+      continue
+    }
+    result.push({
+      ...existing,
+      src: imageSrc(mob) || imageSrc(existing) || "",
+      id,
+    })
+  }
+
+  // Keep desktop-only images (not deleted from mobile list intentionally —
+  // mobile list is the source of truth for membership when editing mobile).
+  // Actually when user deletes on mobile, id won't be in mobile → drop from desktop.
+  // Desktop-only images that weren't in mobile before sync shouldn't appear if
+  // mobile is authoritative for this write… But merge on resolve still shows
+  // desktop-only. For delete-on-mobile to work, we only return `result`.
+  void seen
+  return result
+}
+
 /**
  * Flatten device settings for render. No mobile key → returns the SAME reference
  * (no-op, byte-identical to pre-feature behavior). Mobile → base with the mobile
@@ -63,14 +255,21 @@ export function resolveDeviceSettings(
   const { [MOBILE_SETTINGS_KEY]: mobile, ...base } = settings
   if (mobile === undefined) return settings
   if (!isMobile || typeof mobile !== "object" || mobile === null) return base
-  return { ...base, ...(mobile as Record<string, unknown>) }
+
+  const mobileLayer = mobile as Record<string, unknown>
+  const merged: Record<string, unknown> = { ...base, ...mobileLayer }
+  if ("images" in base || "images" in mobileLayer) {
+    merged.images = mergeDeviceImages(base.images, mobileLayer.images)
+  }
+  return merged
 }
 
 /**
  * Merge an editor patch into settings, routed by the active device.
- * - desktop: patch merges into the base.
- * - mobile: LAYOUT keys go into `settings.mobile` (seeded from the base's layout
- *   on first write); content keys still merge into the base (shared).
+ * - desktop: patch merges into the base; `images` also sync into mobile layer
+ *   (respecting `srcOverride`).
+ * - mobile: LAYOUT keys go into `settings.mobile`; `images` annotate overrides
+ *   when src diverges, then sync membership back to the base.
  */
 export function applyDevicePatch(
   current: Record<string, unknown>,
@@ -85,8 +284,15 @@ export function applyDevicePatch(
       basePatch[key] = value
     }
     const next: Record<string, unknown> = { ...baseCurrent, ...basePatch }
-    if (existingMobile !== undefined) {
-      next[MOBILE_SETTINGS_KEY] = existingMobile
+    if (existingMobile !== undefined && typeof existingMobile === "object" && existingMobile) {
+      const mobileLayer = { ...(existingMobile as Record<string, unknown>) }
+      if ("images" in basePatch) {
+        mobileLayer.images = syncMobileImagesFromDesktop(
+          mobileLayer.images,
+          basePatch.images,
+        )
+      }
+      next[MOBILE_SETTINGS_KEY] = mobileLayer
     }
     return next
   }
@@ -100,7 +306,7 @@ export function applyDevicePatch(
   }
 
   const { [MOBILE_SETTINGS_KEY]: existing, ...baseNoMobile } = current
-  const next = { ...current, ...basePatch }
+  const next: Record<string, unknown> = { ...current, ...basePatch }
 
   if (Object.keys(mobilePatch).length === 0) return next
 
@@ -108,12 +314,18 @@ export function applyDevicePatch(
   if (existing && typeof existing === "object") {
     seed = existing as Record<string, unknown>
   } else {
-    // Seed the mobile layer with only the base's layout keys.
     seed = {}
     for (const key of DEVICE_LAYOUT_KEYS) {
       if (key in baseNoMobile) seed[key] = baseNoMobile[key]
     }
   }
 
-  return { ...next, [MOBILE_SETTINGS_KEY]: { ...seed, ...mobilePatch } }
+  const mobileNext = { ...seed, ...mobilePatch }
+  if ("images" in mobilePatch) {
+    const annotated = annotateMobileSrcOverrides(baseNoMobile.images, mobilePatch.images)
+    mobileNext.images = annotated
+    next.images = syncDesktopImagesFromMobile(baseNoMobile.images, annotated)
+  }
+
+  return { ...next, [MOBILE_SETTINGS_KEY]: mobileNext }
 }

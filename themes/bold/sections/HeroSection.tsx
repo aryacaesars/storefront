@@ -5,9 +5,16 @@ import { cn } from "@/lib/utils"
 import { CanvasGridOverlay } from "@/features/builder/components/canvas/CanvasGridOverlay"
 import { CanvasInlineText } from "@/features/builder/components/canvas/CanvasInlineText"
 import { CanvasHeroCta } from "@/features/builder/components/canvas/CanvasHeroCta"
+import { CanvasImageFrame } from "@/features/builder/components/canvas/CanvasImageFrame"
+import { CanvasMultiImageItem } from "@/features/builder/components/canvas/CanvasMultiImageItem"
 import { CanvasLabelResizeHandles } from "@/features/builder/components/canvas/CanvasLabelResizeHandles"
 import { CanvasFreeTextLayer } from "@/features/builder/components/canvas/CanvasFreeTextLayer"
-import { parseCanvasImages } from "@/themes/engine/canvas-image"
+import {
+  mobileFitCanvasImages,
+  parseCanvasImages,
+  updateImageInArray,
+  type CanvasImageItem,
+} from "@/themes/engine/canvas-image"
 import { parseCanvasTexts } from "@/themes/engine/canvas-text"
 import {
   hasMobileOverride,
@@ -17,8 +24,10 @@ import {
   canvasElementDomKey,
   type SelectedElementKind,
 } from "@/themes/engine/section-editor"
+import { parseFrameBackground } from "@/themes/engine/frame-background"
 import {
   labelMoveFromDelta,
+  parseImageTransform,
   type CategoryLabelLayout,
   type LabelContainerMetrics,
 } from "@/themes/bento/sections/category-grid-layout"
@@ -73,19 +82,15 @@ function isLabelHandleTarget(target: EventTarget | null): boolean {
   )
 }
 
-function resolveHeroImageUrl(
+function resolveLegacyHeroUrl(
   configUrl: string | undefined,
   mediaSettings: Record<string, unknown> | undefined,
 ): string | undefined {
-  // Same priority as bento/fashion Hero: a freshly uploaded image (images[])
-  // must win over the block's baked-in default imageUrl, otherwise uploads
-  // never appear because the default is always non-empty.
-  const canvasUrl = parseCanvasImages(mediaSettings).find((img) => img.src)?.src
-  const blockUrl =
-    typeof mediaSettings?.imageUrl === "string" && mediaSettings.imageUrl.trim()
-      ? mediaSettings.imageUrl
-      : undefined
-  return canvasUrl ?? blockUrl ?? configUrl
+  if (mediaSettings && "imageUrl" in mediaSettings) {
+    const v = mediaSettings.imageUrl
+    return typeof v === "string" && v.trim() ? v.trim() : undefined
+  }
+  return typeof configUrl === "string" && configUrl.trim() ? configUrl.trim() : undefined
 }
 
 function parseHeroImageZoom(settings: Record<string, unknown> | undefined): number {
@@ -112,6 +117,7 @@ function resolveBoldCtaLayout(
   return parsedLayout
 }
 
+/** Storefront-only full-bleed when no editable canvas images exist. */
 function HeroBackground({
   url,
   alt,
@@ -363,7 +369,9 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
 
   const mediaSettings = mediaBlock?.settings as Record<string, unknown> | undefined
   const ctaSettings = ctaBlock?.settings as Record<string, unknown> | undefined
-  const heroImageUrl = resolveHeroImageUrl(config?.heroImageUrl, mediaSettings)
+  const parsed = parseImageTransform(mediaSettings)
+  const legacyUrl = resolveLegacyHeroUrl(config?.heroImageUrl, mediaSettings)
+  const image = { ...parsed, url: legacyUrl }
   const heroImageZoom = parseHeroImageZoom(mediaSettings)
   const canvasTexts = parseCanvasTexts(mediaSettings)
 
@@ -390,6 +398,11 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const title2Layout = useMobileTitleSeed
     ? defaultHeroTitle2Layout(true, title1Layout)
     : parseHeroTitleLayout(mediaSettings, "title2", isMobile)
+
+  const rawCanvasImages = parseCanvasImages(mediaSettings)
+  const canvasImages = useMobileTitleSeed
+    ? mobileFitCanvasImages(rawCanvasImages)
+    : rawCanvasImages
 
   const ctaHasMobileOverride = Boolean(
     ctaSettings?.[MOBILE_OVERRIDE_FLAG] || hasMobileOverride(ctaSettings),
@@ -421,12 +434,18 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   // Element-level selection lives in the workspace (Canva-like floating toolbar).
   const sectionId = canvas?.sectionId
   const selectedElement = editor?.selectedElement ?? null
-  const activeTitleLine: HeroTitleLine | null =
-    selectedElement?.kind === "text" &&
+  const elementInMedia =
+    selectedElement &&
     selectedElement.sectionId === sectionId &&
-    selectedElement.blockId === mediaBlock?.id &&
-    (selectedElement.itemId === "title1" || selectedElement.itemId === "title2")
-      ? selectedElement.itemId
+    selectedElement.blockId === mediaBlock?.id
+      ? selectedElement
+      : null
+  const activeImageId =
+    elementInMedia?.kind === "image" ? elementInMedia.itemId ?? null : null
+  const activeTitleLine: HeroTitleLine | null =
+    elementInMedia?.kind === "text" &&
+    (elementInMedia.itemId === "title1" || elementInMedia.itemId === "title2")
+      ? elementInMedia.itemId
       : null
 
   const selectElement = (
@@ -448,7 +467,7 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
       ? canvasElementDomKey({ kind, sectionId, blockId, itemId })
       : undefined
 
-  const hasImage = Boolean(heroImageUrl)
+  const hasImage = canvasImages.length > 0 || Boolean(image.url)
 
   const onMediaChange = (patch: Record<string, unknown>) => {
     if (!mediaBlock || !editor) return
@@ -457,10 +476,30 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
           ...heroTitleLayoutsToPatch(title1Layout, title2Layout),
           title1Layer,
           title2Layer,
-          imgScale: heroImageZoom,
+          imgScale: image.scale,
+          imgX: image.x,
+          imgY: image.y,
+          images: canvasImages,
           ...patch,
         }
       : patch
+    editor.onBlockChange?.(canvas!.sectionId, mediaBlock.id, full)
+  }
+
+  const onMultiImageChange = (imageId: string, patch: Partial<CanvasImageItem>) => {
+    if (!mediaBlock || !editor) return
+    const updatedImages = updateImageInArray(canvasImages, imageId, patch)
+    const full = useMobileTitleSeed
+      ? {
+          ...heroTitleLayoutsToPatch(title1Layout, title2Layout),
+          title1Layer,
+          title2Layer,
+          imgScale: image.scale,
+          imgX: image.x,
+          imgY: image.y,
+          images: updatedImages,
+        }
+      : { images: updatedImages }
     editor.onBlockChange?.(canvas!.sectionId, mediaBlock.id, full)
   }
 
@@ -508,18 +547,33 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const behindTitles = titleLines.filter((item) => item.layer === "behind")
   const frontTitles = titleLines.filter((item) => item.layer === "front")
 
+  const frameBgStyle = parseFrameBackground(mediaSettings)
+
   return (
     <div
       ref={frameRef}
       id="section-hero"
+      data-canvas-element={elementDomKey("frame", mediaBlock?.id)}
       className="relative w-full overflow-visible bg-sky-400"
-      style={{ height: frameHeight }}
+      style={{ height: frameHeight, ...frameBgStyle }}
     >
       {editable && (
         <CanvasGridOverlay canvasHeight={BOLD_HERO_DESIGN_HEIGHT} scale={scale} />
       )}
 
-      <div className="absolute inset-0 overflow-hidden">
+      <div
+        className="absolute inset-0 overflow-hidden"
+        onClick={
+          editable
+            ? (event) => {
+                // Klik area kosong frame = pilih latar hero.
+                if (event.target !== event.currentTarget) return
+                event.stopPropagation()
+                selectElement("frame", mediaBlock?.id)
+              }
+            : undefined
+        }
+      >
         {behindTitles.map((item) => (
           <BoldTitleLine
             key={`${item.line}-behind`}
@@ -539,7 +593,66 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
           />
         ))}
 
-        <HeroBackground url={heroImageUrl} alt={titleLine1} zoom={heroImageZoom} />
+        {/* Multi-image canvas layer (same as bento — move / crop / background toggle) */}
+        {canvasImages.length > 0 && mediaBlock && (
+          <div
+            className={cn("absolute inset-0", !editable && "pointer-events-none")}
+            style={{ zIndex: Z_IMAGE }}
+            onClick={
+              editable
+                ? (event) => {
+                    event.stopPropagation()
+                    // Klik area kosong (bukan gambar) = pilih latar hero.
+                    if (event.target === event.currentTarget) {
+                      selectElement("frame", mediaBlock.id)
+                      return
+                    }
+                    editor?.onSelectBlock?.(canvas!.sectionId, mediaBlock.id)
+                    editor?.onSelectElement?.(null)
+                  }
+                : undefined
+            }
+          >
+            {canvasImages.map((img) => (
+              <CanvasMultiImageItem
+                key={img.id}
+                item={img}
+                selected={mediaInteractive && activeImageId === img.id}
+                editable={mediaInteractive}
+                domKey={elementDomKey("image", mediaBlock.id, img.id)}
+                cropping={
+                  editor?.croppingElementKey ===
+                  elementDomKey("image", mediaBlock.id, img.id)
+                }
+                onSelect={() => selectElement("image", mediaBlock.id, img.id)}
+                onChange={(patch) => onMultiImageChange(img.id, patch)}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Legacy single image: editable frame in builder, full-bleed cover on storefront */}
+        {canvasImages.length === 0 && Boolean(image.url) && mediaBlock && (
+          editable ? (
+            <div
+              className="absolute inset-0"
+              style={{ zIndex: Z_IMAGE }}
+              onClick={(event) => {
+                event.stopPropagation()
+                selectElement("image", mediaBlock.id)
+              }}
+            >
+              <CanvasImageFrame
+                image={image}
+                interactive={mediaInteractive}
+                domKey={elementDomKey("image", mediaBlock.id)}
+                onChange={onMediaChange}
+              />
+            </div>
+          ) : (
+            <HeroBackground url={image.url} alt={titleLine1} zoom={heroImageZoom} />
+          )
+        )}
 
         {/* Subtle left scrim for text legibility on bright skies */}
         {hasImage || editable ? (

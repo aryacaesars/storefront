@@ -1,11 +1,10 @@
 "use client"
 
-import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { CanvasImageFrame } from "@/features/builder/components/canvas/CanvasImageFrame"
 import { CanvasMultiImageItem } from "@/features/builder/components/canvas/CanvasMultiImageItem"
 import { CanvasFreeTextLayer } from "@/features/builder/components/canvas/CanvasFreeTextLayer"
-import { getStringSetting } from "@/themes/engine/section-settings-schema"
+import { CanvasButtonLayer } from "@/features/builder/components/canvas/CanvasButtonLayer"
 import type { SectionProps } from "@/themes/engine/section-registry"
 import { parseImageTransform } from "@/themes/bento/sections/category-grid-layout"
 import {
@@ -17,24 +16,38 @@ import {
   updateImageInArray,
   type CanvasImageItem,
 } from "@/themes/engine/canvas-image"
-import { parseCanvasTexts } from "@/themes/engine/canvas-text"
+import {
+  getCtaCanvasSpec,
+  resolveSectionCanvasTexts,
+  resolveSectionCanvasButtons,
+} from "@/themes/engine/cta-canvas"
+
+const SPEC = getCtaCanvasSpec("bento", "call-to-action")!
 
 export function CallToActionSection({ settings, blocks, canvas }: SectionProps) {
-  const title = getStringSetting(settings, "title", "Grab It Fast And Claim 10% Discount")
-  const primaryLabel = getStringSetting(settings, "primaryLabel", "Buy Now")
-
   const imageBlock = blocks?.[0]
   const imageSettings = imageBlock?.settings as Record<string, unknown> | undefined
   const image = parseImageTransform(imageSettings)
   const canvasImages = parseCanvasImages(imageSettings)
-  const canvasTexts = parseCanvasTexts(imageSettings)
+  const canvasTexts = resolveSectionCanvasTexts(
+    "bento",
+    "call-to-action",
+    settings,
+    imageSettings,
+  )
+  const canvasButtons = resolveSectionCanvasButtons(
+    "bento",
+    "call-to-action",
+    settings,
+    imageSettings,
+  )
 
   const editor = canvas?.editor
-  const isSectionSelected = editor?.selectedSectionId === canvas?.sectionId
-  const editable = Boolean(editor && isSectionSelected && imageBlock)
-  const interactive = editable && editor?.selectedBlockId === imageBlock?.id
-
   const sectionId = canvas?.sectionId
+  const isSectionSelected = editor?.selectedSectionId === sectionId
+  const editable = Boolean(editor)
+  const interactive = isSectionSelected && editor?.selectedBlockId === imageBlock?.id
+
   const selectedElement = editor?.selectedElement ?? null
   const activeImageId =
     selectedElement?.kind === "image" &&
@@ -71,10 +84,12 @@ export function CallToActionSection({ settings, blocks, canvas }: SectionProps) 
   return (
     <section className="overflow-hidden px-4 pb-16 pt-6 @2xl:px-6">
       <div
-        className="relative mx-auto flex max-w-7xl items-center justify-end overflow-hidden rounded-[40px] px-10 py-14 @2xl:rounded-[63px]"
-        style={{ backgroundColor: "var(--theme-primary)" }}
+        className="relative mx-auto max-w-7xl overflow-hidden rounded-[40px] @2xl:rounded-[63px]"
+        style={{
+          backgroundColor: "var(--theme-primary)",
+          aspectRatio: `${SPEC.frame.width} / ${SPEC.frame.height}`,
+        }}
       >
-        {/* Uploaded images — drag, resize, rotate; clipped to the card bounds */}
         {canvasImages.length > 0 && imageBlock && (
           <div
             className={cn("absolute inset-0", !editable && "pointer-events-none")}
@@ -95,7 +110,10 @@ export function CallToActionSection({ settings, blocks, canvas }: SectionProps) 
                 selected={interactive && activeImageId === img.id}
                 editable={interactive}
                 domKey={elementDomKey("image", imageBlock.id, img.id)}
-                cropping={editor?.croppingElementKey === elementDomKey("image", imageBlock.id, img.id)}
+                cropping={
+                  editor?.croppingElementKey ===
+                  elementDomKey("image", imageBlock.id, img.id)
+                }
                 onSelect={() => selectElement("image", imageBlock.id, img.id)}
                 onChange={(patch) => onMultiImageChange(img.id, patch)}
               />
@@ -103,8 +121,7 @@ export function CallToActionSection({ settings, blocks, canvas }: SectionProps) 
           </div>
         )}
 
-        {/* Fallback: single legacy image when images array is empty */}
-        {canvasImages.length === 0 && (image.url || editable) && imageBlock && (
+        {canvasImages.length === 0 && Boolean(image.url) && imageBlock && (
           <div
             className={cn("absolute inset-0", !editable && "pointer-events-none")}
             onClick={
@@ -134,33 +151,25 @@ export function CallToActionSection({ settings, blocks, canvas }: SectionProps) 
           sectionId={sectionId}
           blockId={imageBlock?.id}
           editor={editor}
+          designWidth={SPEC.frame.width}
           onItemsChange={(texts) =>
-            imageBlock && editor?.onBlockChange?.(canvas!.sectionId, imageBlock.id, { texts })
+            imageBlock &&
+            editor?.onBlockChange?.(canvas!.sectionId, imageBlock.id, { texts })
           }
         />
 
-        {/* Text + CTA sit above the image */}
-        <div className="relative z-10 flex flex-col items-end gap-6">
-          <h2
-            className="max-w-lg text-right text-3xl font-bold capitalize leading-tight text-white @2xl:text-[2.75rem]"
-            style={{
-              fontFamily: "var(--theme-heading-font)",
-              textShadow: "31px 33px 58px rgba(0,0,0,0.54)",
-            }}
-          >
-            {title}
-          </h2>
-          <Link
-            href="/products"
-            className="inline-flex items-center rounded-[33px] bg-white px-10 py-3 text-base font-bold capitalize transition-opacity hover:opacity-90"
-            style={{
-              color: "#b40000",
-              boxShadow: "13px 18px 11px rgba(0,0,0,0.25)",
-            }}
-          >
-            {primaryLabel}
-          </Link>
-        </div>
+        <CanvasButtonLayer
+          items={canvasButtons}
+          editable={editable}
+          sectionId={sectionId}
+          blockId={imageBlock?.id}
+          editor={editor}
+          designWidth={SPEC.frame.width}
+          onItemsChange={(buttons) =>
+            imageBlock &&
+            editor?.onBlockChange?.(canvas!.sectionId, imageBlock.id, { buttons })
+          }
+        />
       </div>
     </section>
   )

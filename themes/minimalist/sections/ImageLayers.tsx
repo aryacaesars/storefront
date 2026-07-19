@@ -141,7 +141,8 @@ function ImageLayerFrame({
         className={cn(
           "absolute inset-0 overflow-hidden rounded-xl",
           !layer.image.url && "bg-gray-100",
-          selected && "ring-2 ring-indigo-500 ring-offset-1 ring-offset-transparent",
+          selected && layer.image.url && "ring-2 ring-indigo-500 ring-offset-1 ring-offset-transparent",
+          selected && !layer.image.url && "ring-1 ring-dashed ring-gray-300",
         )}
       >
         {!layer.image.url && (
@@ -151,7 +152,9 @@ function ImageLayerFrame({
             </p>
           </div>
         )}
-        <CanvasImageFrame image={layer.image} interactive={selected} onChange={onChange} />
+        {layer.image.url ? (
+          <CanvasImageFrame image={layer.image} interactive={selected} onChange={onChange} />
+        ) : null}
       </div>
 
       {selected && (

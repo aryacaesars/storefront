@@ -4,6 +4,7 @@ import {
   Image as ImageIcon,
   Layers,
   LayoutTemplate,
+  Paintbrush,
   Palette,
   Type,
   FileText,
@@ -15,6 +16,7 @@ export type BuilderTool =
   | "image"
   | "text"
   | "layers"
+  | "color"
   | "theme"
   | "page"
 
@@ -33,7 +35,8 @@ export const BUILDER_TOOLS: BuilderToolDef[] = [
   { id: "image", label: "Image", icon: ImageIcon, needsSections: true },
   { id: "text", label: "Text", icon: Type, needsSections: true },
   { id: "layers", label: "Layer", icon: Layers, needsSections: true },
-  { id: "theme", label: "Theme", icon: Palette },
+  { id: "color", label: "Warna", icon: Palette, needsSections: true },
+  { id: "theme", label: "Theme", icon: Paintbrush },
   { id: "page", label: "Konten", icon: FileText, marketingOnly: true },
 ]
 

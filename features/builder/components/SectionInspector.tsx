@@ -495,7 +495,12 @@ export function SectionInspector({
           <div className="mb-4 border-b border-gray-100 pb-4">
             <HeroImageListPanel
               images={parseCanvasImages(mediaSettings)}
-              onChange={(imgs) => updateBlockSettings(mediaIdx, { images: imgs })}
+              onChange={(imgs) =>
+                updateBlockSettings(mediaIdx, {
+                  images: imgs,
+                  ...(imgs.length === 0 ? { imageUrl: "" } : {}),
+                })
+              }
             />
           </div>
         )}
@@ -690,7 +695,12 @@ export function SectionInspector({
           <div className="mb-4 border-b border-gray-100 pb-4">
             <HeroImageListPanel
               images={parseCanvasImages(mediaSettings)}
-              onChange={(imgs) => updateBlockSettings(mediaIdx, { images: imgs })}
+              onChange={(imgs) =>
+                updateBlockSettings(mediaIdx, {
+                  images: imgs,
+                  ...(imgs.length === 0 ? { imageUrl: "" } : {}),
+                })
+              }
             />
           </div>
         )}
@@ -885,7 +895,12 @@ export function SectionInspector({
           <div className="mb-4 border-b border-gray-100 pb-4">
             <HeroImageListPanel
               images={parseCanvasImages(mediaSettings)}
-              onChange={(imgs) => updateBlockSettings(mediaIdx, { images: imgs })}
+              onChange={(imgs) =>
+                updateBlockSettings(mediaIdx, {
+                  images: imgs,
+                  ...(imgs.length === 0 ? { imageUrl: "" } : {}),
+                })
+              }
             />
           </div>
         )}
@@ -1084,7 +1099,12 @@ export function SectionInspector({
           <div className="mb-4 space-y-3 border-b border-gray-100 pb-4">
             <HeroImageListPanel
               images={parseCanvasImages(mediaSettings)}
-              onChange={(imgs) => updateBlockSettings(mediaIdx, { images: imgs })}
+              onChange={(imgs) =>
+                updateBlockSettings(mediaIdx, {
+                  images: imgs,
+                  ...(imgs.length === 0 ? { imageUrl: "" } : {}),
+                })
+              }
             />
             <SettingsField
               label={`Zoom gambar (${Math.round(Number(mediaSettings?.imgScale ?? 100))}%)`}
@@ -1751,7 +1771,12 @@ export function SectionInspector({
             <HeroImageListPanel
               title="Gambar CTA"
               images={parseCanvasImages(imageSettings)}
-              onChange={(imgs) => updateBlockSettings(imageIdx, { images: imgs })}
+              onChange={(imgs) =>
+                updateBlockSettings(imageIdx, {
+                  images: imgs,
+                  ...(imgs.length === 0 ? { imageUrl: "" } : {}),
+                })
+              }
             />
           </div>
         )}

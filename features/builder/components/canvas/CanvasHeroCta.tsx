@@ -1,16 +1,11 @@
 "use client"
 
-import Link from "next/link"
-import { cn } from "@/lib/utils"
-import { CanvasMeasurementBadge } from "@/features/builder/components/canvas/CanvasGridOverlay"
-import { CanvasInlineText } from "@/features/builder/components/canvas/CanvasInlineText"
-import { CanvasResizeHandles } from "@/features/builder/components/canvas/CanvasResizeHandles"
+import { CanvasBoundButton } from "@/features/builder/components/canvas/CanvasBoundButton"
 import {
   MIN_CTA_HEIGHT,
   MAX_CTA_HEIGHT,
   type HeroCtaData,
 } from "@/themes/bento/sections/hero-cta-layout"
-import type { CategoryCardLayout } from "@/themes/bento/sections/category-grid-layout"
 
 interface CanvasHeroCtaProps {
   cta: HeroCtaData
@@ -27,8 +22,11 @@ interface CanvasHeroCtaProps {
   onChange: (patch: Record<string, unknown>) => void
 }
 
-const CTA_DRAG_THRESHOLD_PX = 4
-
+/**
+ * Wrapper tipis hero CTA (settings block `hero-cta`) di atas
+ * `CanvasBoundButton` — sumber visual & interaksi tombol canvas yang sama
+ * dengan `buttons[]` section lain.
+ */
 export function CanvasHeroCta({
   cta,
   href,
@@ -42,158 +40,26 @@ export function CanvasHeroCta({
   onSelect,
   onChange,
 }: CanvasHeroCtaProps) {
-  const { layout } = cta
-
-  // Drag pindah posisi — pola sama dengan teks: select dulu, drag aktif setelah
-  // threshold (blur label contentEditable saat mulai geser).
-  function startMove(event: React.PointerEvent<HTMLDivElement>) {
-    if (!editable) return
-    event.stopPropagation()
-    onSelect()
-    const frame = frameRef.current
-    if (!frame) return
-    const startX = event.clientX
-    const startY = event.clientY
-    const start = { ...layout }
-    const frameWidth = frame.clientWidth || 1
-    const designHeight = (frame.clientHeight || 1) / (scale || 1)
-    let dragging = false
-
-    function onPointerMove(e: PointerEvent) {
-      const dx = e.clientX - startX
-      const dy = e.clientY - startY
-      if (!dragging && Math.abs(dx) + Math.abs(dy) < CTA_DRAG_THRESHOLD_PX) return
-      dragging = true
-      e.preventDefault()
-      const active = document.activeElement
-      if (active instanceof HTMLElement && active.isContentEditable) {
-        active.blur()
-      }
-      const xPct = Math.max(
-        0,
-        Math.min(100 - start.wPct, start.xPct + (dx / frameWidth) * 100),
-      )
-      const yPx = Math.max(
-        0,
-        Math.min(designHeight - start.hPx, start.yPx + dy / (scale || 1)),
-      )
-      onChange({
-        xPct: Math.round(xPct * 10) / 10,
-        yPx: Math.round(yPx),
-      })
-    }
-    function onUp() {
-      window.removeEventListener("pointermove", onPointerMove)
-      window.removeEventListener("pointerup", onUp)
-    }
-    window.addEventListener("pointermove", onPointerMove)
-    window.addEventListener("pointerup", onUp)
-  }
-  const isOutline = variant === "outline"
-  const textColor = cta.textColor.trim() || (isOutline ? "#ffffff" : "var(--theme-primary)")
-
-  const boxStyle: React.CSSProperties = {
-    position: "absolute",
-    left: `${layout.xPct}%`,
-    width: `${layout.wPct}%`,
-    top: `${layout.yPx * scale}px`,
-    height: `${layout.hPx * scale}px`,
-  }
-
-  const buttonStyle: React.CSSProperties = {
-    backgroundColor: isOutline ? "transparent" : cta.bgColor,
-    color: textColor,
-    fontFamily: "var(--theme-heading-font)",
-    fontSize: `${Math.max(12, layout.hPx * scale * 0.38)}px`,
-    ...(isOutline && {
-      border: "1.5px solid #ffffff",
-      boxShadow: "none",
-    }),
-  }
-
-  const className = cn(
-    "pointer-events-auto z-20 flex items-center justify-center overflow-visible px-6 font-black uppercase tracking-[0.14em]",
-    isOutline ? "rounded-full" : "rounded-[47px] capitalize shadow-lg",
-    editable && "cursor-pointer",
-    !editable && "hover:opacity-80",
-  )
-
-  const labelNode = editable ? (
-    <CanvasInlineText
-      value={cta.label}
-      onChange={(label) => onChange({ label })}
-      className="max-w-full truncate text-center outline-none focus:ring-2 focus:ring-indigo-300/50 rounded-sm"
-    />
-  ) : (
-    <span className="max-w-full truncate text-center">{cta.label}</span>
-  )
-
-  const handleResize = (patch: Partial<CategoryCardLayout>) => onChange(patch)
-
-  if (editable) {
-    return (
-      <div
-        role="button"
-        tabIndex={0}
-        style={boxStyle}
-        data-canvas-element={domKey}
-        className={cn(
-          "cursor-move",
-          editable && !selected && "ring-2 ring-transparent",
-        )}
-        onPointerDown={startMove}
-        onClick={(event) => {
-          event.preventDefault()
-          event.stopPropagation()
-          onSelect()
-        }}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault()
-            event.stopPropagation()
-            onSelect()
-          }
-        }}
-      >
-        {selected && (
-          <CanvasMeasurementBadge
-            layout={layout}
-            imageScale={100}
-            hasImage={false}
-          />
-        )}
-        <div
-          className={cn(
-            "flex h-full w-full items-center justify-center",
-            isOutline ? "rounded-full" : "rounded-[47px]",
-            className,
-            selected && "ring-2 ring-indigo-400 ring-offset-2 ring-offset-transparent",
-          )}
-          style={buttonStyle}
-        >
-          {labelNode}
-        </div>
-        {selected && (
-          <CanvasResizeHandles
-            layout={layout}
-            gridRef={frameRef}
-            onResize={handleResize}
-            designWidth={designWidth}
-            minHeightPx={MIN_CTA_HEIGHT}
-            maxHeightPx={MAX_CTA_HEIGHT}
-          />
-        )}
-      </div>
-    )
-  }
-
   return (
-    <Link
+    <CanvasBoundButton
+      label={cta.label}
+      layout={cta.layout}
       href={href}
-      className={className}
-      style={{ ...boxStyle, ...buttonStyle }}
-    >
-      {cta.label}
-    </Link>
+      editable={editable}
+      selected={selected}
+      scale={scale}
+      designWidth={designWidth}
+      frameRef={frameRef}
+      bgColor={cta.bgColor}
+      textColor={cta.textColor}
+      variant={variant}
+      shape={variant === "outline" ? "pill" : "rounded"}
+      radius={cta.radius}
+      minHeightPx={MIN_CTA_HEIGHT}
+      maxHeightPx={MAX_CTA_HEIGHT}
+      domKey={domKey}
+      onSelect={onSelect}
+      onChange={onChange}
+    />
   )
 }

@@ -14,6 +14,7 @@ import {
   Image as ImageIcon,
   Layers,
   MousePointerClick,
+  Palette,
   Type,
 } from "lucide-react"
 import {
@@ -36,6 +37,10 @@ import {
   type CanvasImageItem,
 } from "@/themes/engine/canvas-image"
 import { parseCanvasTexts } from "@/themes/engine/canvas-text"
+import {
+  resolveSectionCanvasButtons,
+  resolveSectionCanvasTexts,
+} from "@/themes/engine/cta-canvas"
 import {
   HERO_DESIGN_HEIGHT,
   parseHeroCta,
@@ -140,12 +145,65 @@ function collectLayerRows(
       })
     })
 
-    // Free canvas texts (added via the Text sidebar).
-    for (const text of parseCanvasTexts(settings)) {
+    // Free canvas texts (added via the Text sidebar). Media block (index 0)
+    // resolves seeded CTA items; other blocks parse plain.
+    const texts =
+      blockIndex === 0
+        ? resolveSectionCanvasTexts(
+            config.templateId,
+            instance.type,
+            instance.settings as Record<string, unknown> | undefined,
+            settings,
+          )
+        : parseCanvasTexts(settings)
+    for (const text of texts) {
       rows.push({
         element: { kind: "text", sectionId, blockId: block.id, itemId: text.id },
         label: text.value || "Teks kosong",
         sublabel: "Teks bebas",
+        block,
+        blockIndex,
+      })
+    }
+
+    // Canvas buttons (buttons[] — CTA section, dsb.).
+    const buttons =
+      blockIndex === 0
+        ? resolveSectionCanvasButtons(
+            config.templateId,
+            instance.type,
+            instance.settings as Record<string, unknown> | undefined,
+            settings,
+          )
+        : []
+    for (const button of buttons) {
+      rows.push({
+        element: { kind: "button", sectionId, blockId: block.id, itemId: button.id },
+        label: button.label || "Tombol",
+        sublabel: "Button",
+        block,
+        blockIndex,
+      })
+    }
+
+    // Label kartu kategori — selectable text element per card.
+    if (block.type === "category-card") {
+      const label = typeof settings?.label === "string" ? settings.label : ""
+      rows.push({
+        element: { kind: "text", sectionId, blockId: block.id, itemId: "label" },
+        label: label || "Label kosong",
+        sublabel: "Label kartu",
+        block,
+        blockIndex,
+      })
+    }
+
+    // Card & latar hero — selectable frame element on the media block.
+    if (block.type === "hero-media") {
+      rows.push({
+        element: { kind: "frame", sectionId, blockId: block.id },
+        label: "Card & latar hero",
+        sublabel: "Latar",
         block,
         blockIndex,
       })
@@ -306,6 +364,8 @@ export function BuilderLayersPanel({
                       <Type className="h-3.5 w-3.5 text-gray-400" />
                     ) : row.element.kind === "button" ? (
                       <MousePointerClick className="h-3.5 w-3.5 text-gray-400" />
+                    ) : row.element.kind === "frame" ? (
+                      <Palette className="h-3.5 w-3.5 text-gray-400" />
                     ) : (
                       <ImageIcon className="h-3.5 w-3.5 text-gray-300" />
                     )}
@@ -524,7 +584,7 @@ export function BuilderLayersPanel({
                   </div>
                 )}
 
-                {isSelected && row.element.kind === "button" && (() => {
+                {isSelected && row.element.kind === "button" && !row.element.itemId && (() => {
                   const ctaLayout = parseHeroCta(
                     resolved as Record<string, unknown> | undefined,
                     "",

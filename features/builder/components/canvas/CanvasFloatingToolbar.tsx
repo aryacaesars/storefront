@@ -8,37 +8,46 @@ import {
   type SelectedElement,
 } from "@/themes/engine/section-editor"
 
-type ToolbarPanel = "edit" | "color" | null
+type ToolbarPanel = "edit" | null
 
 const KIND_LABELS: Record<SelectedElement["kind"], string> = {
   image: "Gambar",
   text: "Teks",
   button: "Tombol",
+  frame: "Latar",
 }
 
 interface CanvasFloatingToolbarProps {
   element: SelectedElement
   onPosition: () => void
+  onColor: () => void
   onDeselect: () => void
   /** Panel content for the Edit popover (kind-specific tools). */
   editPanel?: React.ReactNode
-  /** Panel content for the Color popover. */
-  colorPanel?: React.ReactNode
+  /** False when the selected element has no color controls. */
+  hasColor?: boolean
   /** Copy style — paste happens via Ctrl+Shift+V, never through this button. */
   onCopyStyle?: () => void
+  /**
+   * Mobile Canva-style: strip sits above the bottom nav instead of top-center.
+   * Pass true when viewport is mobile builder chrome.
+   */
+  mobile?: boolean
 }
 
 /**
- * Contextual toolbar — sticky pill pinned to the top-center of the canvas
- * area (not anchored to the selected element). Popovers open downward.
+ * Contextual toolbar — desktop: sticky pill top-center;
+ * mobile: bottom strip above the tool navbar.
  */
 export function CanvasFloatingToolbar({
   element,
   onPosition,
+  onColor,
   onDeselect,
   editPanel,
-  colorPanel,
+  hasColor = false,
   onCopyStyle,
+  mobile = false,
 }: CanvasFloatingToolbarProps) {
   const [openPanel, setOpenPanel] = useState<ToolbarPanel>(null)
 
@@ -57,11 +66,23 @@ export function CanvasFloatingToolbar({
   return (
     <div
       // z di atas navbar theme (sticky z-50) supaya klik tidak tembus ke preview.
-      className="absolute left-1/2 top-3 z-200 -translate-x-1/2"
+      className={cn(
+        "z-200",
+        mobile
+          ? "absolute inset-x-0 bottom-0 border-t border-gray-100 bg-white/95 px-2 py-1.5 backdrop-blur-sm"
+          : "absolute left-1/2 top-3 -translate-x-1/2",
+      )}
       onPointerDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="flex items-center gap-0.5 rounded-full border border-gray-100 bg-white px-1.5 py-1 shadow-lg">
+      <div
+        className={cn(
+          "flex items-center gap-0.5",
+          mobile
+            ? "mx-auto max-w-lg overflow-x-auto rounded-2xl border border-gray-100 bg-white px-1.5 py-1 shadow-md [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            : "rounded-full border border-gray-100 bg-white px-1.5 py-1 shadow-lg",
+        )}
+      >
         <span className="shrink-0 rounded-full bg-indigo-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-indigo-700">
           {KIND_LABELS[element.kind]}
         </span>
@@ -71,20 +92,25 @@ export function CanvasFloatingToolbar({
           label="Edit"
           active={openPanel === "edit"}
           disabled={!editPanel}
+          compact={mobile}
           onClick={() => setOpenPanel((p) => (p === "edit" ? null : "edit"))}
         />
         <span className={dividerClass} />
         <ToolbarButton
           icon={<Palette className="h-3.5 w-3.5" />}
           label="Color"
-          active={openPanel === "color"}
-          disabled={!colorPanel}
-          onClick={() => setOpenPanel((p) => (p === "color" ? null : "color"))}
+          disabled={!hasColor}
+          compact={mobile}
+          onClick={() => {
+            setOpenPanel(null)
+            onColor()
+          }}
         />
         <span className={dividerClass} />
         <ToolbarButton
           icon={<Layers className="h-3.5 w-3.5" />}
           label="Position"
+          compact={mobile}
           onClick={() => {
             setOpenPanel(null)
             onPosition()
@@ -93,9 +119,10 @@ export function CanvasFloatingToolbar({
         <span className={dividerClass} />
         <ToolbarButton
           icon={<PaintRoller className="h-3.5 w-3.5" />}
-          label="Copy style"
+          label={mobile ? "Copy" : "Copy style"}
           title="Ctrl+Shift+C · paste: Ctrl+Shift+V"
           disabled={!onCopyStyle}
+          compact={mobile}
           onClick={() => {
             setOpenPanel(null)
             onCopyStyle?.()
@@ -112,9 +139,16 @@ export function CanvasFloatingToolbar({
         </button>
       </div>
 
-      {openPanel && (
-        <div className="absolute left-1/2 top-full z-200 mt-2 w-64 -translate-x-1/2 rounded-2xl border border-gray-100 bg-white p-3 shadow-xl">
-          {openPanel === "edit" ? editPanel : colorPanel}
+      {openPanel === "edit" && editPanel && (
+        <div
+          className={cn(
+            "absolute z-200 w-[min(100%-1rem,20rem)] rounded-2xl border border-gray-100 bg-white p-3 shadow-xl",
+            mobile
+              ? "bottom-full left-1/2 mb-2 -translate-x-1/2"
+              : "left-1/2 top-full mt-2 -translate-x-1/2",
+          )}
+        >
+          {editPanel}
         </div>
       )}
     </div>
@@ -127,10 +161,19 @@ interface ToolbarButtonProps {
   title?: string
   active?: boolean
   disabled?: boolean
+  compact?: boolean
   onClick: () => void
 }
 
-function ToolbarButton({ icon, label, title, active, disabled, onClick }: ToolbarButtonProps) {
+function ToolbarButton({
+  icon,
+  label,
+  title,
+  active,
+  disabled,
+  compact,
+  onClick,
+}: ToolbarButtonProps) {
   return (
     <button
       type="button"
@@ -143,6 +186,7 @@ function ToolbarButton({ icon, label, title, active, disabled, onClick }: Toolba
           ? "bg-indigo-50 text-indigo-700"
           : "text-gray-700 hover:bg-gray-100",
         disabled && "cursor-not-allowed opacity-40 hover:bg-transparent",
+        compact && "px-2",
       )}
     >
       {icon}

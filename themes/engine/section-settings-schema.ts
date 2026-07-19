@@ -63,6 +63,12 @@ const BOLD_SECTION_SETTINGS: Record<string, SectionSettingField[]> = {
       type: "textarea",
       placeholder: "Join the elite circle of athletes…",
     },
+    {
+      key: "primaryLabel",
+      label: "Button",
+      type: "text",
+      placeholder: "SHOP THE SERIES",
+    },
   ],
 }
 
@@ -79,6 +85,12 @@ const FASHION_SECTION_SETTINGS: Record<string, SectionSettingField[]> = {
       label: "Subtitle",
       type: "textarea",
       placeholder: "Sign up for early access…",
+    },
+    {
+      key: "primaryLabel",
+      label: "Button",
+      type: "text",
+      placeholder: "SUBSCRIBE",
     },
   ],
 }

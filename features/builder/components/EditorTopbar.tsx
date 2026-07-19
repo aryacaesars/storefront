@@ -1,9 +1,11 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
-import { ArrowLeft, Monitor, Smartphone } from "lucide-react"
+import { ArrowLeft, MoreHorizontal, Monitor, Smartphone } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+
 export type EditorMode = "edit" | "preview"
 export type PreviewDevice = "desktop" | "mobile"
 
@@ -32,34 +34,37 @@ export function EditorTopbar({
   onResetLayout,
   isSaving = false,
 }: EditorTopbarProps) {
+  const [menuOpen, setMenuOpen] = useState(false)
+
   return (
-    <header className="h-14 flex items-center shrink-0 bg-white border-b border-gray-200 px-4 gap-4 z-10">
-      <div className="flex items-center gap-3 shrink-0 min-w-0">
+    <header className="relative z-10 flex h-14 shrink-0 items-center gap-2 border-b border-gray-200 bg-white px-3 md:gap-4 md:px-4">
+      <div className="flex min-w-0 shrink-0 items-center gap-2 md:gap-3">
         <Link
           href={storeId ? `/stores/${storeId}/dashboard` : "/dashboard"}
           className={cn(
-            // Samakan dengan <Button size="sm"> (variant default/Publish).
-            "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl font-semibold transition-colors",
-            "h-8 px-3 text-xs bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm",
+            "inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-indigo-600 px-2.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 md:px-3",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1",
           )}
+          aria-label="Kembali ke dashboard"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="h-4 w-4" />
           <span className="hidden sm:inline">Dashboard</span>
         </Link>
-        <div className="w-px h-5 bg-gray-200" />
-        <p className="text-sm font-semibold text-gray-900 truncate">{templateName}</p>
+        <div className="hidden h-5 w-px bg-gray-200 sm:block" />
+        <p className="hidden max-w-[9rem] truncate text-sm font-semibold text-gray-900 sm:block md:max-w-xs">
+          {templateName}
+        </p>
       </div>
 
-      <div className="flex-1 flex justify-center">
-        <div className="flex items-center gap-1 rounded-lg bg-gray-100 p-1">
+      <div className="flex flex-1 justify-center">
+        <div className="flex items-center gap-0.5 rounded-lg bg-gray-100 p-0.5 md:gap-1 md:p-1">
           {(["edit", "preview"] as const).map((tab) => (
             <button
               key={tab}
               type="button"
               onClick={() => onModeChange(tab)}
               className={cn(
-                "px-4 py-1.5 rounded-md text-sm font-medium transition-colors capitalize",
+                "rounded-md px-2.5 py-1.5 text-xs font-medium capitalize transition-colors md:px-4 md:text-sm",
                 mode === tab
                   ? "bg-white text-indigo-600 shadow-sm"
                   : "text-gray-500 hover:text-gray-900",
@@ -71,69 +76,121 @@ export function EditorTopbar({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 shrink-0">
-        <div className="hidden sm:flex items-center gap-1 rounded-lg border border-gray-200 p-0.5">
+      <div className="flex shrink-0 items-center gap-1.5 md:gap-2">
+        {/* Device toggle — desktop chrome only */}
+        <div className="hidden items-center gap-1 rounded-lg border border-gray-200 p-0.5 md:flex">
           <button
             type="button"
             onClick={() => onDeviceChange("desktop")}
             className={cn(
-              "w-8 h-8 flex items-center justify-center rounded-md transition-colors",
+              "flex h-8 w-8 items-center justify-center rounded-md transition-colors",
               device === "desktop"
                 ? "bg-indigo-50 text-indigo-600"
                 : "text-gray-400 hover:text-gray-700",
             )}
             aria-label="Desktop preview"
           >
-            <Monitor className="w-4 h-4" />
+            <Monitor className="h-4 w-4" />
           </button>
           <button
             type="button"
             onClick={() => onDeviceChange("mobile")}
             className={cn(
-              "w-8 h-8 flex items-center justify-center rounded-md transition-colors",
+              "flex h-8 w-8 items-center justify-center rounded-md transition-colors",
               device === "mobile"
                 ? "bg-indigo-50 text-indigo-600"
                 : "text-gray-400 hover:text-gray-700",
             )}
             aria-label="Mobile preview"
           >
-            <Smartphone className="w-4 h-4" />
+            <Smartphone className="h-4 w-4" />
           </button>
         </div>
 
         {mode === "edit" && device === "mobile" && (
-          <span className="hidden sm:inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+          <span className="hidden items-center rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-700 md:inline-flex">
             Layer Mobile
           </span>
         )}
 
-        <div className="w-px h-5 bg-gray-200 hidden sm:block" />
+        <div className="hidden h-5 w-px bg-gray-200 md:block" />
 
-        {onResetLayout && (
+        {/* Desktop actions */}
+        <div className="hidden items-center gap-2 md:flex">
+          {onResetLayout && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onResetLayout}
+              disabled={isSaving}
+            >
+              Reset Layout
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
-            onClick={onResetLayout}
+            onClick={onSaveDraft}
             disabled={isSaving}
           >
-            Reset Layout
+            Save Draft
           </Button>
-        )}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onSaveDraft}
-          disabled={isSaving}
-        >
-          Save Draft
-        </Button>
-        <Button
-          size="sm"
-          onClick={onPublish}
-          disabled={isSaving}
-        >
-          Publish
-        </Button>
+          <Button size="sm" onClick={onPublish} disabled={isSaving}>
+            Publish
+          </Button>
+        </div>
+
+        {/* Mobile: Publish + overflow for Save/Reset */}
+        <div className="relative flex items-center gap-1 md:hidden">
+          <Button size="sm" onClick={onPublish} disabled={isSaving} className="h-8 px-3 text-xs">
+            Publish
+          </Button>
+          <button
+            type="button"
+            aria-label="Menu lainnya"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </button>
+          {menuOpen && (
+            <>
+              <button
+                type="button"
+                aria-label="Tutup menu"
+                className="fixed inset-0 z-40"
+                onClick={() => setMenuOpen(false)}
+              />
+              <div className="absolute right-0 top-full z-50 mt-1.5 w-44 overflow-hidden rounded-xl border border-gray-100 bg-white py-1 shadow-lg">
+                <button
+                  type="button"
+                  disabled={isSaving}
+                  onClick={() => {
+                    setMenuOpen(false)
+                    onSaveDraft()
+                  }}
+                  className="flex w-full px-3.5 py-2.5 text-left text-sm text-gray-800 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Save Draft
+                </button>
+                {onResetLayout && (
+                  <button
+                    type="button"
+                    disabled={isSaving}
+                    onClick={() => {
+                      setMenuOpen(false)
+                      onResetLayout()
+                    }}
+                    className="flex w-full px-3.5 py-2.5 text-left text-sm text-gray-800 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    Reset Layout
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </header>
   )

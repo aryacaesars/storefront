@@ -7,8 +7,8 @@ import { resolveDeviceSettings } from "@/themes/engine/device-settings"
 import {
   addTextToArray,
   deleteTextFromArray,
-  parseCanvasTexts,
 } from "@/themes/engine/canvas-text"
+import { resolveSectionCanvasTexts } from "@/themes/engine/cta-canvas"
 import {
   isSameSelectedElement,
   type SelectedElement,
@@ -35,9 +35,14 @@ interface BuilderTextToolPanelProps {
     blockId: string,
     patch: Record<string, unknown>,
   ) => void
+  onUpdateSectionSetting?: (
+    sectionId: string,
+    key: string,
+    value: string | undefined,
+  ) => void
 }
 
-/** Block yang menampung layer canvas (multi-image + teks bebas). */
+/** Block yang menampung layer canvas (multi-image + teks bebas + tombol). */
 export function findCanvasMediaBlock(
   instance: SectionInstance,
 ): BlockInstance | undefined {
@@ -45,7 +50,7 @@ export function findCanvasMediaBlock(
   if (instance.type === "hero") {
     return blocks.find((b) => b.type === "hero-media") ?? blocks[0]
   }
-  if (instance.type === "call-to-action") {
+  if (instance.type === "call-to-action" || instance.type === "newsletter-cta") {
     return blocks[0]
   }
   return undefined
@@ -55,7 +60,7 @@ type TextRow = {
   element: SelectedElement
   label: string
   sublabel: string
-  onDelete: () => void
+  onDelete?: () => void
 }
 
 export function BuilderTextToolPanel({
@@ -82,7 +87,18 @@ export function BuilderTextToolPanel({
         device === "mobile",
       ) as Record<string, unknown> | undefined)
     : undefined
-  const canvasTexts = parseCanvasTexts(mediaSettings)
+  const canvasTexts = resolveSectionCanvasTexts(
+    config.templateId,
+    instance?.type,
+    instance?.settings as Record<string, unknown> | undefined,
+    mediaSettings,
+  )
+
+  // Label kartu kategori — tiap card adalah host block dengan itemId "label".
+  const categoryLabelBlocks =
+    instance && !mediaBlock
+      ? (instance.blocks ?? []).filter((b) => b.type === "category-card")
+      : []
 
   const title1Hidden = mediaSettings?.title1Hidden === true
   const title2Hidden = mediaSettings?.title2Hidden === true
@@ -149,6 +165,26 @@ export function BuilderTextToolPanel({
       })
     }
   }
+  if (selectedSectionId) {
+    for (const card of categoryLabelBlocks) {
+      const cardSettings = resolveDeviceSettings(
+        card.settings as Record<string, unknown> | undefined,
+        device === "mobile",
+      ) as Record<string, unknown> | undefined
+      const label =
+        typeof cardSettings?.label === "string" ? cardSettings.label : ""
+      rows.push({
+        element: {
+          kind: "text",
+          sectionId: selectedSectionId,
+          blockId: card.id,
+          itemId: "label",
+        },
+        label: label || "Label kosong",
+        sublabel: "Label kartu",
+      })
+    }
+  }
 
   function addText() {
     if (!selectedSectionId || !mediaBlock) return
@@ -180,13 +216,14 @@ export function BuilderTextToolPanel({
           title="Belum ada section dipilih"
           hint="Klik section di preview, lalu tambahkan teks dari sini."
         />
-      ) : !mediaBlock ? (
+      ) : !mediaBlock && rows.length === 0 ? (
         <EmptyState
           title="Section ini belum mendukung teks bebas"
           hint="Pilih section Hero atau Call to Action."
         />
       ) : (
         <>
+          {mediaBlock && (
           <div className="space-y-2">
             <button
               type="button"
@@ -217,6 +254,7 @@ export function BuilderTextToolPanel({
               </button>
             )}
           </div>
+          )}
 
           {rows.length > 0 && (
             <div>
@@ -254,17 +292,19 @@ export function BuilderTextToolPanel({
                           </span>
                         </span>
                       </button>
-                      <button
-                        type="button"
-                        aria-label={`Hapus ${row.label}`}
-                        onClick={() => {
-                          row.onDelete()
-                          if (isSelected) onSelectElement?.(null)
-                        }}
-                        className="absolute right-2 top-1/2 z-10 inline-flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-gray-300 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-600 focus-visible:opacity-100 group-hover:opacity-100"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
+                      {row.onDelete && (
+                        <button
+                          type="button"
+                          aria-label={`Hapus ${row.label}`}
+                          onClick={() => {
+                            row.onDelete?.()
+                            if (isSelected) onSelectElement?.(null)
+                          }}
+                          className="absolute right-2 top-1/2 z-10 inline-flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-gray-300 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-600 focus-visible:opacity-100 group-hover:opacity-100"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </li>
                   )
                 })}
