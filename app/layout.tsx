@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Playfair_Display, Poppins } from "next/font/google";
 import { getAppContext, getTenantSubdomain } from "@/features/tenant/resolve-tenant";
 import { getStorefrontThemeConfig } from "@/features/storefront/theme-config";
 import { storefrontIconMetadata } from "@/features/storefront/store-favicon";
+import { PwaRegister } from "@/features/pwa/PwaRegister";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -53,8 +54,23 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       "Etalase adalah platform storefront builder untuk membuat toko online dengan subdomain sendiri, kelola produk, pesanan, dan tema tanpa koding.",
     applicationName: "Etalase",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: "Etalase",
+    },
+    icons: {
+      apple: "/icons/apple-touch-icon.png",
+    },
   };
 }
+
+export const viewport = {
+  themeColor: "#5b4ee6",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover" as const,
+};
 
 export default function RootLayout({
   children,
@@ -66,7 +82,10 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${poppins.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <PwaRegister />
+      </body>
     </html>
   );
 }

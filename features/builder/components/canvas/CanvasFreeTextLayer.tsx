@@ -191,6 +191,7 @@ function CanvasFreeTextBox({
       const { w } = frameSize()
       const rightEdge = ox + ow
       const session = createDragSession(event, stateRef.current.onChange)
+      session.arm()
 
       session.listen((e) => {
         const dxPct = ((e.clientX - startX) / w) * 100
@@ -219,6 +220,7 @@ function CanvasFreeTextBox({
       const startY = event.clientY
       const startFont = stateRef.current.item.fontSize
       const session = createDragSession(event, stateRef.current.onChange)
+      session.arm()
 
       session.listen((e) => {
         const delta =

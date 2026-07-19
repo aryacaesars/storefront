@@ -48,6 +48,7 @@ export function CanvasLabelResizeHandles({
 
       const startLayout = { ...layout }
       const session = createDragSession<ResizePatch>(event, (patch) => onResizeRef.current(patch))
+      session.arm()
 
       session.listen((moveEvent) => {
         if (!containerRef.current) return
@@ -81,6 +82,7 @@ export function CanvasLabelResizeHandles({
 
       const startLayout = { ...layout }
       const session = createDragSession<ResizePatch>(event, (patch) => onResizeRef.current(patch))
+      session.arm()
 
       session.listen((moveEvent) => {
         if (!containerRef.current) return

@@ -82,6 +82,7 @@ export function CanvasImageFrame({ image, interactive, domKey, onChange }: Canva
     const startAngle = Math.atan2(event.clientY - cy, event.clientX - cx)
     const startRotation = stateRef.current.image.rotation
     const session = createDragSession(event, stateRef.current.onChange)
+    session.arm()
 
     session.listen((e) => {
       const angle = Math.atan2(e.clientY - cy, e.clientX - cx)
@@ -104,6 +105,7 @@ export function CanvasImageFrame({ image, interactive, domKey, onChange }: Canva
       const startX = event.clientX
       const startY = event.clientY
       const session = createDragSession(event, stateRef.current.onChange)
+      session.arm()
 
       session.listen((e) => {
         const delta = (e.clientX - startX) * flipX + (e.clientY - startY) * flipY

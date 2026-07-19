@@ -134,6 +134,7 @@ export function CanvasMultiImageItem({
     const startCrop = startItem.crop ?? { x: 0, y: 0, w: 1, h: 1 }
     const { w: fw, h: fh } = frameVisual()
     const session = createDragSession(event, stateRef.current.onChange)
+    session.arm()
 
     session.listen((e) => {
       const dxFrac = (((e.clientX - startX) / fw) * 100) / virtual.width
@@ -164,6 +165,7 @@ export function CanvasMultiImageItem({
       const vRight = virtual.x + virtual.width
       const vBottom = virtual.y + virtual.height
       const session = createDragSession(event, stateRef.current.onChange)
+      session.arm()
 
       session.listen((e) => {
         const dx = ((e.clientX - startX) / fw) * 100
@@ -233,6 +235,7 @@ export function CanvasMultiImageItem({
     const startAngle = Math.atan2(event.clientY - cy, event.clientX - cx)
     const startRotation = stateRef.current.item.rotation
     const session = createDragSession(event, stateRef.current.onChange)
+    session.arm()
 
     session.listen((e) => {
       const angle = Math.atan2(e.clientY - cy, e.clientX - cx)
@@ -251,6 +254,7 @@ export function CanvasMultiImageItem({
     const { x: ox, y: oy, width: ow, height: oh } = stateRef.current.item
     const { w: fw, h: fh } = frameVisual()
     const session = createDragSession(event, stateRef.current.onChange)
+    session.arm()
 
     session.listen((e) => {
       const dx = ((e.clientX - sx) / fw) * 100
@@ -273,6 +277,7 @@ export function CanvasMultiImageItem({
     const { y: oy, width: ow, height: oh } = stateRef.current.item
     const { w: fw, h: fh } = frameVisual()
     const session = createDragSession(event, stateRef.current.onChange)
+    session.arm()
 
     session.listen((e) => {
       const dx = ((e.clientX - sx) / fw) * 100
@@ -294,6 +299,7 @@ export function CanvasMultiImageItem({
     const { x: ox, width: ow, height: oh } = stateRef.current.item
     const { w: fw, h: fh } = frameVisual()
     const session = createDragSession(event, stateRef.current.onChange)
+    session.arm()
 
     session.listen((e) => {
       const dx = ((e.clientX - sx) / fw) * 100
@@ -315,6 +321,7 @@ export function CanvasMultiImageItem({
     const { width: ow, height: oh } = stateRef.current.item
     const { w: fw, h: fh } = frameVisual()
     const session = createDragSession(event, stateRef.current.onChange)
+    session.arm()
 
     session.listen((e) => {
       const nw = Math.max(5, ow + ((e.clientX - sx) / fw) * 100)
@@ -335,6 +342,7 @@ export function CanvasMultiImageItem({
     const ow = stateRef.current.item.width
     const { w: fw } = frameVisual()
     const session = createDragSession(event, stateRef.current.onChange)
+    session.arm()
     session.listen((e) => {
       session.push({
         width: Math.round(Math.max(5, ow + ((e.clientX - sx) / fw) * 100) * 10) / 10,
@@ -349,6 +357,7 @@ export function CanvasMultiImageItem({
     const { x: ox, width: ow } = stateRef.current.item
     const { w: fw } = frameVisual()
     const session = createDragSession(event, stateRef.current.onChange)
+    session.arm()
     session.listen((e) => {
       const dx = ((e.clientX - sx) / fw) * 100
       const nw = ow - dx
@@ -367,6 +376,7 @@ export function CanvasMultiImageItem({
     const oh = stateRef.current.item.height
     const { h: fh } = frameVisual()
     const session = createDragSession(event, stateRef.current.onChange)
+    session.arm()
     session.listen((e) => {
       session.push({
         height: Math.round(Math.max(5, oh + ((e.clientY - sy) / fh) * 100) * 10) / 10,
@@ -381,6 +391,7 @@ export function CanvasMultiImageItem({
     const { y: oy, height: oh } = stateRef.current.item
     const { h: fh } = frameVisual()
     const session = createDragSession(event, stateRef.current.onChange)
+    session.arm()
     session.listen((e) => {
       const dy = ((e.clientY - sy) / fh) * 100
       const nh = oh - dy

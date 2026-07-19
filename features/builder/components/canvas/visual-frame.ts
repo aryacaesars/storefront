@@ -70,7 +70,6 @@ export function createDragRaf<T>(commit: (value: T) => void) {
     pending = null
   }
 
-  /** Flush last pending value immediately (call on pointerup). */
   const flush = () => {
     if (raf) {
       cancelAnimationFrame(raf)
@@ -86,34 +85,43 @@ export function createDragRaf<T>(commit: (value: T) => void) {
 }
 
 /**
- * Start a canvas drag/resize session:
- * - pointer capture
- * - lock preview scroll (stops viewport chasing the finger)
- * - non-passive move listeners so preventDefault works on touch
+ * Canvas pointer session.
+ *
+ * Scroll/zoom stay free on click & select. Viewport only freezes after the
+ * first real commit (`push`) — i.e. actual move/resize, not a tap.
  */
 export function createDragSession<T>(
   event: React.PointerEvent,
   commit: (value: T) => void,
 ) {
   event.stopPropagation()
-  // Don't preventDefault on down for text (need click-to-edit) — callers can.
   const target = event.currentTarget as HTMLElement
   try {
     target.setPointerCapture(event.pointerId)
   } catch {
-    // Some elements (svg/text) may not support capture — still OK.
+    // ignore
   }
 
-  const unlockScroll = lockPreviewScroll()
   const viewport = document.querySelector<HTMLElement>("[data-preview-viewport]")
-  const frozenLeft = viewport?.scrollLeft ?? 0
-  const frozenTop = viewport?.scrollTop ?? 0
+  let frozenLeft = 0
+  let frozenTop = 0
+  let unlockScroll: (() => void) | null = null
+  let armed = false
+
   const freezeScroll = () => {
-    if (!viewport) return
+    if (!viewport || !armed) return
     if (viewport.scrollLeft !== frozenLeft) viewport.scrollLeft = frozenLeft
     if (viewport.scrollTop !== frozenTop) viewport.scrollTop = frozenTop
   }
-  viewport?.addEventListener("scroll", freezeScroll, { passive: true })
+
+  const arm = () => {
+    if (armed) return
+    armed = true
+    frozenLeft = viewport?.scrollLeft ?? 0
+    frozenTop = viewport?.scrollTop ?? 0
+    unlockScroll = lockPreviewScroll()
+    viewport?.addEventListener("scroll", freezeScroll, { passive: true })
+  }
 
   const raf = createDragRaf(commit)
   let ended = false
@@ -123,7 +131,8 @@ export function createDragSession<T>(
     ended = true
     raf.flush()
     viewport?.removeEventListener("scroll", freezeScroll)
-    unlockScroll()
+    unlockScroll?.()
+    unlockScroll = null
     try {
       if (target.hasPointerCapture(event.pointerId)) {
         target.releasePointerCapture(event.pointerId)
@@ -133,10 +142,18 @@ export function createDragSession<T>(
     }
   }
 
+  const push = (value: T) => {
+    arm()
+    raf.push(value)
+  }
+
   const listen = (onMove: (e: PointerEvent) => void) => {
     const handleMove = (e: PointerEvent) => {
-      e.preventDefault()
-      freezeScroll()
+      // Only steal the gesture once we're actually dragging/resizing.
+      if (armed) {
+        e.preventDefault()
+        freezeScroll()
+      }
       onMove(e)
     }
     const handleUp = () => {
@@ -150,5 +167,5 @@ export function createDragSession<T>(
     window.addEventListener("pointercancel", handleUp)
   }
 
-  return { push: raf.push, end, listen }
+  return { push, end, listen, /** Force-lock immediately (resize handles). */ arm }
 }

@@ -101,6 +101,7 @@ export function CanvasResizeHandles({
       const startY = event.clientY
       const startLayout = { ...layout }
       const session = createDragSession(event, onResize)
+      session.arm()
 
       session.listen((moveEvent) => {
         const metrics = {
@@ -139,6 +140,7 @@ export function CanvasResizeHandles({
       const startY = event.clientY
       const startLayout = { ...layout }
       const session = createDragSession(event, onResize)
+      session.arm()
 
       session.listen((moveEvent) => {
         const metrics = {
