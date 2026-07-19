@@ -3,6 +3,7 @@ import { ShoppingBag, User } from "lucide-react"
 import type { ThemeConfig } from "@/themes/engine/schema"
 import { isNavHrefAvailable } from "@/themes/engine/nav-utils"
 import { withBasePath } from "@/themes/engine/with-base-path"
+import { MobileNav } from "@/themes/fashion/sections/MobileNav"
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
@@ -23,7 +24,7 @@ export function Navbar({ config, basePath }: NavbarProps) {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-stone-100 bg-white/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
+      <div className="relative mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
         <Link
           href={withBasePath("/", basePath)}
           className="font-medium text-lg text-[var(--theme-text)]"
@@ -61,6 +62,7 @@ export function Navbar({ config, basePath }: NavbarProps) {
               <User className="h-4 w-4" strokeWidth={1.5} />
             </Link>
           )}
+          <MobileNav links={visibleLinks} basePath={basePath} />
         </div>
       </div>
     </nav>

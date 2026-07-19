@@ -4,11 +4,10 @@ import { useState } from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
-import { withBasePath } from "@/themes/engine/with-base-path"
+import type { ResolvedNavLink } from "@/themes/bold/sections/NavLinksClient"
 
 interface MobileNavProps {
-  links: readonly { label: string; href: string }[]
-  basePath?: string
+  links: ResolvedNavLink[]
 }
 
 const panelMotion = {
@@ -24,16 +23,16 @@ const itemMotion = {
 
 const ease = [0.22, 1, 0.36, 1] as const
 
-/** Hamburger menu untuk layar < @3xl. Panel menempel di bawah header sticky. */
-export function MobileNav({ links, basePath }: MobileNavProps) {
+/** Hamburger menu untuk layar < md. Panel menempel di bawah header. */
+export function MobileNav({ links }: MobileNavProps) {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="@3xl:hidden">
+    <div className="md:hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
+        className="flex items-center text-white/80 transition-colors hover:text-white"
         aria-label={open ? "Tutup menu" : "Buka menu"}
         aria-expanded={open}
       >
@@ -61,24 +60,24 @@ export function MobileNav({ links, basePath }: MobileNavProps) {
             key="mobile-nav"
             {...panelMotion}
             transition={{ duration: 0.22, ease }}
-            className="absolute inset-x-0 top-full z-50 origin-top border-b border-black/5 bg-[var(--theme-bg)] shadow-lg"
+            className="absolute inset-x-0 top-full z-50 origin-top border-b border-white/10 bg-[#090909] shadow-lg"
           >
             <ul className="flex flex-col px-6 py-2">
-              {links.map(({ label, href }, index) => (
+              {links.map(({ label, resolvedHref, key }, index) => (
                 <motion.li
-                  key={label}
+                  key={key}
                   {...itemMotion}
                   transition={{
                     duration: 0.2,
                     delay: 0.04 + index * 0.04,
                     ease,
                   }}
-                  className="border-b border-black/5 last:border-0"
+                  className="border-b border-white/10 last:border-0"
                 >
                   <Link
-                    href={withBasePath(href, basePath)}
+                    href={resolvedHref}
                     onClick={() => setOpen(false)}
-                    className="block py-3 text-xs font-semibold tracking-[0.12em] text-[var(--theme-muted)] uppercase transition-colors hover:text-[var(--theme-text)]"
+                    className="block py-3 text-[10px] font-bold uppercase tracking-[0.15em] text-white/70 transition-colors hover:text-white"
                   >
                     {label}
                   </Link>

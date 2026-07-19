@@ -24,12 +24,12 @@ const itemMotion = {
 
 const ease = [0.22, 1, 0.36, 1] as const
 
-/** Hamburger menu untuk layar < @3xl. Panel menempel di bawah header sticky. */
+/** Hamburger menu untuk layar < md. Panel menempel di bawah navbar. */
 export function MobileNav({ links, basePath }: MobileNavProps) {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="@3xl:hidden">
+    <div className="md:hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -47,9 +47,9 @@ export function MobileNav({ links, basePath }: MobileNavProps) {
             className="flex items-center justify-center"
           >
             {open ? (
-              <X className="h-5 w-5" strokeWidth={1.5} />
+              <X className="h-4 w-4" strokeWidth={1.5} />
             ) : (
-              <Menu className="h-5 w-5" strokeWidth={1.5} />
+              <Menu className="h-4 w-4" strokeWidth={1.5} />
             )}
           </motion.span>
         </AnimatePresence>
@@ -61,7 +61,7 @@ export function MobileNav({ links, basePath }: MobileNavProps) {
             key="mobile-nav"
             {...panelMotion}
             transition={{ duration: 0.22, ease }}
-            className="absolute inset-x-0 top-full z-50 origin-top border-b border-black/5 bg-[var(--theme-bg)] shadow-lg"
+            className="absolute inset-x-0 top-full z-50 origin-top border-b border-stone-100 bg-white shadow-lg"
           >
             <ul className="flex flex-col px-6 py-2">
               {links.map(({ label, href }, index) => (
@@ -73,12 +73,12 @@ export function MobileNav({ links, basePath }: MobileNavProps) {
                     delay: 0.04 + index * 0.04,
                     ease,
                   }}
-                  className="border-b border-black/5 last:border-0"
+                  className="border-b border-stone-100 last:border-0"
                 >
                   <Link
                     href={withBasePath(href, basePath)}
                     onClick={() => setOpen(false)}
-                    className="block py-3 text-xs font-semibold tracking-[0.12em] text-[var(--theme-muted)] uppercase transition-colors hover:text-[var(--theme-text)]"
+                    className="block py-3 text-xs tracking-[0.1em] text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
                   >
                     {label}
                   </Link>

@@ -59,7 +59,7 @@ export default async function GlobalTemplatesPage({
   >
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-[#fafafa] font-sans text-ink">
+    <div className="flex h-dvh flex-col overflow-y-auto overflow-x-hidden bg-[#fafafa] font-sans text-ink [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       <LandingNav />
       <main className="flex-1 px-6 py-14 sm:py-20">
         <div className="mx-auto max-w-6xl">

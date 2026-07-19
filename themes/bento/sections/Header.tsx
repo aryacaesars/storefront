@@ -1,5 +1,4 @@
 import Link from "next/link"
-import { MobileNav } from "./MobileNav"
 import { HeaderActions } from "./HeaderActions"
 import type { ThemeConfig } from "@/themes/engine/schema"
 import { isNavHrefAvailable } from "@/themes/engine/nav-utils"
@@ -69,9 +68,12 @@ export function Header({ config, cartCount = 0, basePath }: HeaderProps) {
             ))}
           </nav>
 
-          <div className="flex shrink-0 items-center gap-2">
-            <HeaderActions basePath={basePath} cartCount={cartCount} />
-            <MobileNav links={visibleLinks} basePath={basePath} />
+          <div className="flex shrink-0 items-center">
+            <HeaderActions
+              basePath={basePath}
+              cartCount={cartCount}
+              links={visibleLinks}
+            />
           </div>
         </div>
       </header>

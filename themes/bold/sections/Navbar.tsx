@@ -1,11 +1,12 @@
 import Link from "next/link"
-import { ShoppingBag, Menu, User } from "lucide-react"
+import { ShoppingBag, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ThemeConfig } from "@/themes/engine/schema"
 import { isNavHrefAvailable } from "@/themes/engine/nav-utils"
 import { withBasePath } from "@/themes/engine/with-base-path"
 import { NavLinksClient } from "@/themes/bold/sections/NavLinksClient"
 import type { ResolvedNavLink } from "@/themes/bold/sections/NavLinksClient"
+import { MobileNav } from "@/themes/bold/sections/MobileNav"
 
 const NAV_LINKS: Array<{
   label: string
@@ -52,7 +53,7 @@ export function Navbar({
           : "sticky border-white/10 bg-[#090909]",
       )}
     >
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
+      <div className="relative mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
         <Link
           href={basePath ?? "/"}
           className="text-sm font-black uppercase tracking-[0.2em] text-white"
@@ -89,13 +90,7 @@ export function Navbar({
               </span>
             )}
           </Link>
-          <button
-            type="button"
-            className="text-white/80 transition-colors hover:text-white md:hidden"
-            aria-label="Menu"
-          >
-            <Menu className="h-5 w-5" strokeWidth={1.5} />
-          </button>
+          <MobileNav links={resolvedLinks} />
         </div>
       </div>
     </header>

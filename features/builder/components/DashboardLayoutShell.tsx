@@ -72,7 +72,7 @@ export function DashboardLayoutShell({
             onMenuClick={() => setMobileOpen(true)}
           />
 
-          <main className="min-h-0 w-full min-w-0 flex-1 overflow-auto">
+          <main className="min-h-0 w-full min-w-0 flex-1 overflow-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             <DashboardProviders>
               <DashboardRouteTransition>{children}</DashboardRouteTransition>
             </DashboardProviders>
