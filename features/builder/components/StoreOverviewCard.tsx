@@ -1,5 +1,8 @@
+"use client"
+
 import Link from "next/link"
 import { ExternalLink, Pencil, Store } from "lucide-react"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 import { getStorefrontHost, getStorefrontUrl } from "@/lib/tenant/storefront-url"
 import { cn } from "@/lib/utils"
 import {
@@ -22,6 +25,7 @@ export function StoreOverviewCard({
   slug,
   variant = "overview",
 }: StoreOverviewCardProps) {
+  const t = useMessages().pages
   const storefrontUrl = getStorefrontUrl(slug)
 
   return (
@@ -44,7 +48,7 @@ export function StoreOverviewCard({
         </div>
         <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-200/80 bg-[#ecfdf5] px-2.5 py-1 text-xs font-medium text-[#007a55]">
           <span className="h-1.5 w-1.5 rounded-full bg-[#00bc7d]" aria-hidden />
-          Active
+          {t.common.active}
         </span>
       </div>
 
@@ -54,7 +58,7 @@ export function StoreOverviewCard({
             href={`/stores/${id}/dashboard`}
             className={`${dashboardBtnPrimary} w-full rounded-[26px] py-3`}
           >
-            Open Store Dashboard
+            {t.home.openDashboard}
           </Link>
         )}
 
@@ -64,7 +68,7 @@ export function StoreOverviewCard({
             className={`${dashboardBtnOutline} rounded-[27px] py-2.5`}
           >
             <Pencil className="h-4 w-4 shrink-0" aria-hidden />
-            Customize
+            {t.common.customize}
           </Link>
           <a
             href={storefrontUrl}
@@ -73,7 +77,7 @@ export function StoreOverviewCard({
             className={`${dashboardBtnOutline} rounded-[27px] py-2.5`}
           >
             <ExternalLink className="h-4 w-4 shrink-0" aria-hidden />
-            Visit Store
+            {t.home.visitStore}
           </a>
         </div>
       </div>

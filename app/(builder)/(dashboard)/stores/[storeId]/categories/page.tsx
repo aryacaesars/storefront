@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { requireSession } from "@/features/auth/dal"
 import { getStoreById } from "@/server/services/tenant.service"
 import { getCategoriesWithCounts } from "@/server/services/product.service"
+import { getPageMessages } from "@/features/i18n/get-page-messages"
 import { DashboardShell } from "@/features/builder/components/DashboardShell"
 import {
   DashboardTable,
@@ -27,8 +28,8 @@ export async function generateMetadata({
   params: Promise<{ storeId: string }>
 }) {
   const { storeId } = await params
-  const store = await getStoreById(storeId)
-  return { title: store ? `Categories — ${store.name}` : "Categories" }
+  const [store, t] = await Promise.all([getStoreById(storeId), getPageMessages()])
+  return { title: store ? `${t.categories.title} — ${store.name}` : t.categories.title }
 }
 
 export default async function CategoriesPage({
@@ -41,31 +42,34 @@ export default async function CategoriesPage({
   const store = await getStoreById(storeId)
   if (!store || store.ownerId !== session.userId) notFound()
 
-  const categories = await getCategoriesWithCounts(storeId)
+  const [categories, t] = await Promise.all([
+    getCategoriesWithCounts(storeId),
+    getPageMessages(),
+  ])
   const total = categories.length
 
   return (
     <DashboardShell
-      pageTitle="Categories"
-      pageSubtitle={`Total: ${total} categories`}
+      pageTitle={t.categories.title}
+      pageSubtitle={t.categories.totalLabel.replace("{n}", String(total))}
     >
       <DashboardPanel className="mb-6 p-6">
-        <p className="mb-3 text-sm font-medium text-ink">Add Category</p>
+        <p className="mb-3 text-sm font-medium text-ink">{t.categories.add}</p>
         <CategoryAddForm storeId={storeId} />
       </DashboardPanel>
 
       {total === 0 ? (
         <DashboardPanel className="p-12 text-center">
-          <p className="text-sm text-gray-400">No categories yet.</p>
+          <p className="text-sm text-gray-400">{t.categories.empty}</p>
         </DashboardPanel>
       ) : (
         <DashboardTable>
           <DashboardTableElement>
             <DashboardTableHead>
               <DashboardTableHeadRow>
-                <DashboardTableHeadCell>Categories</DashboardTableHeadCell>
-                <DashboardTableHeadCell align="right">Products</DashboardTableHeadCell>
-                <DashboardTableHeadCell align="center">Actions</DashboardTableHeadCell>
+                <DashboardTableHeadCell>{t.categories.colCategory}</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">{t.categories.colProducts}</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="center">{t.common.actions}</DashboardTableHeadCell>
               </DashboardTableHeadRow>
             </DashboardTableHead>
             <DashboardTableBody>
@@ -84,7 +88,7 @@ export default async function CategoriesPage({
                     <div className="flex items-center justify-center gap-1">
                       <DashboardTableActionLink
                         href={`/stores/${storeId}/categories/${category.id}`}
-                        label="Edit category"
+                        label={t.categories.editAria}
                       />
                       <CategoryDeleteButton
                         categoryName={category.name}

@@ -19,6 +19,7 @@ import {
 import { StoreTemplateCard } from "@/features/builder/components/StoreTemplateCard"
 import { TemplatesSearchBar } from "@/features/builder/components/TemplatesSearchBar"
 import { DashboardInitialNotice } from "@/features/builder/hooks/useDashboardActionNotice"
+import { getPageMessages } from "@/features/i18n/get-page-messages"
 import type { ThemeConfig } from "@/themes/engine/schema"
 import { buyTemplate, activateOwnedTemplateForLive } from "./actions"
 
@@ -29,7 +30,8 @@ export async function generateMetadata({
 }) {
   const { storeId } = await params
   const store = await getStoreById(storeId)
-  return { title: store ? `Template — ${store.name}` : "Template" }
+  const t = (await getPageMessages()).storeTemplates
+  return { title: store ? `${t.title} — ${store.name}` : t.title }
 }
 
 function matchesQuery(
@@ -53,6 +55,9 @@ export default async function TemplatesPage({
 }) {
   const { storeId } = await params
   const { success, q = "" } = await searchParams
+  const pages = await getPageMessages()
+  const t = pages.storeTemplates
+  const common = pages.common
   const session = await requireSession()
   const store = await getStoreById(storeId)
 
@@ -123,17 +128,19 @@ export default async function TemplatesPage({
   const storefrontUrl = getStorefrontUrl(store.slug)
   const discoverHref = "/templates"
 
+  const pageSubtitle = q.trim()
+    ? t.searchResults
+        .replace("{n}", String(total))
+        .replace("{owned}", String(ownedTotal))
+    : t.ownedCount.replace("{n}", String(ownedTotal))
+
   return (
     <DashboardShell
-      pageTitle="Template"
-      pageSubtitle={
-        q.trim()
-          ? `${total} results from ${ownedTotal} of your templates`
-          : `${ownedTotal} of your templates`
-      }
+      pageTitle={t.title}
+      pageSubtitle={pageSubtitle}
       action={
         <Link href={discoverHref} className={dashboardBtnPrimary}>
-          Discover Template
+          {t.discover}
         </Link>
       }
     >
@@ -142,8 +149,8 @@ export default async function TemplatesPage({
           success === "1"
             ? {
                 type: "success",
-                message: "Template activated and published to storefront successfully.",
-                title: "Success",
+                message: t.activatedToast,
+                title: common.success,
               }
             : null
         }
@@ -152,26 +159,24 @@ export default async function TemplatesPage({
       <div className="mb-5">
         <TemplatesSearchBar
           defaultValue={q}
-          placeholder="Search your templates..."
+          placeholder={t.searchPlaceholder}
         />
       </div>
 
       {ownedTotal === 0 ? (
         <DashboardPanel className="p-12 text-center">
-          <p className="text-sm text-gray-400">
-            You don&apos;t own any templates yet.
-          </p>
+          <p className="text-sm text-gray-400">{t.emptyOwned}</p>
           <Link
             href={discoverHref}
             className={`${dashboardBtnPrimary} mt-4 inline-flex`}
           >
-            Discover Template
+            {t.discover}
           </Link>
         </DashboardPanel>
       ) : total === 0 ? (
         <DashboardPanel className="p-12 text-center">
           <p className="text-sm text-gray-400">
-            No templates match &ldquo;{q.trim()}&rdquo;.
+            {t.emptySearch.replace("{q}", q.trim())}
           </p>
         </DashboardPanel>
       ) : (

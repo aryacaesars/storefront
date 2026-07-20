@@ -12,6 +12,7 @@ import {
 } from "react"
 import { AlertCircle, AlertTriangle, CheckCircle2, Info } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 
 export type NoticeType = "success" | "error" | "info" | "warning"
 
@@ -63,13 +64,6 @@ const NOTICE_STYLES: Record<
   },
 }
 
-const DEFAULT_TITLES: Record<NoticeType, string> = {
-  success: "Success",
-  error: "Failed",
-  info: "Information",
-  warning: "Warning",
-}
-
 function NoticeModal({
   notice,
   onDismiss,
@@ -77,6 +71,13 @@ function NoticeModal({
   notice: NoticeItem
   onDismiss: () => void
 }) {
+  const common = useMessages().pages.common
+  const defaultTitles: Record<NoticeType, string> = {
+    success: common.success,
+    error: common.failed,
+    info: common.info,
+    warning: common.warning,
+  }
   const style = NOTICE_STYLES[notice.type]
   const Icon = style.icon
   const onCloseRef = useRef(notice.onClose)
@@ -100,7 +101,7 @@ function NoticeModal({
       <button
         type="button"
         className="absolute inset-0 bg-black/40"
-        aria-label="Close notification"
+        aria-label={common.close}
         onClick={handleClose}
       />
       <div
@@ -121,7 +122,7 @@ function NoticeModal({
               <Icon className={cn("h-7 w-7", style.iconClass)} aria-hidden />
             </div>
             <h2 id="notice-title" className="mt-4 text-lg font-semibold text-ink">
-              {notice.title ?? DEFAULT_TITLES[notice.type]}
+              {notice.title ?? defaultTitles[notice.type]}
             </h2>
             <p id="notice-message" className="mt-2 text-sm leading-relaxed text-gray-600">
               {notice.message}

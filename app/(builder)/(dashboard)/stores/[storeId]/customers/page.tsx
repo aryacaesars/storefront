@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { requireSession } from "@/features/auth/dal"
 import { getStoreById } from "@/server/services/tenant.service"
 import { getCustomers } from "@/server/services/order.service"
+import { getPageMessages } from "@/features/i18n/get-page-messages"
 import { DashboardShell } from "@/features/builder/components/DashboardShell"
 import {
   DashboardTable,
@@ -20,8 +21,8 @@ import { DashboardPanel } from "@/features/builder/components/dashboard-ui"
 
 export async function generateMetadata({ params }: { params: Promise<{ storeId: string }> }) {
   const { storeId } = await params
-  const store = await getStoreById(storeId)
-  return { title: store ? `Customers — ${store.name}` : "Customers" }
+  const [store, t] = await Promise.all([getStoreById(storeId), getPageMessages()])
+  return { title: store ? `${t.customers.title} — ${store.name}` : t.customers.title }
 }
 
 export default async function CustomersPage({
@@ -34,31 +35,29 @@ export default async function CustomersPage({
   const store = await getStoreById(storeId)
   if (!store || store.ownerId !== session.userId) notFound()
 
-  const customers = await getCustomers(storeId)
+  const [customers, t] = await Promise.all([getCustomers(storeId), getPageMessages()])
   const total = customers.length
 
   return (
     <DashboardShell
-      pageTitle="Customers"
-      pageSubtitle={`Total: ${total} users registered in this store`}
+      pageTitle={t.customers.title}
+      pageSubtitle={t.customers.totalLabel.replace("{n}", String(total))}
     >
       {total === 0 ? (
         <DashboardPanel className="p-12 text-center">
-          <p className="text-sm text-gray-400">
-            No users have registered on this store's storefront yet.
-          </p>
+          <p className="text-sm text-gray-400">{t.customers.empty}</p>
         </DashboardPanel>
       ) : (
         <DashboardTable>
           <DashboardTableElement>
             <DashboardTableHead>
               <DashboardTableHeadRow>
-                <DashboardTableHeadCell>Customers</DashboardTableHeadCell>
-                <DashboardTableHeadCell align="right">Total Orders</DashboardTableHeadCell>
-                <DashboardTableHeadCell align="right">Total Spent</DashboardTableHeadCell>
-                <DashboardTableHeadCell align="right">Joined</DashboardTableHeadCell>
+                <DashboardTableHeadCell>{t.customers.colCustomer}</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">{t.customers.colOrders}</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">{t.customers.colSpent}</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">{t.customers.colJoined}</DashboardTableHeadCell>
                 <DashboardTableHeadCell align="center">
-                  Actions
+                  {t.common.actions}
                 </DashboardTableHeadCell>
               </DashboardTableHeadRow>
             </DashboardTableHead>
@@ -87,7 +86,7 @@ export default async function CustomersPage({
                   <DashboardTableCell align="center">
                     <DashboardTableActionLink
                       href={`/stores/${storeId}/customers/${customer.id}`}
-                      label="View customer"
+                      label={t.customers.viewAria}
                       icon="eye"
                     />
                   </DashboardTableCell>

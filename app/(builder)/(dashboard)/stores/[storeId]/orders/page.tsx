@@ -1,9 +1,9 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import { requireSession } from "@/features/auth/dal"
 import { getStoreById } from "@/server/services/tenant.service"
 import { getOrders } from "@/server/services/order.service"
 import type { OrderStatus } from "@/server/services/order.service"
+import { getPageMessages } from "@/features/i18n/get-page-messages"
 import { DashboardShell } from "@/features/builder/components/DashboardShell"
 import {
   DashboardTable,
@@ -22,16 +22,8 @@ import { DashboardPanel } from "@/features/builder/components/dashboard-ui"
 
 export async function generateMetadata({ params }: { params: Promise<{ storeId: string }> }) {
   const { storeId } = await params
-  const store = await getStoreById(storeId)
-  return { title: store ? `Orders — ${store.name}` : "Orders" }
-}
-
-const STATUS_LABEL: Record<OrderStatus, string> = {
-  PENDING: "Pending",
-  PAID: "Paid",
-  SHIPPED: "Shipped",
-  DONE: "Done",
-  CANCELLED: "Cancelled",
+  const [store, t] = await Promise.all([getStoreById(storeId), getPageMessages()])
+  return { title: store ? `${t.orders.title} — ${store.name}` : t.orders.title }
 }
 
 const STATUS_CLASS: Record<OrderStatus, string> = {
@@ -52,27 +44,38 @@ export default async function OrdersPage({
   const store = await getStoreById(storeId)
   if (!store || store.ownerId !== session.userId) notFound()
 
-  const orders = await getOrders(storeId)
+  const [orders, t] = await Promise.all([getOrders(storeId), getPageMessages()])
   const total = orders.length
 
+  const statusLabel: Record<OrderStatus, string> = {
+    PENDING: t.common.pending,
+    PAID: t.common.paid,
+    SHIPPED: t.common.shipped,
+    DONE: t.common.done,
+    CANCELLED: t.common.cancelled,
+  }
+
   return (
-    <DashboardShell pageTitle="Orders" pageSubtitle={`Total: ${total}`}>
+    <DashboardShell
+      pageTitle={t.orders.title}
+      pageSubtitle={t.orders.totalLabel.replace("{n}", String(total))}
+    >
       {total === 0 ? (
         <DashboardPanel className="p-12 text-center">
-          <p className="text-sm text-gray-400">No orders yet.</p>
+          <p className="text-sm text-gray-400">{t.orders.empty}</p>
         </DashboardPanel>
       ) : (
         <DashboardTable>
           <DashboardTableElement>
             <DashboardTableHead>
               <DashboardTableHeadRow>
-                <DashboardTableHeadCell>Order ID</DashboardTableHeadCell>
-                <DashboardTableHeadCell>Customer</DashboardTableHeadCell>
-                <DashboardTableHeadCell align="right">Total</DashboardTableHeadCell>
-                <DashboardTableHeadCell align="center">Status</DashboardTableHeadCell>
-                <DashboardTableHeadCell align="right">Date</DashboardTableHeadCell>
+                <DashboardTableHeadCell>{t.orders.colId}</DashboardTableHeadCell>
+                <DashboardTableHeadCell>{t.orders.colCustomer}</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">{t.orders.colTotal}</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="center">{t.orders.colStatus}</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">{t.orders.colDate}</DashboardTableHeadCell>
                 <DashboardTableHeadCell align="center">
-                  Actions
+                  {t.common.actions}
                 </DashboardTableHeadCell>
               </DashboardTableHeadRow>
             </DashboardTableHead>
@@ -95,7 +98,7 @@ export default async function OrdersPage({
                     <span
                       className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_CLASS[order.status]}`}
                     >
-                      {STATUS_LABEL[order.status]}
+                      {statusLabel[order.status]}
                     </span>
                   </DashboardTableCell>
                   <DashboardTableCell align="right" className="text-xs text-gray-500">
@@ -108,7 +111,7 @@ export default async function OrdersPage({
                   <DashboardTableCell align="center">
                     <DashboardTableActionLink
                       href={`/stores/${storeId}/orders/${order.id}`}
-                      label="View order"
+                      label={t.orders.viewAria}
                       icon="eye"
                     />
                   </DashboardTableCell>

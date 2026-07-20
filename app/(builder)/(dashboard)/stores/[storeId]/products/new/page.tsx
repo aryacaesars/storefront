@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { requireSession } from "@/features/auth/dal"
 import { getStoreById } from "@/server/services/tenant.service"
 import { getCategories } from "@/server/services/product.service"
+import { getPageMessages } from "@/features/i18n/get-page-messages"
 import { ProductForm } from "@/features/builder/components/ProductForm"
 import { DashboardShell } from "@/features/builder/components/DashboardShell"
 import {
@@ -11,7 +12,10 @@ import {
 } from "@/features/builder/components/dashboard-ui"
 import { createProductAction } from "./actions"
 
-export const metadata = { title: "Add Product" }
+export async function generateMetadata() {
+  const t = await getPageMessages()
+  return { title: t.products.addTitle }
+}
 
 export default async function NewProductPage({
   params,
@@ -23,24 +27,24 @@ export default async function NewProductPage({
   const store = await getStoreById(storeId)
   if (!store || store.ownerId !== session.userId) notFound()
 
-  const categories = await getCategories(storeId)
+  const [categories, t] = await Promise.all([getCategories(storeId), getPageMessages()])
   const action = createProductAction.bind(null, storeId)
 
   return (
     <DashboardShell
-      pageTitle="Add Product"
-      pageSubtitle="Fill in product details, then choose whether it appears on the storefront right away"
+      pageTitle={t.products.addTitle}
+      pageSubtitle={t.products.addSubtitle}
     >
       <div className="flex flex-col gap-4">
         <Link href={`/stores/${storeId}/products`} className={dashboardBackLink}>
-          ← Back to product list
+          {t.products.backToList}
         </Link>
         <DashboardPanel className="w-full p-6 lg:p-8">
           <ProductForm
             storeId={storeId}
             categories={categories}
             action={action}
-            submitLabel="Add Product"
+            submitLabel={t.products.add}
           />
         </DashboardPanel>
       </div>

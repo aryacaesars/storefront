@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react"
 import { ImagePlus, X } from "lucide-react"
 import type { Category } from "@/server/services/product.service"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 import { useDashboardToast } from "@/features/builder/components/DashboardToast"
 import { useDashboardActionNotice } from "@/features/builder/hooks/useDashboardActionNotice"
 import { DashboardSelect } from "@/features/builder/components/DashboardSelect"
@@ -76,10 +77,11 @@ export function ProductForm({
   categories,
   action,
   defaultValues = {},
-  submitLabel = "Save",
+  submitLabel,
   initialToast,
   extraActions,
 }: ProductFormProps) {
+  const t = useMessages().pages
   const toast = useDashboardToast()
   const [state, formAction, pending] = useActionState<ProductFormState, FormData>(
     action,
@@ -93,7 +95,7 @@ export function ProductForm({
   const [uploading, setUploading] = useState(false)
 
   useDashboardActionNotice(state, {
-    successMessage: "Product changes saved successfully.",
+    successMessage: t.products.savedToast,
     initialNotice: initialToast,
   })
 
@@ -107,13 +109,13 @@ export function ProductForm({
       const res = await fetch("/api/upload", { method: "POST", body: fd })
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
-        throw new Error((body as { error?: string }).error ?? "Upload failed")
+        throw new Error((body as { error?: string }).error ?? t.products.uploadFailed)
       }
       const data = (await res.json()) as { url: string }
       setImageUrl(data.url)
-      toast.success("Image uploaded successfully.")
+      toast.success(t.products.imageUploaded)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload failed")
+      toast.error(err instanceof Error ? err.message : t.products.uploadFailed)
     } finally {
       setUploading(false)
     }
@@ -128,7 +130,7 @@ export function ProductForm({
         <div className="flex flex-col gap-5">
           <div>
             <label className={dashboardLabel}>
-              Product Name <span className="text-red-500">*</span>
+              {t.products.name} <span className="text-red-500">*</span>
             </label>
             <input
               name="name"
@@ -141,7 +143,7 @@ export function ProductForm({
           </div>
 
           <div>
-            <label className={dashboardLabel}>Description</label>
+            <label className={dashboardLabel}>{t.products.description}</label>
             <textarea
               name="description"
               rows={4}
@@ -154,7 +156,7 @@ export function ProductForm({
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className={dashboardLabel}>
-                Price (Rp) <span className="text-red-500">*</span>
+                {t.products.price} <span className="text-red-500">*</span>
               </label>
               <input type="hidden" name="price" value={priceDigits} />
               <div className="relative">
@@ -176,7 +178,7 @@ export function ProductForm({
             </div>
             <div>
               <label className={dashboardLabel}>
-                Stock <span className="text-red-500">*</span>
+                {t.products.stock} <span className="text-red-500">*</span>
               </label>
               <input
                 name="stock"
@@ -191,11 +193,11 @@ export function ProductForm({
 
           <DashboardSelect
             name="categoryId"
-            label="Category"
+            label={t.products.category}
             defaultValue={defaultValues.categoryId ?? ""}
-            placeholder="— No category —"
+            placeholder={t.products.noCategory}
             options={[
-              { value: "", label: "— No category —" },
+              { value: "", label: t.products.noCategory },
               ...categories.map((cat) => ({ value: cat.id, label: cat.name })),
             ]}
           />
@@ -205,11 +207,9 @@ export function ProductForm({
           <div className="rounded-lg border border-gray-100 bg-gray-50/80 p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-ink">Storefront Status</p>
+                <p className="text-sm font-semibold text-ink">{t.products.storefrontStatus}</p>
                 <p className="mt-1 text-xs leading-relaxed text-gray-500">
-                  {published
-                    ? "Active — visible in the customer store catalog."
-                    : "Draft — saved but not shown on the storefront."}
+                  {published ? t.products.statusActiveHint : t.products.statusDraftHint}
                 </p>
               </div>
               <PublishToggle published={published} onChange={setPublished} />
@@ -220,16 +220,16 @@ export function ProductForm({
                 published ? "bg-emerald-100 text-emerald-700" : "bg-gray-200 text-gray-600",
               )}
             >
-              {published ? "Active" : "Draft"}
+              {published ? t.common.active : t.common.draft}
             </p>
           </div>
 
           <div>
-            <label className={dashboardLabel}>Product Image</label>
+            <label className={dashboardLabel}>{t.products.image}</label>
             {imageUrl ? (
               <div className="group relative aspect-square w-full overflow-hidden rounded-lg border border-gray-200">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imageUrl} alt="Product image preview" className="h-full w-full object-cover" />
+                <img src={imageUrl} alt={t.products.imageAlt} className="h-full w-full object-cover" />
                 <button
                   type="button"
                   onClick={() => setImageUrl("")}
@@ -241,8 +241,8 @@ export function ProductForm({
             ) : (
               <label className="flex aspect-square w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:border-brand/40 hover:bg-brand/5">
                 <ImagePlus className="mb-2 h-8 w-8 text-gray-400" />
-                <span className="text-sm font-medium text-gray-500">Upload photo</span>
-                <span className="mt-1 text-xs text-gray-400">PNG, JPG, WebP</span>
+                <span className="text-sm font-medium text-gray-500">{t.products.uploadPhoto}</span>
+                <span className="mt-1 text-xs text-gray-400">{t.products.imageFormats}</span>
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
@@ -252,14 +252,14 @@ export function ProductForm({
                 />
               </label>
             )}
-            {uploading && <p className="mt-2 text-xs text-gray-500">Uploading...</p>}
+            {uploading && <p className="mt-2 text-xs text-gray-500">{t.products.uploading}</p>}
           </div>
         </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3 border-t border-gray-100 pt-6">
         <button type="submit" disabled={pending || uploading} className={dashboardBtnPrimary}>
-          {pending ? "Saving..." : submitLabel}
+          {pending ? t.common.saving : (submitLabel ?? t.common.save)}
         </button>
         {extraActions}
       </div>

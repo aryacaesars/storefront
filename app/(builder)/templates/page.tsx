@@ -14,9 +14,13 @@ import {
 import { getTemplatePreviewHref } from "@/themes/engine/registry"
 import type { ThemeConfig } from "@/themes/engine/schema"
 import { LocaleShell } from "@/features/i18n/LocaleShell"
+import { getPageMessages } from "@/features/i18n/get-page-messages"
 import { purchaseTemplateForStore } from "./actions"
 
-export const metadata = { title: "Template Library" }
+export async function generateMetadata() {
+  const t = (await getPageMessages()).templatesLibrary
+  return { title: t.title }
+}
 
 function matchesQuery(
   template: { name: string; description: string | null; slug: string },
@@ -36,6 +40,7 @@ export default async function GlobalTemplatesPage({
   searchParams: Promise<{ q?: string }>
 }) {
   const { q = "" } = await searchParams
+  const t = (await getPageMessages()).templatesLibrary
   const session = await getSession()
   const stores = session ? await getStoresByOwnerId(session.userId) : []
   const storeOptions = stores.map((s) => ({ id: s.id, name: s.name }))
@@ -44,7 +49,7 @@ export default async function GlobalTemplatesPage({
     : new Map<string, Set<string>>()
 
   const all = await getPublishedTemplates()
-  const templates = all.filter((t) => matchesQuery(t, q))
+  const templates = all.filter((template) => matchesQuery(template, q))
 
   const configEntries = await Promise.all(
     templates.map(async (template) => {
@@ -59,6 +64,22 @@ export default async function GlobalTemplatesPage({
     ThemeConfig | null
   >
 
+  const subtitle = q.trim()
+    ? t.searchResults
+        .replace("{n}", String(templates.length))
+        .replace("{all}", String(all.length))
+    : t.readyCount.replace("{n}", String(all.length))
+
+  const emptyMessage = q.trim()
+    ? t.emptySearch.replace("{q}", q.trim())
+    : t.emptyNone
+
+  const ctaLabel = session
+    ? session.role === "ADMIN"
+      ? "Admin"
+      : "Dashboard"
+    : t.getStarted
+
   return (
     <LocaleShell>
     <div className="flex h-dvh flex-col overflow-y-auto overflow-x-hidden bg-[#fafafa] font-sans text-ink [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
@@ -68,40 +89,30 @@ export default async function GlobalTemplatesPage({
           <div className="flex flex-col gap-8 border-b border-black/[0.06] pb-10 sm:flex-row sm:items-end sm:justify-between">
             <div className="max-w-xl">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
-                Library
+                {t.eyebrow}
               </p>
               <h1 className="mt-3 font-display text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">
-                All Templates
+                {t.allTemplates}
               </h1>
               <p className="mt-3 text-sm leading-relaxed text-neutral-500">
-                {q.trim()
-                  ? `${templates.length} results from ${all.length} public templates`
-                  : `${all.length} templates ready to use · license per store`}
+                {subtitle}
               </p>
             </div>
             <Link
               href={session ? (session.role === "ADMIN" ? "/admin" : "/dashboard") : "/login"}
               className="inline-flex shrink-0 items-center justify-center rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-dark"
             >
-              {session
-                ? session.role === "ADMIN"
-                  ? "Admin"
-                  : "Dashboard"
-                : "Get started with Etalase"}
+              {ctaLabel}
             </Link>
           </div>
 
           <div className="mt-8">
-            <TemplatesSearchBar defaultValue={q} placeholder="Search templates..." />
+            <TemplatesSearchBar defaultValue={q} placeholder={t.searchPlaceholder} />
           </div>
 
           {templates.length === 0 ? (
             <div className="mt-14 rounded-2xl border border-dashed border-black/10 bg-white px-8 py-20 text-center">
-              <p className="text-sm text-neutral-500">
-                {q.trim()
-                  ? `No templates match "${q.trim()}".`
-                  : "No templates published yet."}
-              </p>
+              <p className="text-sm text-neutral-500">{emptyMessage}</p>
             </div>
           ) : (
             <div className="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">

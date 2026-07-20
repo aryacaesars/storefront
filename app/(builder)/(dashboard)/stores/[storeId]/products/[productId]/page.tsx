@@ -3,6 +3,7 @@ import Link from "next/link"
 import { requireSession } from "@/features/auth/dal"
 import { getStoreById } from "@/server/services/tenant.service"
 import { getProductById, getCategories } from "@/server/services/product.service"
+import { getPageMessages } from "@/features/i18n/get-page-messages"
 import { ProductForm } from "@/features/builder/components/ProductForm"
 import { ProductDeleteButton } from "@/features/builder/components/ProductDeleteButton"
 import { DashboardShell } from "@/features/builder/components/DashboardShell"
@@ -18,8 +19,15 @@ export async function generateMetadata({
   params: Promise<{ storeId: string; productId: string }>
 }) {
   const { productId, storeId } = await params
-  const product = await getProductById(productId, storeId)
-  return { title: product ? `Edit — ${product.name}` : "Edit Product" }
+  const [product, t] = await Promise.all([
+    getProductById(productId, storeId),
+    getPageMessages(),
+  ])
+  return {
+    title: product
+      ? t.products.editTitle.replace("{name}", product.name)
+      : t.products.title,
+  }
 }
 
 export default async function EditProductPage({
@@ -35,9 +43,10 @@ export default async function EditProductPage({
   const store = await getStoreById(storeId)
   if (!store || store.ownerId !== session.userId) notFound()
 
-  const [product, categories] = await Promise.all([
+  const [product, categories, t] = await Promise.all([
     getProductById(productId, storeId),
     getCategories(storeId),
+    getPageMessages(),
   ])
   if (!product) notFound()
 
@@ -47,17 +56,21 @@ export default async function EditProductPage({
 
   const initialToast =
     toastParam === "created"
-      ? { type: "success" as const, message: "New product created successfully.", title: "Success" }
+      ? {
+          type: "success" as const,
+          message: t.products.createdToast,
+          title: t.common.success,
+        }
       : undefined
 
   return (
     <DashboardShell
-      pageTitle={`Edit: ${product.name}`}
-      pageSubtitle="Manage product details and storefront visibility"
+      pageTitle={t.products.editTitle.replace("{name}", product.name)}
+      pageSubtitle={t.products.editSubtitle}
     >
       <div className="flex flex-col gap-4">
         <Link href={`/stores/${storeId}/products`} className={dashboardBackLink}>
-          ← Back to product list
+          {t.products.backToList}
         </Link>
 
         <DashboardPanel className="w-full max-w-3xl p-6 lg:p-8">
@@ -75,15 +88,13 @@ export default async function EditProductPage({
               categoryId: product.categoryId ?? "",
               imageUrl: firstImage,
             }}
-            submitLabel="Save Changes"
+            submitLabel={t.products.saveChanges}
           />
         </DashboardPanel>
 
         <DashboardPanel className="border-red-100 p-6">
-          <p className="text-sm font-semibold text-red-700">Danger Zone</p>
-          <p className="mt-1 text-sm text-gray-500">
-            Deleting this product will remove it from the dashboard and storefront.
-          </p>
+          <p className="text-sm font-semibold text-red-700">{t.products.dangerZone}</p>
+          <p className="mt-1 text-sm text-gray-500">{t.products.dangerBody}</p>
           <div className="mt-4">
             <ProductDeleteButton
               storeId={storeId}

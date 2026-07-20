@@ -3,6 +3,7 @@
 import { Bell, Menu } from "lucide-react"
 import { SidebarAccountMenu } from "@/features/builder/components/SidebarAccountMenu"
 import { useDashboardHeaderTitle } from "@/features/builder/components/DashboardHeaderContext"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 
 interface DashboardHeaderProps {
   displayName?: string
@@ -18,6 +19,7 @@ export function DashboardHeader({
   onMenuClick,
 }: DashboardHeaderProps) {
   const { title } = useDashboardHeaderTitle()
+  const t = useMessages().dashboard
 
   return (
     <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 bg-transparent px-4 sm:h-16 sm:gap-3 sm:px-6 lg:px-8">
@@ -26,7 +28,7 @@ export function DashboardHeader({
           type="button"
           onClick={onMenuClick}
           className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-dash-border/70 bg-dash-surface text-dash-muted transition-colors duration-200 hover:border-dash-border hover:text-dash-ink sm:h-10 sm:w-10 lg:hidden"
-          aria-label="Open menu"
+          aria-label={t.openMenu}
         >
           <Menu className="h-5 w-5" strokeWidth={1.75} />
         </button>
@@ -45,7 +47,7 @@ export function DashboardHeader({
         <button
           type="button"
           className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-dash-border/70 bg-dash-surface text-dash-muted transition-colors duration-200 hover:border-dash-border hover:text-dash-ink sm:h-10 sm:w-10"
-          aria-label="Notifications"
+          aria-label={t.notifications}
         >
           <Bell className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
           <span className="absolute right-2 top-1.5 h-2 w-2 rounded-full bg-dash-primary sm:right-2.5 sm:top-2" />

@@ -13,6 +13,8 @@ import {
   dashboardBtnPrimary,
 } from "@/features/builder/components/dashboard-ui"
 import type { TemplateId, ThemeConfig } from "@/themes/engine/schema"
+import { useMessages } from "@/features/i18n/LocaleProvider"
+import type { Messages } from "@/features/i18n/messages"
 
 export type LibraryStoreOption = {
   id: string
@@ -32,17 +34,27 @@ export interface PublicTemplateCardProps {
 }
 
 type PickerMode = "buy" | "customize" | null
+type CardCopy = Messages["templateCard"]
 
-function ownershipLabel(ownedCount: number, storeCount: number, isFree: boolean): string {
-  if (storeCount === 0) return isFree ? "Free" : "Not owned"
+function ownershipLabel(
+  ownedCount: number,
+  storeCount: number,
+  isFree: boolean,
+  t: CardCopy,
+): string {
+  if (storeCount === 0) return isFree ? t.free : t.notOwned
   if (isFree) {
-    if (ownedCount === 0) return "Free · ready to activate"
-    if (ownedCount >= storeCount) return "On all stores"
-    return `On ${ownedCount} of ${storeCount} stores`
+    if (ownedCount === 0) return t.freeReady
+    if (ownedCount >= storeCount) return t.onAllStores
+    return t.onSomeStores
+      .replace("{owned}", String(ownedCount))
+      .replace("{total}", String(storeCount))
   }
-  if (ownedCount === 0) return "Not owned"
-  if (ownedCount >= storeCount) return "On all stores"
-  return `On ${ownedCount} of ${storeCount} stores`
+  if (ownedCount === 0) return t.notOwned
+  if (ownedCount >= storeCount) return t.onAllStores
+  return t.onSomeStores
+    .replace("{owned}", String(ownedCount))
+    .replace("{total}", String(storeCount))
 }
 
 /**
@@ -58,18 +70,26 @@ export function PublicTemplateCard({
   ownedStoreIds,
   buyForStoreAction,
 }: PublicTemplateCardProps) {
+  const t = useMessages().templateCard
   const router = useRouter()
   const [picker, setPicker] = useState<PickerMode>(null)
   const [pending, startTransition] = useTransition()
 
   const isFree = template.price === 0
-  const priceLabel = isFree ? "Free" : `Rp ${template.price.toLocaleString("id-ID")}`
+  const priceLabel = isFree ? t.free : `Rp ${template.price.toLocaleString("id-ID")}`
 
   const ownedSet = useMemo(() => new Set(ownedStoreIds), [ownedStoreIds])
   const ownedCount = ownedStoreIds.length
   const storeCount = stores.length
   const allOwned = storeCount > 0 && ownedCount >= storeCount
-  const statusText = ownershipLabel(ownedCount, storeCount, isFree)
+  const statusText = ownershipLabel(ownedCount, storeCount, isFree, t)
+
+  const localizedDescriptions = t.descriptions as Record<string, string>
+  const description =
+    localizedDescriptions[template.slug] ??
+    template.description ??
+    themeId ??
+    template.slug
 
   const customizePath = (storeId: string) =>
     `/stores/${storeId}/customize?template=${themeId ?? template.slug}`
@@ -135,12 +155,14 @@ export function PublicTemplateCard({
   }
 
   const primaryLabel = (() => {
-    if (!isLoggedIn) return isFree ? "Activate Template" : `Buy — ${priceLabel}`
-    if (storeCount === 0) return isFree ? "Create Store & Activate" : `Buy — ${priceLabel}`
-    if (allOwned && !isFree) return "Manage in Store"
-    if (ownedCount > 0 && storeCount > 1 && !isFree) return "Buy for Another Store"
-    if (isFree) return storeCount > 1 ? "Activate in Store" : "Activate Template"
-    return `Buy — ${priceLabel}`
+    if (!isLoggedIn) return isFree ? t.activate : `${t.buy} — ${priceLabel}`
+    if (storeCount === 0) {
+      return isFree ? t.createStoreActivate : `${t.buy} — ${priceLabel}`
+    }
+    if (allOwned && !isFree) return t.manageInStore
+    if (ownedCount > 0 && storeCount > 1 && !isFree) return t.buyForAnother
+    if (isFree) return storeCount > 1 ? t.activateInStore : t.activate
+    return `${t.buy} — ${priceLabel}`
   })()
 
   return (
@@ -159,7 +181,7 @@ export function PublicTemplateCard({
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-gray-400">
-            Preview unavailable
+            {t.previewUnavailable}
           </div>
         )}
       </div>
@@ -168,9 +190,7 @@ export function PublicTemplateCard({
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <p className="truncate text-lg font-bold text-ink">{template.name}</p>
-            <p className="mt-0.5 line-clamp-2 text-sm text-gray-400">
-              {template.description ?? themeId ?? template.slug}
-            </p>
+            <p className="mt-0.5 line-clamp-2 text-sm text-gray-400">{description}</p>
             {isLoggedIn && (
               <p
                 className={cn(
@@ -192,7 +212,7 @@ export function PublicTemplateCard({
             onClick={handlePrimaryClick}
             className={cn(dashboardBtnPrimary, "w-full py-3 disabled:opacity-50")}
           >
-            {pending ? "Processing..." : primaryLabel}
+            {pending ? t.processing : primaryLabel}
           </button>
 
           <div className="grid grid-cols-2 gap-3">
@@ -202,14 +222,14 @@ export function PublicTemplateCard({
                 target="_blank"
                 className={cn(dashboardBtnOutline, "py-2.5")}
               >
-                preview
+                {t.preview}
               </Link>
             ) : (
               <span
                 aria-disabled
                 className={cn(dashboardBtnOutline, "py-2.5 cursor-not-allowed opacity-40")}
               >
-                preview
+                {t.preview}
               </span>
             )}
             <button
@@ -218,7 +238,7 @@ export function PublicTemplateCard({
               onClick={handleCustomizeClick}
               className={cn(dashboardBtnOutline, "py-2.5 disabled:opacity-50")}
             >
-              customize
+              {t.customize}
             </button>
           </div>
         </div>
@@ -226,13 +246,14 @@ export function PublicTemplateCard({
 
       {picker && (
         <StorePickerDialog
-          title={picker === "buy" ? "Choose a store for this template" : "Customize in which store?"}
+          copy={t}
+          title={picker === "buy" ? t.pickerBuyTitle : t.pickerCustomizeTitle}
           description={
             picker === "buy"
               ? isFree
-                ? "Free template — activate per store."
-                : "Each store needs its own license (1 purchase = 1 store)."
-              : "Builder config is saved per store."
+                ? t.pickerBuyFreeDesc
+                : t.pickerBuyPaidDesc
+              : t.pickerCustomizeDesc
           }
           stores={stores}
           ownedStoreIds={ownedSet}
@@ -248,6 +269,7 @@ export function PublicTemplateCard({
 }
 
 function StorePickerDialog({
+  copy,
   title,
   description,
   stores,
@@ -258,6 +280,7 @@ function StorePickerDialog({
   onPick,
   onClose,
 }: {
+  copy: CardCopy
   title: string
   description: string
   stores: LibraryStoreOption[]
@@ -273,7 +296,7 @@ function StorePickerDialog({
       <button
         type="button"
         className="absolute inset-0 bg-black/40"
-        aria-label="Close"
+        aria-label={copy.close}
         onClick={onClose}
       />
       <div
@@ -292,12 +315,12 @@ function StorePickerDialog({
             const owned = ownedStoreIds.has(store.id)
             const label =
               mode === "customize"
-                ? "Customize"
+                ? copy.pickerCustomize
                 : owned && !isFree
-                  ? "Open →"
+                  ? copy.pickerOpen
                   : isFree
-                    ? "Activate"
-                    : "Buy for this store"
+                    ? copy.pickerActivate
+                    : copy.pickerBuyStore
 
             return (
               <li key={store.id}>
@@ -330,7 +353,7 @@ function StorePickerDialog({
                       {store.name}
                     </span>
                     <span className="block text-xs text-gray-500">
-                      {owned ? "Active license on this store" : "No license yet"}
+                      {owned ? copy.licenseActive : copy.licenseNone}
                     </span>
                   </span>
                   <span
@@ -353,7 +376,7 @@ function StorePickerDialog({
           onClick={onClose}
           className="mt-4 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
         >
-          Back
+          {copy.back}
         </button>
       </div>
     </div>

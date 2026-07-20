@@ -9,6 +9,7 @@ import {
   dashboardInput,
   dashboardLabel,
 } from "@/features/builder/components/dashboard-ui"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 import { cn } from "@/lib/utils"
 
 function slugifyPreview(value: string): string {
@@ -22,6 +23,7 @@ function slugifyPreview(value: string): string {
 }
 
 export function CreateStoreForm({ rootDomain }: { rootDomain: string }) {
+  const t = useMessages().pages
   const [state, action, pending] = useActionState<CreateStoreState, FormData>(
     createStoreAction,
     undefined,
@@ -50,7 +52,7 @@ export function CreateStoreForm({ rootDomain }: { rootDomain: string }) {
 
       <div>
         <label htmlFor="name" className={dashboardLabel}>
-          Store Name <span className="text-red-500">*</span>
+          {t.createStore.storeName} <span className="text-red-500">*</span>
         </label>
         <input
           id="name"
@@ -59,18 +61,16 @@ export function CreateStoreForm({ rootDomain }: { rootDomain: string }) {
           required
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
-          placeholder="Cool Shoe Store"
+          placeholder={t.createStore.storeNamePlaceholder}
           autoComplete="organization"
           className={dashboardInput}
         />
-        <p className="mt-1.5 text-xs text-dash-muted">
-          Name displayed on the dashboard and storefront.
-        </p>
+        <p className="mt-1.5 text-xs text-dash-muted">{t.createStore.storeNameHint}</p>
       </div>
 
       <div>
         <label htmlFor="slug" className={dashboardLabel}>
-          Subdomain <span className="text-red-500">*</span>
+          {t.createStore.subdomain} <span className="text-red-500">*</span>
         </label>
         <div className="flex items-stretch">
           <input
@@ -94,11 +94,11 @@ export function CreateStoreForm({ rootDomain }: { rootDomain: string }) {
           </span>
         </div>
         <p className="mt-1.5 text-xs leading-relaxed text-dash-muted">
-          Lowercase letters, numbers, and hyphens. Your public store address.
+          {t.createStore.subdomainHint}
         </p>
         {slug.length >= 2 && (
           <p className="mt-2 truncate rounded-xl bg-dash-bg px-3 py-2 text-xs text-dash-ink">
-            <span className="text-dash-muted">Preview: </span>
+            <span className="text-dash-muted">{t.createStore.preview} </span>
             <span className="font-medium">
               {slug}.{rootDomain}
             </span>
@@ -112,7 +112,7 @@ export function CreateStoreForm({ rootDomain }: { rootDomain: string }) {
           disabled={pending}
           className={cn(dashboardBtnPrimary, "w-full sm:w-auto")}
         >
-          {pending ? "Creating store..." : "Create Store"}
+          {pending ? t.createStore.creating : t.createStore.submit}
         </button>
       </div>
     </form>

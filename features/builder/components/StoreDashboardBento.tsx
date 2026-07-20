@@ -5,6 +5,7 @@ import type { LucideIcon } from "lucide-react"
 import { ArrowUpRight, Box, ChartLine, ShoppingCart, Users } from "lucide-react"
 import { motion, useReducedMotion } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 import { dashboardCard, dashboardSectionTitle } from "./dashboard-ui"
 
 type StoreDashboardBentoStats = {
@@ -123,7 +124,21 @@ function Panel({
   )
 }
 
-function ProductStatistic({ soldItems, categories }: { soldItems: number; categories: number }) {
+function ProductStatistic({
+  soldItems,
+  categories,
+  labels,
+}: {
+  soldItems: number
+  categories: number
+  labels: {
+    productStat: string
+    sold: string
+    totalProductsSold: string
+    soldItems: string
+    categories: string
+  }
+}) {
   const reduceMotion = useReducedMotion()
   const denominator = Math.max(soldItems + categories, 1)
   const soldPercent = Math.round((soldItems / denominator) * 100)
@@ -134,7 +149,7 @@ function ProductStatistic({ soldItems, categories }: { soldItems: number; catego
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-center">
       <div className="flex items-center justify-center">
-        <svg width="180" height="180" viewBox="0 0 180 180" role="img" aria-label="Product statistic">
+        <svg width="180" height="180" viewBox="0 0 180 180" role="img" aria-label={labels.productStat}>
           <circle cx="90" cy="90" r="62" fill="none" stroke="rgba(232,234,239,1)" strokeWidth="14" />
           <motion.circle
             cx="90"
@@ -198,7 +213,7 @@ function ProductStatistic({ soldItems, categories }: { soldItems: number; catego
             animate={{ opacity: 1 }}
             transition={{ duration: 0.35, delay: 0.9 }}
           >
-            sold
+            {labels.sold}
           </motion.text>
         </svg>
       </div>
@@ -212,20 +227,20 @@ function ProductStatistic({ soldItems, categories }: { soldItems: number; catego
           <p className="text-3xl font-bold tabular-nums tracking-tight text-dash-ink">
             {soldItems.toLocaleString("id-ID")}
           </p>
-          <p className="text-xs text-dash-muted">Total products sold</p>
+          <p className="text-xs text-dash-muted">{labels.totalProductsSold}</p>
         </div>
         <div className="space-y-2 text-sm">
           <div className="flex items-center justify-between">
             <span className="inline-flex items-center gap-2 text-dash-ink">
               <span className="h-2 w-2 rounded-full bg-[#5b4bff]" aria-hidden />
-              Sold Items
+              {labels.soldItems}
             </span>
             <span className="tabular-nums text-dash-ink">{soldItems.toLocaleString("id-ID")}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="inline-flex items-center gap-2 text-dash-ink">
               <span className="h-2 w-2 rounded-full bg-[#5b4bff]/40" aria-hidden />
-              Categories
+              {labels.categories}
             </span>
             <span className="tabular-nums text-dash-ink">{categories.toLocaleString("id-ID")}</span>
           </div>
@@ -242,36 +257,38 @@ export function StoreDashboardBento({
   storeId: string
   stats: StoreDashboardBentoStats
 }) {
+  const t = useMessages().pages.storeHome
+
   return (
     <div className="grid grid-cols-12 gap-5 lg:gap-6">
       <div className="col-span-12 lg:col-span-8">
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <KpiCard
-            title="Total Sales"
+            title={t.totalSales}
             value={formatCurrency(stats.revenueTotal)}
-            sublabel="Revenue from PAID orders"
+            sublabel={t.totalSalesHint}
             icon={ChartLine}
             tone="primary"
             index={0}
           />
           <KpiCard
-            title="Total Orders"
+            title={t.totalOrders}
             value={stats.totalOrders.toLocaleString("id-ID")}
-            sublabel="All store orders"
+            sublabel={t.totalOrdersHint}
             icon={ShoppingCart}
             index={1}
           />
           <KpiCard
-            title="Total Sold Products"
+            title={t.totalSold}
             value={stats.totalSoldItems.toLocaleString("id-ID")}
-            sublabel="Cumulative quantity of items sold"
+            sublabel={t.totalSoldHint}
             icon={Box}
             index={2}
           />
           <KpiCard
-            title="Total Customers"
+            title={t.totalCustomers}
             value={stats.totalCustomers.toLocaleString("id-ID")}
-            sublabel="Registered customers"
+            sublabel={t.totalCustomersHint}
             icon={Users}
             index={3}
           />
@@ -281,11 +298,11 @@ export function StoreDashboardBento({
           <p className={dashboardSectionTitle}>Quick Actions</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {[
-              { href: `/stores/${storeId}/products`, label: "Products" },
-              { href: `/stores/${storeId}/orders`, label: "Orders" },
-              { href: `/stores/${storeId}/customers`, label: "Customers" },
-              { href: `/stores/${storeId}/customize`, label: "Customize" },
-              { href: `/stores/${storeId}/settings`, label: "Settings" },
+              { href: `/stores/${storeId}/products`, label: t.quickProducts },
+              { href: `/stores/${storeId}/orders`, label: t.quickOrders },
+              { href: `/stores/${storeId}/customers`, label: t.quickCustomers },
+              { href: `/stores/${storeId}/customize`, label: t.quickCustomize },
+              { href: `/stores/${storeId}/settings`, label: t.quickSettings },
             ].map((action) => (
               <Link
                 key={action.href}
@@ -303,15 +320,25 @@ export function StoreDashboardBento({
       <div className="col-span-12 lg:col-span-4">
         <div className="grid gap-5 lg:gap-6">
           <Panel
-            title="Product Statistic"
-            subtitle="Product and category summary"
+            title={t.productStat}
+            subtitle={t.productStatHint}
             action={
               <span className="rounded-full bg-dash-bg px-3 py-1 text-[11px] font-semibold text-dash-muted">
-                Real data
+                {t.realData}
               </span>
             }
           >
-            <ProductStatistic soldItems={stats.totalSoldItems} categories={stats.totalCategories} />
+            <ProductStatistic
+              soldItems={stats.totalSoldItems}
+              categories={stats.totalCategories}
+              labels={{
+                productStat: t.productStat,
+                sold: t.sold,
+                totalProductsSold: t.totalProductsSold,
+                soldItems: t.soldItems,
+                categories: t.categories,
+              }}
+            />
           </Panel>
         </div>
       </div>

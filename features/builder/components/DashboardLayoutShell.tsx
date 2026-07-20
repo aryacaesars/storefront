@@ -9,6 +9,7 @@ import { DashboardHeader } from "@/features/builder/components/DashboardHeader"
 import { DashboardHeaderProvider } from "@/features/builder/components/DashboardHeaderContext"
 import { DashboardProviders } from "@/features/builder/components/DashboardProviders"
 import { DashboardRouteTransition } from "@/features/builder/components/DashboardRouteTransition"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 
 interface DashboardLayoutShellProps {
   children: ReactNode
@@ -28,6 +29,7 @@ export function DashboardLayoutShell({
   sidebarBadge,
 }: DashboardLayoutShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const t = useMessages().dashboard
 
   return (
     <DashboardHeaderProvider>
@@ -36,7 +38,7 @@ export function DashboardLayoutShell({
           <button
             type="button"
             className="fixed inset-0 z-40 bg-dash-ink/40 backdrop-blur-[2px] lg:hidden"
-            aria-label="Tutup menu"
+            aria-label={t.closeMenu}
             onClick={() => setMobileOpen(false)}
           />
         )}

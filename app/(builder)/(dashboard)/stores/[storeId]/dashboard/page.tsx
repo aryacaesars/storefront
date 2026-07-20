@@ -4,6 +4,7 @@ import { requireSession } from "@/features/auth/dal"
 import { getStoreById } from "@/server/services/tenant.service"
 import { getStoreDashboardStats } from "@/server/services/order.service"
 import { getStorefrontUrl } from "@/lib/tenant/storefront-url"
+import { getPageMessages } from "@/features/i18n/get-page-messages"
 import { DashboardShell } from "@/features/builder/components/DashboardShell"
 import { DashboardPageTitle } from "@/features/builder/components/DashboardHeaderContext"
 import { StoreDashboardBento } from "@/features/builder/components/StoreDashboardBento"
@@ -25,12 +26,15 @@ export default async function StoreDashboardPage({
   const store = await getStoreById(storeId)
   if (!store || store.ownerId !== session.userId) notFound()
 
-  const stats = await getStoreDashboardStats(storeId)
+  const [stats, t] = await Promise.all([
+    getStoreDashboardStats(storeId),
+    getPageMessages(),
+  ])
   const storefrontUrl = getStorefrontUrl(store.slug)
 
   return (
     <DashboardShell
-      pageSubtitle="Summary of your store's performance and activity."
+      pageSubtitle={t.storeHome.subtitle}
       action={
         <a
           href={storefrontUrl}
@@ -39,7 +43,7 @@ export default async function StoreDashboardPage({
           className={dashboardBtnPrimary}
         >
           <ExternalLink className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-          Live store
+          {t.storeHome.liveStore}
         </a>
       }
     >

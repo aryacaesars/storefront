@@ -7,21 +7,20 @@ import {
   DashboardPanel,
   dashboardBackLink,
 } from "@/features/builder/components/dashboard-ui"
+import { getPageMessages } from "@/features/i18n/get-page-messages"
 import { ROOT_DOMAIN } from "@/lib/tenant/storefront-url"
 
 export const metadata = { title: "Create New Store" }
 
 export default async function NewStorePage() {
   await requireSession()
+  const t = await getPageMessages()
 
   return (
-    <DashboardShell
-      pageTitle="Create New Store"
-      pageSubtitle="Set up your store identity. The subdomain becomes your public storefront address."
-    >
+    <DashboardShell pageTitle={t.createStore.title} pageSubtitle={t.createStore.subtitle}>
       <div className="flex w-full flex-col gap-5">
         <Link href="/dashboard" className={dashboardBackLink}>
-          ← Back to Dashboard
+          {t.createStore.back}
         </Link>
 
         <DashboardPanel className="overflow-hidden p-0">
@@ -31,10 +30,9 @@ export default async function NewStorePage() {
                 <Store className="h-5 w-5" strokeWidth={1.75} aria-hidden />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-dash-ink">Store identity</p>
+                <p className="text-sm font-semibold text-dash-ink">{t.createStore.identity}</p>
                 <p className="mt-1 text-sm leading-relaxed text-dash-muted">
-                  Enter a name and subdomain. Once created, you can manage products and templates
-                  right away.
+                  {t.createStore.identityHint}
                 </p>
               </div>
             </div>

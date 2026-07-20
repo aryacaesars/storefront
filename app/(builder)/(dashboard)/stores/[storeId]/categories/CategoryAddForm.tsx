@@ -3,11 +3,13 @@
 import { useActionState } from "react"
 import { createCategoryAction } from "./actions"
 import type { CategoryState } from "./actions"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 import { useDashboardActionNotice } from "@/features/builder/hooks/useDashboardActionNotice"
 import { dashboardBtnPrimary, dashboardInput } from "@/features/builder/components/dashboard-ui"
 import { cn } from "@/lib/utils"
 
 export function CategoryAddForm({ storeId }: { storeId: string }) {
+  const t = useMessages().pages
   const boundAction = createCategoryAction.bind(null, storeId)
   const [state, action, pending] = useActionState<CategoryState, FormData>(
     boundAction,
@@ -15,7 +17,7 @@ export function CategoryAddForm({ storeId }: { storeId: string }) {
   )
 
   useDashboardActionNotice(state, {
-    successMessage: "Category added successfully.",
+    successMessage: t.categories.addedToast,
   })
 
   return (
@@ -23,7 +25,7 @@ export function CategoryAddForm({ storeId }: { storeId: string }) {
       <input
         name="name"
         type="text"
-        placeholder="New category name..."
+        placeholder={t.categories.placeholder}
         required
         className={dashboardInput}
       />
@@ -32,7 +34,7 @@ export function CategoryAddForm({ storeId }: { storeId: string }) {
         disabled={pending}
         className={cn(dashboardBtnPrimary, "shrink-0 px-5")}
       >
-        {pending ? "..." : "Add"}
+        {pending ? "..." : t.categories.addBtn}
       </button>
     </form>
   )

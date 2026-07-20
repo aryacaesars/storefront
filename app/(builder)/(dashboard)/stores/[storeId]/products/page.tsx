@@ -4,6 +4,7 @@ import { Plus } from "lucide-react"
 import { requireSession } from "@/features/auth/dal"
 import { getStoreById } from "@/server/services/tenant.service"
 import { getProducts } from "@/server/services/product.service"
+import { getPageMessages } from "@/features/i18n/get-page-messages"
 import { DashboardShell } from "@/features/builder/components/DashboardShell"
 import {
   DashboardTable,
@@ -26,8 +27,8 @@ export async function generateMetadata({
   params: Promise<{ storeId: string }>
 }) {
   const { storeId } = await params
-  const store = await getStoreById(storeId)
-  return { title: store ? `Products — ${store.name}` : "Products" }
+  const [store, t] = await Promise.all([getStoreById(storeId), getPageMessages()])
+  return { title: store ? `${t.products.title} — ${store.name}` : t.products.title }
 }
 
 export default async function ProductsPage({
@@ -40,26 +41,26 @@ export default async function ProductsPage({
   const store = await getStoreById(storeId)
   if (!store || store.ownerId !== session.userId) notFound()
 
-  const products = await getProducts(storeId)
+  const [products, t] = await Promise.all([getProducts(storeId), getPageMessages()])
   const total = products.length
 
   return (
     <DashboardShell
-      pageTitle="Products"
-      pageSubtitle={`Total: ${total}`}
+      pageTitle={t.products.title}
+      pageSubtitle={t.products.totalLabel.replace("{n}", String(total))}
       action={
         <Link href={`/stores/${storeId}/products/new`} className={dashboardBtnPrimary}>
           <Plus className="h-4 w-4" />
-          Add Product
+          {t.products.add}
         </Link>
       }
     >
       {total === 0 ? (
         <DashboardPanel className="p-12 text-center">
-          <p className="mb-4 text-sm text-gray-400">No products yet.</p>
+          <p className="mb-4 text-sm text-gray-400">{t.products.empty}</p>
           <Link href={`/stores/${storeId}/products/new`} className={dashboardBtnPrimary}>
             <Plus className="h-4 w-4" />
-            Add First Product
+            {t.products.addFirst}
           </Link>
         </DashboardPanel>
       ) : (
@@ -67,13 +68,13 @@ export default async function ProductsPage({
           <DashboardTableElement>
             <DashboardTableHead>
               <DashboardTableHeadRow>
-                <DashboardTableHeadCell>Products</DashboardTableHeadCell>
-                <DashboardTableHeadCell>Category</DashboardTableHeadCell>
-                <DashboardTableHeadCell align="right">Price</DashboardTableHeadCell>
-                <DashboardTableHeadCell align="right">Stock</DashboardTableHeadCell>
-                <DashboardTableHeadCell align="center">Status</DashboardTableHeadCell>
+                <DashboardTableHeadCell>{t.products.colProduct}</DashboardTableHeadCell>
+                <DashboardTableHeadCell>{t.products.colCategory}</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">{t.products.colPrice}</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">{t.products.colStock}</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="center">{t.products.colStatus}</DashboardTableHeadCell>
                 <DashboardTableHeadCell align="center">
-                  Actions
+                  {t.common.actions}
                 </DashboardTableHeadCell>
               </DashboardTableHeadRow>
             </DashboardTableHead>
@@ -100,13 +101,13 @@ export default async function ProductsPage({
                           : "bg-gray-100 text-gray-500"
                       }`}
                     >
-                      {product.published ? "Active" : "Draft"}
+                      {product.published ? t.common.active : t.common.draft}
                     </span>
                   </DashboardTableCell>
                   <DashboardTableCell align="center">
                     <DashboardTableActionLink
                       href={`/stores/${storeId}/products/${product.id}`}
-                      label="Edit product"
+                      label={t.products.editAria}
                     />
                   </DashboardTableCell>
                 </DashboardTableRow>

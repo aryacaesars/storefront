@@ -9,6 +9,7 @@ import { normalizeThemeSlug } from "@/server/services/template.service"
 import { getTemplatePreviewHref } from "@/themes/engine/registry"
 import type { TemplateId, ThemeConfig } from "@/themes/engine/schema"
 import type { ActivateForLiveResult } from "@/app/(builder)/(dashboard)/stores/[storeId]/templates/actions"
+import { getFullMessages } from "@/features/i18n/get-page-messages"
 
 interface StoreTemplateCardProps {
   storeId: string
@@ -25,7 +26,7 @@ interface StoreTemplateCardProps {
   themeConfig?: ThemeConfig | null
 }
 
-export function StoreTemplateCard({
+export async function StoreTemplateCard({
   storeId,
   storefrontUrl,
   template,
@@ -35,13 +36,22 @@ export function StoreTemplateCard({
   activateForLiveAction,
   themeConfig,
 }: StoreTemplateCardProps) {
+  const messages = await getFullMessages()
+  const t = messages.pages.storeTemplates
+  const common = messages.pages.common
   const themeId = normalizeThemeSlug(template.slug)
   const isFree = template.price === 0
   const isOwned = isPurchased || isFree || isActive
-  const priceLabel = isFree ? "Free" : `Rp ${template.price.toLocaleString("id-ID")}`
+  const priceLabel = isFree ? common.free : `Rp ${template.price.toLocaleString("id-ID")}`
   const customizeHref = `/stores/${storeId}/customize?template=${themeId ?? template.slug}`
   const activate = buyAction.bind(null, storeId, template.id)
   const activateForLive = activateForLiveAction.bind(null, storeId, template.id)
+  const localizedDescriptions = messages.templateCard.descriptions as Record<string, string>
+  const description =
+    localizedDescriptions[template.slug] ??
+    template.description ??
+    themeId ??
+    template.slug
 
   return (
     <article className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-black/5">
@@ -59,7 +69,7 @@ export function StoreTemplateCard({
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-gray-400">
-            Preview unavailable
+            {messages.templateCard.previewUnavailable}
           </div>
         )}
       </div>
@@ -68,17 +78,15 @@ export function StoreTemplateCard({
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <p className="truncate text-lg font-bold text-ink">{template.name}</p>
-            <p className="mt-0.5 line-clamp-2 text-sm text-gray-400">
-              {template.description ?? themeId ?? template.slug}
-            </p>
+            <p className="mt-0.5 line-clamp-2 text-sm text-gray-400">{description}</p>
           </div>
           {isActive ? (
             <span className="shrink-0 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-white">
-              Active
+              {common.active}
             </span>
           ) : isOwned ? (
             <span className="shrink-0 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-500">
-              Inactive
+              {common.inactive}
             </span>
           ) : (
             <span className="shrink-0 text-sm font-semibold text-brand">{priceLabel}</span>
@@ -88,18 +96,18 @@ export function StoreTemplateCard({
         <div className="mt-6 flex flex-col gap-3">
           {isActive ? (
             <Link href={customizeHref} className={cn(dashboardBtnPrimary, "w-full py-3")}>
-              Manage Template
+              {t.manage}
             </Link>
           ) : isPurchased || isFree ? (
             <form action={activate}>
               <button type="submit" className={cn(dashboardBtnPrimary, "w-full py-3")}>
-                Activate Template
+                {t.activate}
               </button>
             </form>
           ) : (
             <form action={activate}>
               <button type="submit" className={cn(dashboardBtnPrimary, "w-full py-3")}>
-                Buy — {priceLabel}
+                {t.buy.replace("{price}", priceLabel)}
               </button>
             </form>
           )}
@@ -111,14 +119,14 @@ export function StoreTemplateCard({
                 target="_blank"
                 className={cn(dashboardBtnOutline, "py-2.5")}
               >
-                preview
+                {common.preview}
               </Link>
             ) : (
               <span
                 aria-disabled
                 className={cn(dashboardBtnOutline, "py-2.5 cursor-not-allowed opacity-40")}
               >
-                preview
+                {common.preview}
               </span>
             )}
             {isOwned && (

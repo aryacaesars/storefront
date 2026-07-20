@@ -7,6 +7,7 @@ import {
   type DeleteStoreState,
   type SettingsState,
 } from "./actions"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 import { useDashboardActionNotice } from "@/features/builder/hooks/useDashboardActionNotice"
 import {
   dashboardBtnPrimary,
@@ -31,6 +32,7 @@ export function SettingsForm({
   defaultAddress: string
   rootDomain: string
 }) {
+  const t = useMessages().pages
   const action = updateStoreSettingsAction.bind(null, storeId)
   const [state, formAction, pending] = useActionState<SettingsState, FormData>(
     action,
@@ -38,21 +40,19 @@ export function SettingsForm({
   )
 
   useDashboardActionNotice(state, {
-    successMessage: "Store settings saved successfully.",
+    successMessage: t.settings.savedToast,
   })
 
   return (
     <form action={formAction} className="flex w-full flex-col gap-8">
       <section className="flex flex-col gap-4">
         <div>
-          <h2 className="text-sm font-semibold text-dash-ink">Identity</h2>
-          <p className="mt-1 text-xs text-dash-muted">
-            Store name and subdomain on the platform.
-          </p>
+          <h2 className="text-sm font-semibold text-dash-ink">{t.settings.identity}</h2>
+          <p className="mt-1 text-xs text-dash-muted">{t.settings.identityHint}</p>
         </div>
 
         <div>
-          <label className={dashboardLabel}>Store Name</label>
+          <label className={dashboardLabel}>{t.settings.storeName}</label>
           <input
             name="name"
             type="text"
@@ -63,7 +63,7 @@ export function SettingsForm({
         </div>
 
         <div>
-          <label className={dashboardLabel}>Subdomain</label>
+          <label className={dashboardLabel}>{t.settings.subdomain}</label>
           <div className="flex items-stretch">
             <input
               name="slug"
@@ -77,22 +77,18 @@ export function SettingsForm({
               .{rootDomain}
             </span>
           </div>
-          <p className="mt-1.5 text-xs text-dash-muted">
-            Letters, numbers, and hyphens. Your storefront address will change.
-          </p>
+          <p className="mt-1.5 text-xs text-dash-muted">{t.settings.subdomainHint}</p>
         </div>
       </section>
 
       <section className="flex flex-col gap-4 border-t border-dash-border pt-8">
         <div>
-          <h2 className="text-sm font-semibold text-dash-ink">Contact & address</h2>
-          <p className="mt-1 text-xs text-dash-muted">
-            Shown in the customer storefront footer.
-          </p>
+          <h2 className="text-sm font-semibold text-dash-ink">{t.settings.contact}</h2>
+          <p className="mt-1 text-xs text-dash-muted">{t.settings.contactHint}</p>
         </div>
 
         <div>
-          <label className={dashboardLabel}>Phone / WhatsApp</label>
+          <label className={dashboardLabel}>{t.settings.phone}</label>
           <input
             name="contactPhone"
             type="tel"
@@ -103,7 +99,7 @@ export function SettingsForm({
         </div>
 
         <div>
-          <label className={dashboardLabel}>Store email</label>
+          <label className={dashboardLabel}>{t.settings.email}</label>
           <input
             name="contactEmail"
             type="email"
@@ -114,7 +110,7 @@ export function SettingsForm({
         </div>
 
         <div>
-          <label className={dashboardLabel}>Address</label>
+          <label className={dashboardLabel}>{t.settings.address}</label>
           <textarea
             name="contactAddress"
             rows={3}
@@ -126,7 +122,7 @@ export function SettingsForm({
       </section>
 
       <button type="submit" disabled={pending} className={dashboardBtnPrimary}>
-        {pending ? "Saving..." : "Save"}
+        {pending ? t.common.saving : t.common.save}
       </button>
     </form>
   )
@@ -139,6 +135,7 @@ export function DeleteStorePanel({
   storeId: string
   storeName: string
 }) {
+  const t = useMessages().pages
   const [confirmName, setConfirmName] = useState("")
   const action = deleteStoreAction.bind(null, storeId)
   const [state, formAction, pending] = useActionState<DeleteStoreState, FormData>(
@@ -150,17 +147,17 @@ export function DeleteStorePanel({
 
   return (
     <div className="rounded-2xl border border-red-200 bg-red-50/40 p-6">
-      <h2 className="text-sm font-semibold text-red-700">Delete store</h2>
+      <h2 className="text-sm font-semibold text-red-700">{t.settings.deleteStore}</h2>
       <p className="mt-1.5 text-xs leading-relaxed text-red-700/80">
-        Deleting this store will remove all products, orders, customers, and theme
-        configuration. This action cannot be undone.
+        {t.settings.deleteWarning}
       </p>
 
       <form action={formAction} className="mt-5 flex flex-col gap-3">
         <div>
           <label className={dashboardLabel}>
-            Type <span className="font-semibold text-dash-ink">{storeName}</span> to
-            confirm
+            {t.settings.typeToConfirm.split("{name}")[0]}
+            <span className="font-semibold text-dash-ink">{storeName}</span>
+            {t.settings.typeToConfirm.split("{name}")[1]}
           </label>
           <input
             name="confirmName"
@@ -180,7 +177,7 @@ export function DeleteStorePanel({
           disabled={pending || !canDelete}
           className="inline-flex cursor-pointer items-center justify-center rounded-full bg-red-600 px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {pending ? "Deleting..." : "Permanently delete store"}
+          {pending ? t.settings.deleting : t.settings.permanentlyDelete}
         </button>
       </form>
     </div>

@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react"
+import { useRouter } from "next/navigation"
 import {
   LOCALE_COOKIE,
   parseLocale,
@@ -40,13 +41,18 @@ export function LocaleProvider({
   initialLocale: Locale
   children: ReactNode
 }) {
+  const router = useRouter()
   const [locale, setLocaleState] = useState<Locale>(initialLocale)
 
-  const setLocale = useCallback((next: Locale) => {
-    const parsed = parseLocale(next)
-    setLocaleState(parsed)
-    persistLocale(parsed)
-  }, [])
+  const setLocale = useCallback(
+    (next: Locale) => {
+      const parsed = parseLocale(next)
+      setLocaleState(parsed)
+      persistLocale(parsed)
+      router.refresh()
+    },
+    [router],
+  )
 
   const value = useMemo<LocaleContextValue>(
     () => ({

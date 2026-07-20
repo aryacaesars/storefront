@@ -1,3 +1,5 @@
+"use client"
+
 import type { ReactNode } from "react"
 import Link from "next/link"
 import { Eye, Pencil } from "lucide-react"
@@ -6,6 +8,7 @@ import {
   dashboardTableHeadCell,
   dashboardTableHeadRow,
 } from "@/features/builder/components/dashboard-ui"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 
 export function DashboardTable({ children, className }: { children: ReactNode; className?: string }) {
   return (
@@ -203,21 +206,27 @@ export function DashboardTableFooter({
   page?: number
   totalPages?: number
 }) {
-  const pages = Array.from({ length: totalPages }, (_, i) => i + 1)
+  const common = useMessages().pages.common
+  const pageButtons = Array.from({ length: totalPages }, (_, i) => i + 1)
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 border-t border-gray-200 px-5 py-4">
       <p className="text-sm text-gray-500">
-        Showing {from} to {to} of {total}
+        {common.showing
+          .replace("{from}", String(from))
+          .replace("{to}", String(to))
+          .replace("{total}", String(total))}
       </p>
 
       <div className="flex items-center gap-2">
         <span className="text-sm text-gray-500">
-          Page {page} of {totalPages}
+          {common.pageOf
+            .replace("{page}", String(page))
+            .replace("{pages}", String(totalPages))}
         </span>
         {totalPages > 1 && (
           <div className="flex items-center gap-1">
-            {pages.map((p) => (
+            {pageButtons.map((p) => (
               <span
                 key={p}
                 className={cn(

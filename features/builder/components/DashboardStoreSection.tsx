@@ -9,10 +9,12 @@ import {
   dashboardCard,
   dashboardSectionTitle,
 } from "@/features/builder/components/dashboard-ui"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 
 type StoreItem = { id: string; name: string; slug: string }
 
 export function DashboardStoreSection({ stores }: { stores: StoreItem[] }) {
+  const t = useMessages().pages
   const [query, setQuery] = useState("")
 
   const filteredStores = useMemo(() => {
@@ -29,12 +31,12 @@ export function DashboardStoreSection({ stores }: { stores: StoreItem[] }) {
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-dash-primary-light text-dash-primary">
           <Store className="h-7 w-7" strokeWidth={1.75} aria-hidden />
         </div>
-        <h2 className="mt-5 font-display text-xl font-bold text-dash-ink">No stores yet</h2>
+        <h2 className="mt-5 font-display text-xl font-bold text-dash-ink">{t.home.noStoresTitle}</h2>
         <p className="mt-2 max-w-sm text-sm leading-relaxed text-dash-muted">
-          Start by creating your first store. It only takes a few minutes to get selling.
+          {t.home.noStoresBody}
         </p>
         <Link href="/stores/new" className={`${dashboardBtnPrimary} mt-8`}>
-          Create Store Now
+          {t.home.createStoreNow}
         </Link>
       </div>
     )
@@ -49,7 +51,7 @@ export function DashboardStoreSection({ stores }: { stores: StoreItem[] }) {
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search store"
+              placeholder={t.home.searchStore}
               className="h-10 w-full rounded-full border-0 bg-dash-surface py-2 pl-5 pr-12 text-sm text-dash-ink shadow-[0_1px_1.5px_rgba(0,0,0,0.1)] outline-none placeholder:text-[#6f6f6f] focus:ring-2 focus:ring-dash-primary/20"
             />
             <span className="pointer-events-none absolute right-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-dash-primary text-white">
@@ -57,14 +59,15 @@ export function DashboardStoreSection({ stores }: { stores: StoreItem[] }) {
             </span>
           </div>
           <Link href="/stores/new" className={`${dashboardBtnPrimary} shrink-0 px-5 py-2.5`}>
-            + Create Store
+            {t.home.createStore}
           </Link>
         </div>
       </div>
 
       <div className="mb-4">
         <p className={dashboardSectionTitle}>
-          {filteredStores.length} {filteredStores.length === 1 ? "Store" : "Stores"}
+          {filteredStores.length}{" "}
+          {filteredStores.length === 1 ? t.home.storeOne : t.home.storeMany}
         </p>
       </div>
 

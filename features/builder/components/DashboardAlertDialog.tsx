@@ -4,6 +4,7 @@ import { useEffect, useRef, type ReactNode } from "react"
 import { AlertTriangle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { dashboardBtnPrimary } from "@/features/builder/components/dashboard-ui"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 
 interface DashboardAlertDialogProps {
   open: boolean
@@ -21,13 +22,16 @@ export function DashboardAlertDialog({
   open,
   title,
   description,
-  confirmLabel = "Yes, continue",
-  cancelLabel = "Cancel",
+  confirmLabel,
+  cancelLabel,
   variant = "default",
   loading = false,
   onConfirm,
   onCancel,
 }: DashboardAlertDialogProps) {
+  const common = useMessages().pages.common
+  const resolvedConfirm = confirmLabel ?? common.yesContinue
+  const resolvedCancel = cancelLabel ?? common.cancel
   const cancelRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
@@ -47,7 +51,7 @@ export function DashboardAlertDialog({
       <button
         type="button"
         className="absolute inset-0 bg-black/40"
-        aria-label="Close dialog"
+        aria-label={common.close}
         onClick={onCancel}
       />
       <div
@@ -83,7 +87,7 @@ export function DashboardAlertDialog({
             onClick={onCancel}
             className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
           >
-            {cancelLabel}
+            {resolvedCancel}
           </button>
           <button
             type="button"
@@ -95,7 +99,7 @@ export function DashboardAlertDialog({
               variant === "danger" && "bg-red-600 hover:bg-red-700",
             )}
           >
-            {loading ? "Processing..." : confirmLabel}
+            {loading ? common.processing : resolvedConfirm}
           </button>
         </div>
       </div>

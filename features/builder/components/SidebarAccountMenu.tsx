@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { ChevronDown, LogOut, User, User2 } from "lucide-react"
 import { logoutAction } from "@/features/auth/actions"
+import { LocaleToggle } from "@/features/i18n/LocaleToggle"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -19,9 +21,17 @@ export function SidebarAccountMenu({
   showProfile = true,
   variant = "sidebar",
 }: Props) {
+  const t = useMessages()
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const isHeader = variant === "header"
+
+  const roleLabel =
+    subtitle === "Admin"
+      ? t.dashboard.roleAdmin
+      : subtitle === "Merchant" || subtitle === "Pro Merchant"
+        ? t.dashboard.roleMerchant
+        : subtitle
 
   useEffect(() => {
     if (!open) return
@@ -77,7 +87,7 @@ export function SidebarAccountMenu({
               <span className="block truncate text-[13px] font-semibold leading-tight text-dash-ink">
                 {displayName}
               </span>
-              <span className="block truncate text-[10px] leading-tight text-dash-muted">{subtitle}</span>
+              <span className="block truncate text-[10px] leading-tight text-dash-muted">{roleLabel}</span>
             </span>
             <ChevronDown
               className={cn(
@@ -95,7 +105,7 @@ export function SidebarAccountMenu({
               <span className="block truncate text-xs font-semibold leading-tight text-dash-ink">
                 {displayName}
               </span>
-              <span className="block text-[10px] leading-tight text-dash-muted">{subtitle}</span>
+              <span className="block text-[10px] leading-tight text-dash-muted">{roleLabel}</span>
             </div>
             <ChevronDown
               className={cn(
@@ -111,8 +121,8 @@ export function SidebarAccountMenu({
         <div
           role="menu"
           className={cn(
-            "absolute overflow-hidden rounded-xl border border-dash-border bg-dash-surface shadow-lg ring-1 ring-dash-ink/5 z-50",
-            isHeader ? "right-0 top-full mt-2 w-48" : "bottom-full left-0 right-0 mb-2",
+            "absolute z-50 overflow-hidden rounded-xl border border-dash-border bg-dash-surface shadow-lg ring-1 ring-dash-ink/5",
+            isHeader ? "right-0 top-full mt-2 w-56" : "bottom-full left-0 right-0 mb-2",
           )}
         >
           {showProfile && (
@@ -123,9 +133,22 @@ export function SidebarAccountMenu({
               className="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-dash-ink transition-colors duration-200 hover:bg-dash-bg"
             >
               <User className="h-4 w-4 shrink-0 text-gray-400" />
-              Profile
+              {t.dashboard.profile}
             </Link>
           )}
+
+          <div
+            role="none"
+            className={cn(
+              "flex items-center justify-between gap-2 px-3 py-2.5",
+              showProfile && "border-t border-dash-border",
+            )}
+          >
+            <span className="text-xs font-medium text-dash-muted">{t.locale.label}</span>
+            <LocaleToggle
+              className="border-dash-border bg-dash-bg text-dash-ink hover:bg-white hover:text-dash-ink"
+            />
+          </div>
 
           <form action={logoutAction}>
             <button
@@ -134,7 +157,7 @@ export function SidebarAccountMenu({
               className="flex w-full items-center gap-2.5 border-t border-dash-border px-3 py-2.5 text-left text-sm font-medium text-dash-danger transition-colors duration-200 hover:bg-red-50"
             >
               <LogOut className="h-4 w-4 shrink-0" />
-              Logout
+              {t.dashboard.logout}
             </button>
           </form>
         </div>

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { useEffect, useState, useTransition } from "react"
+import { useEffect, useMemo, useState, useTransition } from "react"
 import {
   LayoutDashboard,
   Store,
@@ -20,25 +20,8 @@ import {
   Loader2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 import { sidebarNavItemClass, sidebarSectionLabel } from "./dashboard-ui"
-
-const TOP_NAV = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/templates", label: "Browse Template", icon: Compass },
-]
-
-const STORE_NAV = [
-  { href: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "templates", label: "Template", icon: LayoutTemplate },
-  { href: "products", label: "Products", icon: Package },
-  { href: "categories", label: "Categories", icon: Tag },
-  { href: "orders", label: "Orders", icon: ShoppingCart },
-  { href: "customers", label: "Customers", icon: Users },
-  { href: "customize", label: "Customize", icon: Palette },
-  { href: "settings", label: "Settings", icon: Settings },
-]
-
-const TOOLS_NAV = [{ href: "/support", label: "Support", icon: HelpCircle }]
 
 type StoreItem = { id: string; name: string }
 
@@ -49,16 +32,43 @@ export function SidebarNavLinks({
   stores?: StoreItem[]
   isAdmin?: boolean
 }) {
+  const t = useMessages().dashboard
   const pathname = usePathname()
   const router = useRouter()
   const [stores, setStores] = useState(initialStores)
   const [isPending, startTransition] = useTransition()
   const [pendingStoreId, setPendingStoreId] = useState<string | null>(null)
 
+  const topNav = useMemo(
+    () => [
+      { href: "/dashboard", label: t.storeDashboard, icon: LayoutDashboard },
+      { href: "/templates", label: t.browseTemplate, icon: Compass },
+    ],
+    [t.browseTemplate, t.storeDashboard],
+  )
+
+  const storeNav = useMemo(
+    () => [
+      { href: "dashboard", label: t.storeDashboard, icon: LayoutDashboard },
+      { href: "templates", label: t.storeTemplate, icon: LayoutTemplate },
+      { href: "products", label: t.products, icon: Package },
+      { href: "categories", label: t.categories, icon: Tag },
+      { href: "orders", label: t.orders, icon: ShoppingCart },
+      { href: "customers", label: t.customers, icon: Users },
+      { href: "customize", label: t.customize, icon: Palette },
+      { href: "settings", label: t.settings, icon: Settings },
+    ],
+    [t],
+  )
+
+  const toolsNav = useMemo(
+    () => [{ href: "/support", label: t.support, icon: HelpCircle }],
+    [t.support],
+  )
+
   const storeMatch = pathname.match(/^\/stores\/([^/]+)/)
   const activeStoreId = storeMatch?.[1] ?? null
 
-  // Accordion: toko mana yang submenu-nya terbuka.
   const [openStoreId, setOpenStoreId] = useState<string | null>(activeStoreId)
 
   useEffect(() => {
@@ -85,8 +95,6 @@ export function SidebarNavLinks({
     }
   }, [pathname])
 
-  // Sinkron accordion dengan konteks URL:
-  // di dalam /stores/:id → buka toko itu; ke menu merchant utama → tutup.
   useEffect(() => {
     setOpenStoreId(activeStoreId)
   }, [activeStoreId])
@@ -100,16 +108,13 @@ export function SidebarNavLinks({
   function onStoreClick(storeId: string) {
     const isOpen = openStoreId === storeId
 
-    // Sudah terbuka → tutup saja (tetap di halaman sekarang).
     if (isOpen) {
       setOpenStoreId(null)
       return
     }
 
-    // Buka accordion.
     setOpenStoreId(storeId)
 
-    // Belum jadi toko aktif di URL → navigasi ke dashboard toko itu.
     if (storeId !== activeStoreId) {
       setPendingStoreId(storeId)
       startTransition(() => {
@@ -121,9 +126,9 @@ export function SidebarNavLinks({
   return (
     <nav className="flex flex-col gap-6">
       <div>
-        <p className={sidebarSectionLabel}>Menu</p>
+        <p className={sidebarSectionLabel}>{t.menu}</p>
         <div className="flex flex-col gap-1">
-          {TOP_NAV.map(({ href, label, icon: Icon }) => {
+          {topNav.map(({ href, label, icon: Icon }) => {
             const active =
               pathname === href || (href !== "/dashboard" && pathname.startsWith(href + "/"))
             return (
@@ -137,7 +142,7 @@ export function SidebarNavLinks({
           {isAdmin && (
             <Link href="/admin" className={sidebarNavItemClass(pathname.startsWith("/admin"))}>
               <Shield className="h-[18px] w-[18px] shrink-0" strokeWidth={1.75} />
-              Admin Panel
+              {t.adminPanel}
             </Link>
           )}
         </div>
@@ -145,7 +150,7 @@ export function SidebarNavLinks({
 
       {stores.length > 0 && (
         <div>
-          <p className={sidebarSectionLabel}>My Stores</p>
+          <p className={sidebarSectionLabel}>{t.myStores}</p>
           <div className="flex flex-col gap-1">
             {stores.map((store) => {
               const isActive = activeStoreId === store.id
@@ -205,7 +210,7 @@ export function SidebarNavLinks({
                     <div className="overflow-hidden">
                       <div className="ml-4 mt-1 border-l border-dash-border/80 pb-2 pl-2.5">
                         <div className="flex flex-col gap-0.5 pt-1">
-                          {STORE_NAV.map(({ href: sub, label, icon: Icon }) => {
+                          {storeNav.map(({ href: sub, label, icon: Icon }) => {
                             const subPath = `/stores/${store.id}/${sub}`
                             const subActive =
                               pathname === subPath || pathname.startsWith(subPath + "/")
@@ -235,9 +240,9 @@ export function SidebarNavLinks({
       )}
 
       <div>
-        <p className={sidebarSectionLabel}>Tools</p>
+        <p className={sidebarSectionLabel}>{t.tools}</p>
         <div className="flex flex-col gap-1">
-          {TOOLS_NAV.map(({ href, label, icon: Icon }) => {
+          {toolsNav.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(href + "/")
             return (
               <Link key={href} href={href} className={sidebarNavItemClass(active)}>

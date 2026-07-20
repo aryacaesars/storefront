@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { Search, X } from "lucide-react"
 import { dashboardInput } from "@/features/builder/components/dashboard-ui"
 import { cn } from "@/lib/utils"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 
 interface TemplatesSearchBarProps {
   defaultValue?: string
@@ -14,8 +15,12 @@ interface TemplatesSearchBarProps {
 /** Search bar scoped ke query `?q=` — filter dilakukan di server (owned only). */
 export function TemplatesSearchBar({
   defaultValue = "",
-  placeholder = "Search templates...",
+  placeholder,
 }: TemplatesSearchBarProps) {
+  const pages = useMessages().pages
+  const common = pages.common
+  const resolvedPlaceholder =
+    placeholder ?? pages.templatesLibrary.searchPlaceholder
   const router = useRouter()
   const pathname = usePathname()
   const [value, setValue] = useState(defaultValue)
@@ -49,16 +54,16 @@ export function TemplatesSearchBar({
         type="search"
         value={value}
         onChange={(event) => setValue(event.target.value)}
-        placeholder={placeholder}
+        placeholder={resolvedPlaceholder}
         className={cn(dashboardInput, "h-10 pl-10 pr-10")}
-        aria-label="Search your templates"
+        aria-label={common.search}
       />
       {value && (
         <button
           type="button"
           onClick={() => setValue("")}
           className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-          aria-label="Clear search"
+          aria-label={common.clearSearch}
         >
           <X className="h-4 w-4" />
         </button>

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Trash2 } from "lucide-react"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 import { DashboardAlertDialog } from "@/features/builder/components/DashboardAlertDialog"
 import { useDashboardToast } from "@/features/builder/components/DashboardToast"
 import type { DeleteCategoryResult } from "@/app/(builder)/(dashboard)/stores/[storeId]/categories/actions"
@@ -20,6 +21,7 @@ export function CategoryDeleteButton({
   redirectTo,
   variant = "icon",
 }: CategoryDeleteButtonProps) {
+  const t = useMessages().pages
   const router = useRouter()
   const toast = useDashboardToast()
   const [open, setOpen] = useState(false)
@@ -30,9 +32,13 @@ export function CategoryDeleteButton({
       const result = await deleteAction()
       setOpen(false)
       if (result.ok) {
-        toast.success(`Category "${categoryName}" deleted successfully.`, "Success", () => {
-          if (redirectTo) router.push(redirectTo)
-        })
+        toast.success(
+          t.categories.deletedToast.replace("{name}", categoryName),
+          t.common.success,
+          () => {
+            if (redirectTo) router.push(redirectTo)
+          },
+        )
         return
       }
       toast.error(result.error)
@@ -47,14 +53,14 @@ export function CategoryDeleteButton({
           onClick={() => setOpen(true)}
           className="rounded-lg border border-red-300 px-5 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
         >
-          Delete Category
+          {t.categories.deleteCategory}
         </button>
       ) : (
         <button
           type="button"
           onClick={() => setOpen(true)}
           className="p-1.5 text-gray-400 transition-colors hover:text-red-500"
-          title="Delete category"
+          title={t.categories.deleteCategory}
         >
           <Trash2 className="h-4 w-4" />
         </button>
@@ -62,14 +68,9 @@ export function CategoryDeleteButton({
 
       <DashboardAlertDialog
         open={open}
-        title="Delete category?"
-        description={
-          <>
-            Category <strong>{categoryName}</strong> will be deleted. Products in this category
-            will not be deleted.
-          </>
-        }
-        confirmLabel="Yes, delete"
+        title={t.categories.deleteConfirmTitle}
+        description={t.categories.deleteConfirmBody}
+        confirmLabel={t.common.yesDelete}
         variant="danger"
         loading={pending}
         onConfirm={handleConfirm}
