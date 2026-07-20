@@ -23,7 +23,7 @@ export function DashboardSelect({
   name,
   options,
   defaultValue = "",
-  placeholder = "Pilih opsi",
+  placeholder = "Select an option",
   label,
   className,
 }: DashboardSelectProps) {

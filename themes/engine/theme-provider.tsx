@@ -10,6 +10,11 @@ interface ThemeProviderProps {
   forcedDevice?: DeviceMode
   /** false = tanpa min-h-full / bg surface (thumbnail kartu). */
   surface?: boolean
+  /**
+   * Kunci lebar `@container` (px). Dipakai thumbnail kartu supaya `@2xl:` dll.
+   * selalu resolve ke desktop, tidak ikut sempitnya card di mobile viewport.
+   */
+  containerWidth?: number
 }
 
 export function ThemeProvider({
@@ -17,6 +22,7 @@ export function ThemeProvider({
   children,
   forcedDevice,
   surface = true,
+  containerWidth,
 }: ThemeProviderProps) {
   const palette = getThemePalette(config.templateId)
 
@@ -38,6 +44,13 @@ export function ThemeProvider({
           "--theme-muted": palette.muted,
           "--theme-heading-font": config.headingFont,
           "--theme-body-font": config.bodyFont,
+          ...(containerWidth
+            ? {
+                width: containerWidth,
+                minWidth: containerWidth,
+                maxWidth: containerWidth,
+              }
+            : {}),
         } as React.CSSProperties
       }
     >

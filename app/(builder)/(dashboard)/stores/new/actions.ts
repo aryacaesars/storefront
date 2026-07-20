@@ -9,13 +9,13 @@ import {
 } from "@/server/services/tenant.service"
 
 const CreateStoreInput = z.object({
-  name: z.string().trim().min(1, "Nama store wajib diisi.").max(100, "Nama terlalu panjang."),
+  name: z.string().trim().min(1, "Store name is required.").max(100, "Name is too long."),
   slug: z
     .string()
     .trim()
-    .min(2, "Slug minimal 2 karakter.")
-    .max(63, "Slug maksimal 63 karakter.")
-    .regex(/^[a-z0-9][a-z0-9-]*[a-z0-9]$/, "Slug hanya huruf kecil, angka, dan tanda hubung. Tidak boleh diawali atau diakhiri tanda hubung."),
+    .min(2, "Slug must be at least 2 characters.")
+    .max(63, "Slug must be at most 63 characters.")
+    .regex(/^[a-z0-9][a-z0-9-]*[a-z0-9]$/, "Slug must use lowercase letters, numbers, and hyphens only. It cannot start or end with a hyphen."),
 })
 
 export type CreateStoreState = { error: string } | undefined
@@ -32,13 +32,13 @@ export async function createStoreAction(
   })
 
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Input tidak valid." }
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input." }
   }
 
   const { name, slug } = parsed.data
 
   if (await slugExists(slug)) {
-    return { error: `Slug "${slug}" sudah digunakan. Pilih slug lain.` }
+    return { error: `Slug "${slug}" is already taken. Choose another slug.` }
   }
 
   const store = await createStore({ name, slug, ownerId: session.userId })

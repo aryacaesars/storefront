@@ -48,7 +48,7 @@ export function useDashboardActionNotice(
       toast.error(options?.errorMessage ?? state.error)
     }
     if ("success" in state) {
-      toast.success(options?.successMessage ?? "Berhasil disimpan.")
+      toast.success(options?.successMessage ?? "Saved successfully.")
     }
   }, [state, options?.successMessage, options?.errorMessage, toast])
 }

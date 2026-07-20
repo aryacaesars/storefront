@@ -13,7 +13,7 @@ export async function generateMetadata({
 }) {
   const { storeId } = await params
   const store = await getStoreById(storeId)
-  return { title: store ? `Pengaturan — ${store.name}` : "Pengaturan" }
+  return { title: store ? `Settings — ${store.name}` : "Settings" }
 }
 
 export default async function StoreSettingsPage({
@@ -28,7 +28,7 @@ export default async function StoreSettingsPage({
 
   return (
     <DashboardShell
-      pageTitle="Pengaturan Store"
+      pageTitle="Store Settings"
       pageSubtitle={getStorefrontHost(store.slug)}
     >
       <div className="flex w-full max-w-2xl flex-col gap-6">

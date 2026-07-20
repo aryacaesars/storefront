@@ -33,16 +33,16 @@ export default async function AdminTemplatesPage() {
   return (
     <DashboardShell
       pageTitle="Template Marketplace"
-      pageSubtitle={`${templates.length} template`}
+      pageSubtitle={`${templates.length} templates`}
       action={
         <Link href="/admin/templates/new" className={dashboardBtnPrimary}>
-          + Tambah Template
+          + Add Template
         </Link>
       }
     >
       {templates.length === 0 ? (
         <DashboardPanel className="p-12 text-center">
-          <p className="text-sm text-gray-400">Belum ada template.</p>
+          <p className="text-sm text-gray-400">No templates yet.</p>
         </DashboardPanel>
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">

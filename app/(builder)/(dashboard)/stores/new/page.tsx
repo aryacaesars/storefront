@@ -9,19 +9,19 @@ import {
 } from "@/features/builder/components/dashboard-ui"
 import { ROOT_DOMAIN } from "@/lib/tenant/storefront-url"
 
-export const metadata = { title: "Buat Store Baru" }
+export const metadata = { title: "Create New Store" }
 
 export default async function NewStorePage() {
   await requireSession()
 
   return (
     <DashboardShell
-      pageTitle="Buat Store Baru"
-      pageSubtitle="Siapkan identitas toko. Subdomain jadi alamat storefront publik kamu."
+      pageTitle="Create New Store"
+      pageSubtitle="Set up your store identity. The subdomain becomes your public storefront address."
     >
       <div className="flex w-full flex-col gap-5">
         <Link href="/dashboard" className={dashboardBackLink}>
-          ← Kembali ke Dashboard
+          ← Back to Dashboard
         </Link>
 
         <DashboardPanel className="overflow-hidden p-0">
@@ -31,10 +31,10 @@ export default async function NewStorePage() {
                 <Store className="h-5 w-5" strokeWidth={1.75} aria-hidden />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-dash-ink">Identitas toko</p>
+                <p className="text-sm font-semibold text-dash-ink">Store identity</p>
                 <p className="mt-1 text-sm leading-relaxed text-dash-muted">
-                  Isi nama dan subdomain. Setelah dibuat, kamu bisa langsung kelola produk
-                  dan template.
+                  Enter a name and subdomain. Once created, you can manage products and templates
+                  right away.
                 </p>
               </div>
             </div>

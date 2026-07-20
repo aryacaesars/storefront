@@ -20,7 +20,7 @@ interface CategoryFormProps {
 export function CategoryForm({
   action,
   defaultValues = {},
-  submitLabel = "Simpan",
+  submitLabel = "Save",
   productCount,
 }: CategoryFormProps) {
   const [state, formAction, pending] = useActionState<CategoryFormState, FormData>(
@@ -29,21 +29,21 @@ export function CategoryForm({
   )
 
   useDashboardActionNotice(state, {
-    successMessage: "Kategori berhasil disimpan.",
+    successMessage: "Category saved successfully.",
   })
 
   return (
     <form action={formAction} className="flex w-full flex-col gap-5">
       <div>
         <label className={dashboardLabel}>
-          Nama Kategori <span className="text-red-500">*</span>
+          Category Name <span className="text-red-500">*</span>
         </label>
         <input
           name="name"
           type="text"
           required
           defaultValue={defaultValues.name}
-          placeholder="Contoh: Sepatu"
+          placeholder="Example: Shoes"
           className={dashboardInput}
         />
       </div>
@@ -55,22 +55,22 @@ export function CategoryForm({
             {defaultValues.slug}
           </p>
           <p className="mt-1 text-xs text-gray-400">
-            Slug otomatis diperbarui dari nama kategori.
+            Slug is automatically updated from the category name.
           </p>
         </div>
       ) : null}
 
       {productCount !== undefined ? (
         <div className="rounded-lg border border-gray-100 bg-gray-50/80 px-4 py-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-400">Produk</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-gray-400">Products</p>
           <p className="mt-1 text-sm font-semibold text-ink">
-            {productCount} produk menggunakan kategori ini
+            {productCount} products use this category
           </p>
         </div>
       ) : null}
 
       <button type="submit" disabled={pending} className={dashboardBtnPrimary}>
-        {pending ? "Menyimpan..." : submitLabel}
+        {pending ? "Saving..." : submitLabel}
       </button>
     </form>
   )

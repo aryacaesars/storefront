@@ -128,8 +128,8 @@ export default async function TemplatesPage({
       pageTitle="Template"
       pageSubtitle={
         q.trim()
-          ? `${total} hasil dari ${ownedTotal} template milikmu`
-          : `${ownedTotal} template milikmu`
+          ? `${total} results from ${ownedTotal} of your templates`
+          : `${ownedTotal} of your templates`
       }
       action={
         <Link href={discoverHref} className={dashboardBtnPrimary}>
@@ -142,8 +142,8 @@ export default async function TemplatesPage({
           success === "1"
             ? {
                 type: "success",
-                message: "Template berhasil diaktifkan dan dipublish ke storefront.",
-                title: "Berhasil",
+                message: "Template activated and published to storefront successfully.",
+                title: "Success",
               }
             : null
         }
@@ -152,14 +152,14 @@ export default async function TemplatesPage({
       <div className="mb-5">
         <TemplatesSearchBar
           defaultValue={q}
-          placeholder="Cari template milikmu..."
+          placeholder="Search your templates..."
         />
       </div>
 
       {ownedTotal === 0 ? (
         <DashboardPanel className="p-12 text-center">
           <p className="text-sm text-gray-400">
-            Belum ada template yang dimiliki.
+            You don&apos;t own any templates yet.
           </p>
           <Link
             href={discoverHref}
@@ -171,7 +171,7 @@ export default async function TemplatesPage({
       ) : total === 0 ? (
         <DashboardPanel className="p-12 text-center">
           <p className="text-sm text-gray-400">
-            Tidak ada template yang cocok dengan &ldquo;{q.trim()}&rdquo;.
+            No templates match &ldquo;{q.trim()}&rdquo;.
           </p>
         </DashboardPanel>
       ) : (

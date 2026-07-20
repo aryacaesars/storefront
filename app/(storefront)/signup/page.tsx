@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import { getCustomerSession } from "@/features/storefront/customer-dal"
 import { SignUpForm } from "./SignUpForm"
 
-export const metadata = { title: "Daftar" }
+export const metadata = { title: "Sign Up" }
 
 export default async function SignUpPage() {
   const session = await getCustomerSession()
@@ -16,14 +16,14 @@ export default async function SignUpPage() {
           className="text-2xl font-bold text-[var(--theme-text)]"
           style={{ fontFamily: "var(--theme-heading-font)" }}
         >
-          Daftar
+          Sign Up
         </h1>
-        <p className="mt-1 text-sm text-[var(--theme-muted)]">Buat akun untuk melacak pesanan kamu.</p>
+        <p className="mt-1 text-sm text-[var(--theme-muted)]">Create an account to track your orders.</p>
         <SignUpForm />
         <p className="mt-6 text-center text-sm text-[var(--theme-muted)]">
-          Sudah punya akun?{" "}
+          Already have an account?{" "}
           <Link href="/signin" className="font-semibold" style={{ color: "var(--theme-primary)" }}>
-            Masuk
+            Sign In
           </Link>
         </p>
       </div>

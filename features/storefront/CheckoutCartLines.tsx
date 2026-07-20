@@ -22,9 +22,9 @@ export function CheckoutCartLines({ cart }: { cart: CartItem[] }) {
   if (cart.length === 0) {
     return (
       <p className="text-sm text-[#515160]">
-        Keranjang kosong.{" "}
+        Your cart is empty.{" "}
         <Link href="/products" className="font-semibold text-[var(--theme-primary)]">
-          Belanja dulu
+          Shop now
         </Link>
       </p>
     )
@@ -54,7 +54,7 @@ export function CheckoutCartLines({ cart }: { cart: CartItem[] }) {
               <div className="inline-flex items-center rounded-full border border-black/10">
                 <button
                   type="button"
-                  aria-label="Kurangi qty"
+                  aria-label="Decrease quantity"
                   disabled={pending}
                   onClick={() => changeQty(item.slug, item.quantity - 1)}
                   className="flex h-8 w-8 items-center justify-center text-[#515160] transition-colors hover:text-[var(--theme-primary)] disabled:opacity-50"
@@ -66,7 +66,7 @@ export function CheckoutCartLines({ cart }: { cart: CartItem[] }) {
                 </span>
                 <button
                   type="button"
-                  aria-label="Tambah qty"
+                  aria-label="Increase quantity"
                   disabled={pending}
                   onClick={() => changeQty(item.slug, item.quantity + 1)}
                   className="flex h-8 w-8 items-center justify-center text-[#515160] transition-colors hover:text-[var(--theme-primary)] disabled:opacity-50"
@@ -78,7 +78,7 @@ export function CheckoutCartLines({ cart }: { cart: CartItem[] }) {
                 href={`/products/${item.slug}`}
                 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--theme-primary)]"
               >
-                Ubah produk
+                Edit product
               </Link>
             </div>
           </div>

@@ -21,8 +21,8 @@ export function DashboardAlertDialog({
   open,
   title,
   description,
-  confirmLabel = "Ya, lanjutkan",
-  cancelLabel = "Batal",
+  confirmLabel = "Yes, continue",
+  cancelLabel = "Cancel",
   variant = "default",
   loading = false,
   onConfirm,
@@ -47,7 +47,7 @@ export function DashboardAlertDialog({
       <button
         type="button"
         className="absolute inset-0 bg-black/40"
-        aria-label="Tutup dialog"
+        aria-label="Close dialog"
         onClick={onCancel}
       />
       <div
@@ -95,7 +95,7 @@ export function DashboardAlertDialog({
               variant === "danger" && "bg-red-600 hover:bg-red-700",
             )}
           >
-            {loading ? "Memproses..." : confirmLabel}
+            {loading ? "Processing..." : confirmLabel}
           </button>
         </div>
       </div>

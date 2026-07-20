@@ -8,9 +8,9 @@ import {
 } from "@/features/docs/content"
 
 export const metadata = {
-  title: "Dokumentasi Etalase",
+  title: "Etalase Documentation",
   description:
-    "Pelajari cara setup toko, template, kustomisasi, katalog, dan operasional di Etalase.",
+    "Learn how to set up your store, templates, customization, catalog, and operations in Etalase.",
 }
 
 export default function DocsHubPage() {
@@ -18,14 +18,14 @@ export default function DocsHubPage() {
     <DocsShell>
       <div className="mx-auto max-w-3xl">
         <p className="text-xs font-semibold uppercase tracking-[0.08em] text-brand">
-          Dokumentasi
+          Documentation
         </p>
         <h1 className="mt-2 font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl">
-          Panduan merchant Etalase
+          Etalase merchant guide
         </h1>
         <p className="mt-3 max-w-2xl text-base leading-relaxed text-dash-muted">
-          Dari buat toko sampai live di subdomain — semua langkah inti ada di sini.
-          Pilih kategori di bawah atau cari dari sidebar.
+          From creating a store to going live on your subdomain — all the essential steps are here.
+          Pick a category below or search from the sidebar.
         </p>
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2">
@@ -45,7 +45,7 @@ export default function DocsHubPage() {
                   {category.description}
                 </p>
                 <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand">
-                  {articles.length} artikel
+                  {articles.length} articles
                   <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                 </span>
               </Link>
@@ -54,7 +54,7 @@ export default function DocsHubPage() {
         </div>
 
         <section className="mt-12">
-          <h2 className="text-sm font-semibold text-ink">Mulai dari sini</h2>
+          <h2 className="text-sm font-semibold text-ink">Start here</h2>
           <ul className="mt-3 space-y-2">
             {DOCS_ARTICLES.slice(0, 4).map((article) => (
               <li key={article.slug}>

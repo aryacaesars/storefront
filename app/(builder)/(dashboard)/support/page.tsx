@@ -12,7 +12,7 @@ export default async function SupportPage() {
   return (
     <DashboardShell
       pageTitle="Support"
-      pageSubtitle="Butuh bantuan? Hubungi tim Etalase lewat channel di bawah."
+      pageSubtitle="Need help? Contact the Etalase team through the channels below."
     >
       <div className="grid w-full gap-4 md:grid-cols-2 xl:grid-cols-3">
         <DashboardPanel className="flex items-start gap-4 p-6">
@@ -22,7 +22,7 @@ export default async function SupportPage() {
           <div>
             <h2 className="text-base font-bold text-ink">Email</h2>
             <p className="mt-1 text-sm text-gray-500">
-              Kirim pertanyaan atau laporan bug ke tim kami.
+              Send questions or bug reports to our team.
             </p>
             <a
               href="mailto:support@etalase.com"
@@ -38,15 +38,15 @@ export default async function SupportPage() {
             <MessageCircle className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-ink">Dokumentasi</h2>
+            <h2 className="text-base font-bold text-ink">Documentation</h2>
             <p className="mt-1 text-sm text-gray-500">
-              Pelajari cara setup store, template, dan kustomisasi.
+              Learn how to set up your store, templates, and customization.
             </p>
             <Link
               href="/docs"
               className="mt-3 inline-block text-sm font-semibold text-brand hover:text-brand-dark"
             >
-              Buka dokumentasi
+              Open documentation
             </Link>
           </div>
         </DashboardPanel>
@@ -56,19 +56,19 @@ export default async function SupportPage() {
             <HelpCircle className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-ink">Tips Cepat</h2>
+            <h2 className="text-base font-bold text-ink">Quick Tips</h2>
             <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-gray-500">
               <li>
-                <strong className="font-medium text-ink">Template</strong> — pilih & aktifkan
-                desain storefront
+                <strong className="font-medium text-ink">Templates</strong> — choose and activate
+                your storefront design
               </li>
               <li>
-                <strong className="font-medium text-ink">Kustomisasi</strong> — edit konten setelah
-                template aktif
+                <strong className="font-medium text-ink">Customization</strong> — edit content after
+                activating a template
               </li>
               <li>
-                <strong className="font-medium text-ink">Pengaturan</strong> — ubah nama & slug
-                store
+                <strong className="font-medium text-ink">Settings</strong> — change store name &
+                slug
               </li>
             </ul>
           </div>

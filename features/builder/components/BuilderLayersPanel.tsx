@@ -134,7 +134,7 @@ function collectLayerRows(
     items.forEach((item, itemIndex) => {
       rows.push({
         element: { kind: "image", sectionId, blockId: block.id, itemId: item.id },
-        label: `Gambar ${itemIndex + 1}`,
+        label: `Image ${itemIndex + 1}`,
         sublabel: `Z ${itemIndex + 1}`,
         imageUrl: item.src,
         block,
@@ -159,8 +159,8 @@ function collectLayerRows(
     for (const text of texts) {
       rows.push({
         element: { kind: "text", sectionId, blockId: block.id, itemId: text.id },
-        label: text.value || "Teks kosong",
-        sublabel: "Teks bebas",
+        label: text.value || "Empty text",
+        sublabel: "Free text",
         block,
         blockIndex,
       })
@@ -179,7 +179,7 @@ function collectLayerRows(
     for (const button of buttons) {
       rows.push({
         element: { kind: "button", sectionId, blockId: block.id, itemId: button.id },
-        label: button.label || "Tombol",
+        label: button.label || "Button",
         sublabel: "Button",
         block,
         blockIndex,
@@ -191,8 +191,8 @@ function collectLayerRows(
       const label = typeof settings?.label === "string" ? settings.label : ""
       rows.push({
         element: { kind: "text", sectionId, blockId: block.id, itemId: "label" },
-        label: label || "Label kosong",
-        sublabel: "Label kartu",
+        label: label || "Empty label",
+        sublabel: "Card label",
         block,
         blockIndex,
       })
@@ -202,8 +202,8 @@ function collectLayerRows(
     if (block.type === "hero-media") {
       rows.push({
         element: { kind: "frame", sectionId, blockId: block.id },
-        label: "Card & latar hero",
-        sublabel: "Latar",
+        label: "Hero card & background",
+        sublabel: "Background",
         block,
         blockIndex,
       })
@@ -212,16 +212,16 @@ function collectLayerRows(
     // Hero title lines live on the media block.
     if (block.type === "hero-media") {
       const lines: Array<{ id: "title1" | "title2"; value: string }> = [
-        { id: "title1", value: config.hero?.title ?? "Judul 1" },
-        { id: "title2", value: config.hero?.subtitle ?? "Judul 2" },
+        { id: "title1", value: config.hero?.title ?? "Title 1" },
+        { id: "title2", value: config.hero?.subtitle ?? "Title 2" },
       ]
       for (const line of lines) {
         if (settings?.[`${line.id}Hidden`] === true) continue
         rows.push({
           element: { kind: "text", sectionId, blockId: block.id, itemId: line.id },
-          label: line.value || (line.id === "title1" ? "Judul 1" : "Judul 2"),
+          label: line.value || (line.id === "title1" ? "Title 1" : "Title 2"),
           sublabel:
-            settings?.[`${line.id}Layer`] === "behind" ? "Teks belakang" : "Teks depan",
+            settings?.[`${line.id}Layer`] === "behind" ? "Text behind" : "Text in front",
           block,
           blockIndex,
         })
@@ -233,7 +233,7 @@ function collectLayerRows(
       const label = typeof settings?.label === "string" ? settings.label : undefined
       rows.push({
         element: { kind: "button", sectionId, blockId: block.id },
-        label: label || config.hero?.ctaLabel || "Tombol CTA",
+        label: label || config.hero?.ctaLabel || "CTA button",
         sublabel: "Button",
         block,
         blockIndex,
@@ -245,7 +245,7 @@ function collectLayerRows(
       const rawUrl = settings?.imageUrl
       rows.push({
         element: { kind: "image", sectionId, blockId: block.id },
-        label: def?.label ?? `Gambar ${blockIndex + 1}`,
+        label: def?.label ?? `Image ${blockIndex + 1}`,
         sublabel: `Layer ${blockIndex + 1} · Z ${blockIndex + 1}`,
         imageUrl: typeof rawUrl === "string" ? rawUrl : undefined,
         block,
@@ -303,8 +303,8 @@ export function BuilderLayersPanel({
         <h2 className="text-sm font-semibold text-gray-900">Layer</h2>
         <p className="mt-1 text-xs text-gray-400">
           {layerData
-            ? `Elemen di “${layerData.sectionLabel}” — posisi, urutan Z, dan align.`
-            : "Pilih section di preview untuk atur layer."}
+            ? `Elements in “${layerData.sectionLabel}” — position, Z order, and alignment.`
+            : "Select a section in the preview to manage layers."}
         </p>
       </div>
 
@@ -312,18 +312,18 @@ export function BuilderLayersPanel({
         <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center">
           <Layers className="mx-auto h-6 w-6 text-gray-300" />
           <p className="mt-2 text-xs font-medium text-gray-500">
-            Belum ada section dipilih
+            No section selected
           </p>
           <p className="mt-1 text-[11px] text-gray-400">
-            Klik section di preview, lalu atur posisi dan urutan elemen di sini.
+            Click a section in the preview, then adjust position and element order here.
           </p>
         </div>
       ) : layerData.rows.length === 0 ? (
         <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center">
           <ImageIcon className="mx-auto h-6 w-6 text-gray-300" />
-          <p className="mt-2 text-xs font-medium text-gray-500">Tidak ada layer</p>
+          <p className="mt-2 text-xs font-medium text-gray-500">No layers</p>
           <p className="mt-1 text-[11px] text-gray-400">
-            Section ini belum punya elemen yang bisa diatur.
+            This section has no adjustable elements yet.
           </p>
         </div>
       ) : (
@@ -403,31 +403,31 @@ export function BuilderLayersPanel({
                       </SettingsField>
                     </div>
 
-                    <SettingsField label="Urutan Z">
+                    <SettingsField label="Z order">
                       <div className="grid grid-cols-4 gap-1.5">
                         <ArrangeButton
-                          label="Paling belakang"
+                          label="Send to back"
                           disabled={row.itemIndex === 0}
                           onClick={() => moveItem(row, "back")}
                         >
                           <ArrowDownToLine className="h-3.5 w-3.5" />
                         </ArrangeButton>
                         <ArrangeButton
-                          label="Mundur"
+                          label="Send backward"
                           disabled={row.itemIndex === 0}
                           onClick={() => moveItem(row, "backward")}
                         >
                           <ArrowDown className="h-3.5 w-3.5" />
                         </ArrangeButton>
                         <ArrangeButton
-                          label="Maju"
+                          label="Bring forward"
                           disabled={row.itemIndex === row.items.length - 1}
                           onClick={() => moveItem(row, "forward")}
                         >
                           <ArrowUp className="h-3.5 w-3.5" />
                         </ArrangeButton>
                         <ArrangeButton
-                          label="Paling depan"
+                          label="Bring to front"
                           disabled={row.itemIndex === row.items.length - 1}
                           onClick={() => moveItem(row, "front")}
                         >
@@ -436,16 +436,16 @@ export function BuilderLayersPanel({
                       </div>
                     </SettingsField>
 
-                    <SettingsField label="Align di canvas">
+                    <SettingsField label="Align on canvas">
                       <div className="grid grid-cols-6 gap-1.5">
                         <ArrangeButton
-                          label="Kiri"
+                          label="Left"
                           onClick={() => patchItem(row, { x: 0 })}
                         >
                           <AlignStartVertical className="h-3.5 w-3.5" />
                         </ArrangeButton>
                         <ArrangeButton
-                          label="Tengah horizontal"
+                          label="Center horizontally"
                           onClick={() =>
                             patchItem(row, {
                               x: Math.round((100 - row.item!.width) / 2),
@@ -455,7 +455,7 @@ export function BuilderLayersPanel({
                           <AlignCenterVertical className="h-3.5 w-3.5" />
                         </ArrangeButton>
                         <ArrangeButton
-                          label="Kanan"
+                          label="Right"
                           onClick={() =>
                             patchItem(row, { x: Math.max(0, 100 - row.item!.width) })
                           }
@@ -463,13 +463,13 @@ export function BuilderLayersPanel({
                           <AlignEndVertical className="h-3.5 w-3.5" />
                         </ArrangeButton>
                         <ArrangeButton
-                          label="Atas"
+                          label="Top"
                           onClick={() => patchItem(row, { y: 0 })}
                         >
                           <AlignStartHorizontal className="h-3.5 w-3.5" />
                         </ArrangeButton>
                         <ArrangeButton
-                          label="Tengah vertikal"
+                          label="Center vertically"
                           onClick={() =>
                             patchItem(row, {
                               y: Math.round((100 - row.item!.height) / 2),
@@ -479,7 +479,7 @@ export function BuilderLayersPanel({
                           <AlignCenterHorizontal className="h-3.5 w-3.5" />
                         </ArrangeButton>
                         <ArrangeButton
-                          label="Bawah"
+                          label="Bottom"
                           onClick={() =>
                             patchItem(row, { y: Math.max(0, 100 - row.item!.height) })
                           }
@@ -530,7 +530,7 @@ export function BuilderLayersPanel({
                       </SettingsField>
                     </div>
 
-                    <SettingsField label="Urutan Z (depan / belakang)">
+                    <SettingsField label="Z order (front / back)">
                       <div className="flex gap-2">
                         <button
                           type="button"
@@ -545,7 +545,7 @@ export function BuilderLayersPanel({
                           className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-lg border border-gray-200 text-[11px] font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           <ArrowDown className="h-3.5 w-3.5" />
-                          Belakang
+                          Back
                         </button>
                         <button
                           type="button"
@@ -560,18 +560,18 @@ export function BuilderLayersPanel({
                           className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-lg border border-gray-200 text-[11px] font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           <ArrowUp className="h-3.5 w-3.5" />
-                          Depan
+                          Front
                         </button>
                       </div>
                     </SettingsField>
 
                     {row.hasLabelLayer && (
-                      <SettingsField label="Teks vs gambar">
+                      <SettingsField label="Text vs image">
                         <SegmentedControl
                           value={resolved?.labelLayer === "behind" ? "behind" : "front"}
                           options={[
-                            { value: "front", label: "Teks depan" },
-                            { value: "behind", label: "Teks belakang" },
+                            { value: "front", label: "Text in front" },
+                            { value: "behind", label: "Text behind" },
                           ]}
                           onChange={(value) =>
                             onPatchBlock(selectedSectionId, row.block.id, {
@@ -594,16 +594,16 @@ export function BuilderLayersPanel({
                     onPatchBlock(selectedSectionId, row.block.id, patch)
                   return (
                     <div className="border-t border-gray-100 px-3 py-3">
-                      <SettingsField label="Align di canvas">
+                      <SettingsField label="Align on canvas">
                         <div className="grid grid-cols-6 gap-1.5">
                           <ArrangeButton
-                            label="Kiri"
+                            label="Left"
                             onClick={() => alignCta({ xPct: 0 })}
                           >
                             <AlignStartVertical className="h-3.5 w-3.5" />
                           </ArrangeButton>
                           <ArrangeButton
-                            label="Tengah horizontal"
+                            label="Center horizontally"
                             onClick={() =>
                               alignCta({
                                 xPct: Math.round((100 - ctaLayout.wPct) / 2),
@@ -613,7 +613,7 @@ export function BuilderLayersPanel({
                             <AlignCenterVertical className="h-3.5 w-3.5" />
                           </ArrangeButton>
                           <ArrangeButton
-                            label="Kanan"
+                            label="Right"
                             onClick={() =>
                               alignCta({ xPct: Math.max(0, 100 - ctaLayout.wPct) })
                             }
@@ -621,13 +621,13 @@ export function BuilderLayersPanel({
                             <AlignEndVertical className="h-3.5 w-3.5" />
                           </ArrangeButton>
                           <ArrangeButton
-                            label="Atas"
+                            label="Top"
                             onClick={() => alignCta({ yPx: 0 })}
                           >
                             <AlignStartHorizontal className="h-3.5 w-3.5" />
                           </ArrangeButton>
                           <ArrangeButton
-                            label="Tengah vertikal"
+                            label="Center vertically"
                             onClick={() =>
                               alignCta({
                                 yPx: Math.round(
@@ -639,7 +639,7 @@ export function BuilderLayersPanel({
                             <AlignCenterHorizontal className="h-3.5 w-3.5" />
                           </ArrangeButton>
                           <ArrangeButton
-                            label="Bawah"
+                            label="Bottom"
                             onClick={() =>
                               alignCta({
                                 yPx: Math.max(0, HERO_DESIGN_HEIGHT - ctaLayout.hPx),
@@ -656,7 +656,7 @@ export function BuilderLayersPanel({
 
                 {isSelected && row.element.kind === "text" && (
                   <div className="border-t border-gray-100 px-3 py-3">
-                    <SettingsField label="Layer teks">
+                    <SettingsField label="Text layer">
                       <SegmentedControl
                         value={
                           resolved?.[`${row.element.itemId}Layer`] === "behind"
@@ -664,8 +664,8 @@ export function BuilderLayersPanel({
                             : "front"
                         }
                         options={[
-                          { value: "front", label: "Di depan gambar" },
-                          { value: "behind", label: "Di belakang gambar" },
+                          { value: "front", label: "In front of image" },
+                          { value: "behind", label: "Behind image" },
                         ]}
                         onChange={(value) =>
                           onPatchBlock(selectedSectionId, row.block.id, {

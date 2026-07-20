@@ -13,13 +13,13 @@ export default async function AdminOverviewPage() {
   const cards = [
     { label: "Total Store", value: stats.totalStores, icon: Store },
     {
-      label: "Template Terbit",
+      label: "Published Templates",
       value: `${stats.publishedTemplates}/${stats.totalTemplates}`,
       icon: LayoutTemplate,
     },
-    { label: "Transaksi PAID", value: stats.totalPurchases, icon: ShoppingCart },
+    { label: "PAID Transactions", value: stats.totalPurchases, icon: ShoppingCart },
     {
-      label: "Revenue Template",
+      label: "Template Revenue",
       value: `Rp ${stats.revenueTotal.toLocaleString("id-ID")}`,
       icon: DollarSign,
     },
@@ -28,7 +28,7 @@ export default async function AdminOverviewPage() {
   return (
     <DashboardShell
       pageTitle="Platform Overview"
-      pageSubtitle="Ringkasan seluruh platform Etalase"
+      pageSubtitle="Overview of the entire Etalase platform"
     >
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {cards.map((c) => (

@@ -20,16 +20,16 @@ export function SignUpForm() {
       {state && "error" in state && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{state.error}</p>
       )}
-      <input name="name" type="text" required placeholder="Nama lengkap" className={inputClass} />
+      <input name="name" type="text" required placeholder="Full name" className={inputClass} />
       <input name="email" type="email" required placeholder="Email" className={inputClass} />
-      <input name="password" type="password" required minLength={6} placeholder="Password (min 6 karakter)" className={inputClass} />
+      <input name="password" type="password" required minLength={6} placeholder="Password (min 6 characters)" className={inputClass} />
       <button
         type="submit"
         disabled={pending}
         className="h-12 w-full rounded-full text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
         style={{ backgroundColor: "var(--theme-primary)" }}
       >
-        {pending ? "Memproses..." : "Daftar"}
+        {pending ? "Processing..." : "Sign Up"}
       </button>
     </form>
   )

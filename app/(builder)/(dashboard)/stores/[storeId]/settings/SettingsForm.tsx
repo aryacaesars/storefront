@@ -38,21 +38,21 @@ export function SettingsForm({
   )
 
   useDashboardActionNotice(state, {
-    successMessage: "Pengaturan toko berhasil disimpan.",
+    successMessage: "Store settings saved successfully.",
   })
 
   return (
     <form action={formAction} className="flex w-full flex-col gap-8">
       <section className="flex flex-col gap-4">
         <div>
-          <h2 className="text-sm font-semibold text-dash-ink">Identitas</h2>
+          <h2 className="text-sm font-semibold text-dash-ink">Identity</h2>
           <p className="mt-1 text-xs text-dash-muted">
-            Nama dan subdomain toko di platform.
+            Store name and subdomain on the platform.
           </p>
         </div>
 
         <div>
-          <label className={dashboardLabel}>Nama Store</label>
+          <label className={dashboardLabel}>Store Name</label>
           <input
             name="name"
             type="text"
@@ -78,21 +78,21 @@ export function SettingsForm({
             </span>
           </div>
           <p className="mt-1.5 text-xs text-dash-muted">
-            Huruf, angka, dan tanda hubung. Alamat storefront kamu akan berubah.
+            Letters, numbers, and hyphens. Your storefront address will change.
           </p>
         </div>
       </section>
 
       <section className="flex flex-col gap-4 border-t border-dash-border pt-8">
         <div>
-          <h2 className="text-sm font-semibold text-dash-ink">Kontak & alamat</h2>
+          <h2 className="text-sm font-semibold text-dash-ink">Contact & address</h2>
           <p className="mt-1 text-xs text-dash-muted">
-            Ditampilkan di footer storefront pelanggan.
+            Shown in the customer storefront footer.
           </p>
         </div>
 
         <div>
-          <label className={dashboardLabel}>No. HP / WhatsApp</label>
+          <label className={dashboardLabel}>Phone / WhatsApp</label>
           <input
             name="contactPhone"
             type="tel"
@@ -103,7 +103,7 @@ export function SettingsForm({
         </div>
 
         <div>
-          <label className={dashboardLabel}>Email toko</label>
+          <label className={dashboardLabel}>Store email</label>
           <input
             name="contactEmail"
             type="email"
@@ -114,19 +114,19 @@ export function SettingsForm({
         </div>
 
         <div>
-          <label className={dashboardLabel}>Alamat</label>
+          <label className={dashboardLabel}>Address</label>
           <textarea
             name="contactAddress"
             rows={3}
             defaultValue={defaultAddress}
-            placeholder="Jl. Contoh No. 1, Jakarta"
+            placeholder="123 Example St, Jakarta"
             className={`${dashboardInput} resize-y`}
           />
         </div>
       </section>
 
       <button type="submit" disabled={pending} className={dashboardBtnPrimary}>
-        {pending ? "Menyimpan..." : "Simpan"}
+        {pending ? "Saving..." : "Save"}
       </button>
     </form>
   )
@@ -150,17 +150,17 @@ export function DeleteStorePanel({
 
   return (
     <div className="rounded-2xl border border-red-200 bg-red-50/40 p-6">
-      <h2 className="text-sm font-semibold text-red-700">Hapus toko</h2>
+      <h2 className="text-sm font-semibold text-red-700">Delete store</h2>
       <p className="mt-1.5 text-xs leading-relaxed text-red-700/80">
-        Menghapus toko akan menghapus produk, order, pelanggan, dan konfigurasi
-        tema. Tindakan ini tidak bisa dibatalkan.
+        Deleting this store will remove all products, orders, customers, and theme
+        configuration. This action cannot be undone.
       </p>
 
       <form action={formAction} className="mt-5 flex flex-col gap-3">
         <div>
           <label className={dashboardLabel}>
-            Ketik <span className="font-semibold text-dash-ink">{storeName}</span> untuk
-            konfirmasi
+            Type <span className="font-semibold text-dash-ink">{storeName}</span> to
+            confirm
           </label>
           <input
             name="confirmName"
@@ -180,7 +180,7 @@ export function DeleteStorePanel({
           disabled={pending || !canDelete}
           className="inline-flex cursor-pointer items-center justify-center rounded-full bg-red-600 px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {pending ? "Menghapus..." : "Hapus toko permanen"}
+          {pending ? "Deleting..." : "Permanently delete store"}
         </button>
       </form>
     </div>

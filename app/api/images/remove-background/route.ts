@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   const apiKey = process.env.REMOVE_BG_API_KEY
   if (!apiKey) {
     return NextResponse.json(
-      { error: "Fitur remove background belum dikonfigurasi (REMOVE_BG_API_KEY)." },
+      { error: "Remove background feature is not configured (REMOVE_BG_API_KEY)." },
       { status: 503 },
     )
   }
@@ -54,10 +54,10 @@ export async function POST(request: Request) {
     const body = (await request.json()) as { imageUrl?: unknown }
     imageUrl = body.imageUrl
   } catch {
-    return NextResponse.json({ error: "Body JSON tidak valid." }, { status: 400 })
+    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 })
   }
   if (typeof imageUrl !== "string" || !imageUrl.trim()) {
-    return NextResponse.json({ error: "imageUrl wajib diisi." }, { status: 400 })
+    return NextResponse.json({ error: "imageUrl is required." }, { status: 400 })
   }
 
   const requestUrl = new URL(request.url)
@@ -65,11 +65,11 @@ export async function POST(request: Request) {
   try {
     sourceUrl = new URL(imageUrl, requestUrl.origin)
   } catch {
-    return NextResponse.json({ error: "imageUrl tidak valid." }, { status: 400 })
+    return NextResponse.json({ error: "Invalid imageUrl." }, { status: 400 })
   }
   if (!isAllowedSource(sourceUrl, requestUrl)) {
     return NextResponse.json(
-      { error: "Sumber gambar tidak diizinkan." },
+      { error: "Image source not allowed." },
       { status: 400 },
     )
   }
@@ -77,13 +77,13 @@ export async function POST(request: Request) {
   const sourceRes = await fetch(sourceUrl)
   if (!sourceRes.ok) {
     return NextResponse.json(
-      { error: "Gambar sumber tidak bisa diambil." },
+      { error: "Could not fetch source image." },
       { status: 400 },
     )
   }
   const sourceBytes = Buffer.from(await sourceRes.arrayBuffer())
   if (sourceBytes.byteLength > MAX_SOURCE_SIZE) {
-    return NextResponse.json({ error: "Gambar sumber maks. 8MB." }, { status: 400 })
+    return NextResponse.json({ error: "Source image max. 8MB." }, { status: 400 })
   }
 
   const form = new FormData()
@@ -115,7 +115,7 @@ export async function POST(request: Request) {
     }
     console.error("[remove-bg] provider error:", providerRes.status, detail)
     return NextResponse.json(
-      { error: detail || "Provider remove background gagal memproses gambar." },
+      { error: detail || "Remove background provider failed to process image." },
       { status: 502 },
     )
   }
@@ -148,7 +148,7 @@ export async function POST(request: Request) {
       const local = await saveLocalUpload(scope, "png", resultBytes)
       return NextResponse.json({ url: local.url, key: local.key })
     } catch {
-      return NextResponse.json({ error: "Storage tidak tersedia." }, { status: 503 })
+      return NextResponse.json({ error: "Storage unavailable." }, { status: 503 })
     }
   }
 }

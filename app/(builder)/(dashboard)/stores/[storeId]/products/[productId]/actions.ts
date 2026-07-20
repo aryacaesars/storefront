@@ -13,10 +13,10 @@ import { notFound } from "next/navigation"
 import type { ProductFormState } from "@/features/builder/components/ProductForm"
 
 const ProductInput = z.object({
-  name: z.string().trim().min(1, "Nama produk wajib diisi.").max(200),
+  name: z.string().trim().min(1, "Product name is required.").max(200),
   description: z.string().trim().max(2000).optional(),
-  price: z.coerce.number().int().min(0, "Harga tidak boleh negatif."),
-  stock: z.coerce.number().int().min(0, "Stok tidak boleh negatif."),
+  price: z.coerce.number().int().min(0, "Price cannot be negative."),
+  stock: z.coerce.number().int().min(0, "Stock cannot be negative."),
   categoryId: z.string().optional(),
   imageUrl: z.string().optional(),
   published: z.string().optional(),
@@ -49,14 +49,14 @@ export async function updateProductAction(
 
   const parsed = ProductInput.safeParse(raw)
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Input tidak valid." }
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input." }
   }
 
   const slug = slugify(parsed.data.name)
-  if (!slug) return { error: "Nama menghasilkan slug kosong." }
+  if (!slug) return { error: "Name produces an empty slug." }
 
   if (await productSlugExists(storeId, slug, productId)) {
-    return { error: `Produk lain dengan nama "${parsed.data.name}" sudah ada.` }
+    return { error: `Another product named "${parsed.data.name}" already exists.` }
   }
 
   await updateProduct(productId, storeId, {
@@ -86,6 +86,6 @@ export async function deleteProductAction(
     revalidatePath(`/stores/${storeId}/products`)
     return { ok: true }
   } catch {
-    return { ok: false, error: "Gagal menghapus produk." }
+    return { ok: false, error: "Failed to delete product." }
   }
 }

@@ -19,7 +19,7 @@ export async function generateMetadata({
 }) {
   const { productId, storeId } = await params
   const product = await getProductById(productId, storeId)
-  return { title: product ? `Edit — ${product.name}` : "Edit Produk" }
+  return { title: product ? `Edit — ${product.name}` : "Edit Product" }
 }
 
 export default async function EditProductPage({
@@ -47,17 +47,17 @@ export default async function EditProductPage({
 
   const initialToast =
     toastParam === "created"
-      ? { type: "success" as const, message: "Produk baru berhasil dibuat.", title: "Berhasil" }
+      ? { type: "success" as const, message: "New product created successfully.", title: "Success" }
       : undefined
 
   return (
     <DashboardShell
       pageTitle={`Edit: ${product.name}`}
-      pageSubtitle="Kelola detail produk dan visibilitas di storefront"
+      pageSubtitle="Manage product details and storefront visibility"
     >
       <div className="flex flex-col gap-4">
         <Link href={`/stores/${storeId}/products`} className={dashboardBackLink}>
-          ← Kembali ke daftar produk
+          ← Back to product list
         </Link>
 
         <DashboardPanel className="w-full max-w-3xl p-6 lg:p-8">
@@ -75,14 +75,14 @@ export default async function EditProductPage({
               categoryId: product.categoryId ?? "",
               imageUrl: firstImage,
             }}
-            submitLabel="Simpan Perubahan"
+            submitLabel="Save Changes"
           />
         </DashboardPanel>
 
         <DashboardPanel className="border-red-100 p-6">
-          <p className="text-sm font-semibold text-red-700">Zona Berbahaya</p>
+          <p className="text-sm font-semibold text-red-700">Danger Zone</p>
           <p className="mt-1 text-sm text-gray-500">
-            Menghapus produk akan menghilangkannya dari dashboard dan storefront.
+            Deleting this product will remove it from the dashboard and storefront.
           </p>
           <div className="mt-4">
             <ProductDeleteButton

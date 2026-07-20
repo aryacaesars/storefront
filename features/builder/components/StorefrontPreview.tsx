@@ -58,16 +58,16 @@ export function StorefrontPreview({ branding, device }: StorefrontPreviewProps) 
             className="text-lg font-bold text-gray-900"
             style={{ fontFamily: headingFont }}
           >
-            {storeName || "Nama Toko"}
+            {storeName || "Store Name"}
           </span>
           <div className="flex-1 rounded-full bg-gray-100 px-4 py-2 text-xs text-gray-400">
-            Cari produk...
+            Search products...
           </div>
           <span
             className="rounded-lg px-3 py-1.5 text-xs font-semibold text-white"
             style={{ backgroundColor: primaryColor }}
           >
-            Keranjang
+            Cart
           </span>
         </div>
 
@@ -76,7 +76,7 @@ export function StorefrontPreview({ branding, device }: StorefrontPreviewProps) 
           className="flex gap-5 border-b border-gray-100 px-4 py-2 text-xs text-gray-500"
           style={{ fontFamily: bodyFont }}
         >
-          {["Beranda", "Produk", "Kategori", "Tentang", "Kontak"].map((item) => (
+          {["Home", "Products", "Categories", "About", "Contact"].map((item) => (
             <span key={item}>{item}</span>
           ))}
         </div>
@@ -91,13 +91,13 @@ export function StorefrontPreview({ branding, device }: StorefrontPreviewProps) 
               className="text-2xl font-bold mb-2"
               style={{ fontFamily: headingFont }}
             >
-              Koleksi Terbaru
+              Latest Collection
             </h2>
             <p className="text-sm opacity-90 mb-4" style={{ fontFamily: bodyFont }}>
-              Temukan produk pilihan dengan kualitas terbaik.
+              Discover handpicked products with the best quality.
             </p>
             <span className="inline-block rounded-lg bg-white px-4 py-2 text-xs font-semibold text-gray-900">
-              Belanja Sekarang
+              Shop Now
             </span>
           </div>
         </div>
@@ -108,7 +108,7 @@ export function StorefrontPreview({ branding, device }: StorefrontPreviewProps) 
             className="mb-4 text-sm font-semibold text-gray-900"
             style={{ fontFamily: headingFont }}
           >
-            Produk Unggulan
+            Featured Products
           </p>
           <div className={cn("grid gap-4", device === "mobile" ? "grid-cols-2" : "grid-cols-4")}>
             {[1, 2, 3, 4].map((i) => (

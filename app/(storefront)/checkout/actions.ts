@@ -29,28 +29,28 @@ export async function placeOrderAction(
   const raw = cookieStore.get("sf_cart")?.value
   const cart: CartItem[] = raw ? (JSON.parse(raw) as CartItem[]) : []
 
-  if (cart.length === 0) return { error: "Cart kosong." }
+  if (cart.length === 0) return { error: "Cart is empty." }
 
   const loggedIn = await getCustomerSession()
   if (!loggedIn || loggedIn.storeId !== storeId) {
-    return { error: "Silakan masuk ke akun dulu untuk checkout." }
+    return { error: "Please sign in to checkout." }
   }
 
   const customer = await prisma.customer.findFirst({
     where: { id: loggedIn.customerId, storeId },
     select: { id: true, name: true, email: true, phone: true },
   })
-  if (!customer) return { error: "Akun tidak ditemukan." }
+  if (!customer) return { error: "Account not found." }
   if (!customer.name?.trim()) {
-    return { error: "Lengkapi nama profil di halaman Akun." }
+    return { error: "Complete your profile name on the Account page." }
   }
   if (!customer.phone?.trim()) {
-    return { error: "Lengkapi no. HP di halaman Akun." }
+    return { error: "Complete your phone number on the Account page." }
   }
 
   const address = await getCustomerDefaultAddress(customer.id)
   if (!address) {
-    return { error: "Tambahkan alamat pengiriman di halaman Akun." }
+    return { error: "Add a shipping address on the Account page." }
   }
 
   const productIds = cart.map((i) => i.productId)
@@ -62,8 +62,8 @@ export async function placeOrderAction(
 
   for (const item of cart) {
     const product = productMap.get(item.productId)
-    if (!product) return { error: `Produk "${item.name}" tidak tersedia.` }
-    if (product.stock < item.quantity) return { error: `Stok "${item.name}" tidak cukup.` }
+    if (!product) return { error: `Product "${item.name}" is unavailable.` }
+    if (product.stock < item.quantity) return { error: `Insufficient stock for "${item.name}".` }
   }
 
   const total = cart.reduce((sum, item) => {
@@ -114,7 +114,7 @@ export async function placeOrderAction(
     })
   } catch (err) {
     if (err instanceof InsufficientStockError) {
-      return { error: `Stok "${err.productName}" tidak cukup.` }
+      return { error: `Insufficient stock for "${err.productName}".` }
     }
     throw err
   }
@@ -170,7 +170,7 @@ export async function placeOrderAction(
       await tx.orderItem.deleteMany({ where: { orderId: order.id } })
       await tx.order.delete({ where: { id: order.id } })
     })
-    return { error: "Gagal membuat sesi pembayaran. Coba lagi." }
+    return { error: "Failed to create payment session. Please try again." }
   }
 
   return { ok: true, checkoutUrl }

@@ -66,18 +66,18 @@ export function LiveStoreButton({
 
       <DashboardAlertDialog
         open={open}
-        title="Template belum aktif"
+        title="Template not active"
         description={
           <>
             <p>
-              Template <strong>{templateName}</strong> belum diaktifkan di store kamu.
-              Aktifkan dulu supaya live store menampilkan template ini.
+              Template <strong>{templateName}</strong> is not activated on your store yet.
+              Activate it first so the live store shows this template.
             </p>
             {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
           </>
         }
-        confirmLabel="Aktifkan"
-        cancelLabel="Kembali"
+        confirmLabel="Activate"
+        cancelLabel="Back"
         loading={pending}
         onConfirm={handleActivate}
         onCancel={() => {

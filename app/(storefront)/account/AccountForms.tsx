@@ -75,7 +75,7 @@ export function AccountProfileForm({
       </div>
       <div>
         <label htmlFor="account-name" className={labelClass}>
-          Nama lengkap
+          Full name
         </label>
         <input
           id="account-name"
@@ -83,14 +83,14 @@ export function AccountProfileForm({
           type="text"
           required
           defaultValue={name}
-          placeholder="Nama lengkap"
+          placeholder="Full name"
           autoComplete="name"
           className={cn(inputClass, "mt-1.5")}
         />
       </div>
       <div>
         <label htmlFor="account-phone" className={labelClass}>
-          No. HP
+          Phone number
         </label>
         <input
           id="account-phone"
@@ -122,7 +122,7 @@ export function AccountProfileForm({
             variant === "bold" ? "var(--theme-accent)" : "var(--theme-primary)",
         }}
       >
-        {pending ? "Menyimpan..." : "Simpan profil"}
+        {pending ? "Saving..." : "Save profile"}
       </button>
     </form>
   )
@@ -173,7 +173,7 @@ export function AccountAddressSection({
                 : "text-sm font-bold text-[var(--theme-text)]"
             }
           >
-            {editing ? "Ubah alamat" : "Tambah alamat"}
+            {editing ? "Edit address" : "Add address"}
           </h3>
           <button
             type="button"
@@ -187,7 +187,7 @@ export function AccountAddressSection({
                 : "cursor-pointer text-xs font-semibold text-[var(--theme-muted)] hover:text-[var(--theme-text)]"
             }
           >
-            Batal
+            Cancel
           </button>
         </div>
 
@@ -208,21 +208,21 @@ export function AccountAddressSection({
               id="address-label"
               name="label"
               type="text"
-              placeholder="Rumah, Kantor, …"
+              placeholder="Home, Office, …"
               defaultValue={editing?.label ?? ""}
               className={cn(inputClass, "mt-1.5")}
             />
           </div>
           <div>
             <label htmlFor="address-street" className={labelByVariant[variant]}>
-              Alamat lengkap
+              Full address
             </label>
             <input
               id="address-street"
               name="street"
               type="text"
               required
-              placeholder="Jl. Contoh No. 1"
+              placeholder="123 Example St"
               defaultValue={editing?.street ?? ""}
               autoComplete="street-address"
               className={cn(inputClass, "mt-1.5")}
@@ -231,14 +231,14 @@ export function AccountAddressSection({
           <div className="grid gap-3 @2xl:grid-cols-2">
             <div>
               <label htmlFor="address-city" className={labelByVariant[variant]}>
-                Kota
+                City
               </label>
               <input
                 id="address-city"
                 name="city"
                 type="text"
                 required
-                placeholder="Kota"
+                placeholder="City"
                 defaultValue={editing?.city ?? ""}
                 autoComplete="address-level2"
                 className={cn(inputClass, "mt-1.5")}
@@ -246,14 +246,14 @@ export function AccountAddressSection({
             </div>
             <div>
               <label htmlFor="address-province" className={labelByVariant[variant]}>
-                Provinsi
+                Province
               </label>
               <input
                 id="address-province"
                 name="province"
                 type="text"
                 required
-                placeholder="Provinsi"
+                placeholder="Province"
                 defaultValue={editing?.province ?? ""}
                 autoComplete="address-level1"
                 className={cn(inputClass, "mt-1.5")}
@@ -262,14 +262,14 @@ export function AccountAddressSection({
           </div>
           <div>
             <label htmlFor="address-postal" className={labelByVariant[variant]}>
-              Kode pos
+              Postal code
             </label>
             <input
               id="address-postal"
               name="postalCode"
               type="text"
               required
-              placeholder="Kode pos"
+              placeholder="Postal code"
               defaultValue={editing?.postalCode ?? ""}
               autoComplete="postal-code"
               className={cn(inputClass, "mt-1.5")}
@@ -287,7 +287,7 @@ export function AccountAddressSection({
               defaultChecked={!editing || editing.isDefault}
               className="h-4 w-4 accent-[var(--theme-primary)]"
             />
-            Jadikan alamat utama
+            Set as default address
           </label>
           {state && "error" in state && state.error && (
             <p className="text-sm text-red-600" role="alert">
@@ -303,7 +303,7 @@ export function AccountAddressSection({
                 isBold ? "var(--theme-accent)" : "var(--theme-primary)",
             }}
           >
-            {pending ? "Menyimpan..." : "Simpan alamat"}
+            {pending ? "Saving..." : "Save address"}
           </button>
         </form>
       </div>
@@ -320,7 +320,7 @@ export function AccountAddressSection({
               : "text-sm font-bold text-[var(--theme-text)]"
           }
         >
-          Alamat pengiriman
+          Shipping addresses
         </h3>
         <button
           type="button"
@@ -331,7 +331,7 @@ export function AccountAddressSection({
               : "cursor-pointer text-xs font-bold uppercase tracking-wider text-[var(--theme-primary)]"
           }
         >
-          + Tambah
+          + Add
         </button>
       </div>
 
@@ -344,7 +344,7 @@ export function AccountAddressSection({
           }
         >
           <p className={isBold ? "text-sm text-zinc-400" : "text-sm text-[var(--theme-muted)]"}>
-            Belum ada alamat tersimpan.
+            No saved addresses yet.
           </p>
           <button
             type="button"
@@ -355,7 +355,7 @@ export function AccountAddressSection({
                 : "mt-3 cursor-pointer text-sm font-semibold text-[var(--theme-primary)]"
             }
           >
-            Tambah alamat
+            Add address
           </button>
         </div>
       ) : (
@@ -379,7 +379,7 @@ export function AccountAddressSection({
                           : "text-sm font-bold text-[var(--theme-text)]"
                       }
                     >
-                      {address.label || "Alamat"}
+                      {address.label || "Address"}
                     </p>
                     {address.isDefault && (
                       <span
@@ -394,7 +394,7 @@ export function AccountAddressSection({
                             : { backgroundColor: "var(--theme-primary)" }
                         }
                       >
-                        Utama
+                        Default
                       </span>
                     )}
                   </div>
@@ -419,7 +419,7 @@ export function AccountAddressSection({
                       : "cursor-pointer shrink-0 text-xs font-semibold text-[var(--theme-primary)]"
                   }
                 >
-                  Ubah
+                  Edit
                 </button>
               </div>
             </li>

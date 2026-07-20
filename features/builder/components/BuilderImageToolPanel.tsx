@@ -163,21 +163,21 @@ export function BuilderImageToolPanel({
         <h2 className="text-sm font-semibold text-gray-900">Image</h2>
         <p className="mt-1 text-xs text-gray-400">
           {selectedSectionId && sectionLabel
-            ? `Tambah gambar ke section “${sectionLabel}”.`
-            : "Pilih section di preview untuk tambah gambar."}
+            ? `Add images to the “${sectionLabel}” section.`
+            : "Select a section in the preview to add images."}
         </p>
       </div>
 
       {!selectedSectionId ? (
         <EmptyState
-          title="Belum ada section dipilih"
-          hint="Klik section di preview, lalu tambahkan gambar dari sini."
+          title="No section selected"
+          hint="Click a section in the preview, then add images from here."
         />
       ) : mediaBlock ? (
         <>
           <ImageUploadField
             value={undefined}
-            placeholder="Upload gambar baru"
+            placeholder="Upload new image"
             onChange={addImage}
           />
 
@@ -185,7 +185,7 @@ export function BuilderImageToolPanel({
           {canvasImages.length === 0 && legacyImageUrl && (
             <div>
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                Gambar lama (full section)
+                Legacy image (full section)
               </p>
               <div className="group relative">
                 <div className="aspect-square w-full overflow-hidden rounded-xl border border-amber-200 bg-gray-100">
@@ -198,7 +198,7 @@ export function BuilderImageToolPanel({
                 </div>
                 <button
                   type="button"
-                  aria-label="Hapus gambar lama"
+                  aria-label="Remove legacy image"
                   onClick={clearLegacyImage}
                   className="absolute -right-1.5 -top-1.5 z-10 inline-flex h-5 w-5 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-400 opacity-0 shadow-sm transition-opacity hover:bg-red-50 hover:text-red-600 focus-visible:opacity-100 group-hover:opacity-100"
                 >
@@ -210,10 +210,10 @@ export function BuilderImageToolPanel({
                 onClick={() => addImage(legacyImageUrl)}
                 className="mt-2 w-full rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-[11px] font-semibold text-indigo-700 hover:bg-indigo-100"
               >
-                Ubah ke canvas (bisa digeser/crop)
+                Convert to canvas (move/crop)
               </button>
               <p className="mt-1.5 text-[10px] text-amber-700/80">
-                Atau hapus, lalu upload ulang dari tombol di atas.
+                Or remove it, then upload again using the button above.
               </p>
             </div>
           )}
@@ -221,7 +221,7 @@ export function BuilderImageToolPanel({
           {canvasImages.length > 0 && (
             <div>
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                Gambar di section ini
+                Images in this section
               </p>
               <div className="grid grid-cols-3 gap-2">
                 {canvasImages.map((img, index) => {
@@ -236,7 +236,7 @@ export function BuilderImageToolPanel({
                     <div key={img.id} className="group relative">
                       <button
                         type="button"
-                        aria-label={`Pilih gambar ${index + 1}`}
+                        aria-label={`Select image ${index + 1}`}
                         onClick={() => {
                           onSelectBlock(selectedSectionId, mediaBlock.id)
                           onSelectElement?.(element)
@@ -257,7 +257,7 @@ export function BuilderImageToolPanel({
                       </button>
                       <button
                         type="button"
-                        aria-label={`Hapus gambar ${index + 1}`}
+                        aria-label={`Remove image ${index + 1}`}
                         onClick={() => {
                           const next = deleteImageFromArray(canvasImages, img.id)
                           onPatchBlock(selectedSectionId, mediaBlock.id, {
@@ -276,15 +276,15 @@ export function BuilderImageToolPanel({
                 })}
               </div>
               <p className="mt-2 text-[10px] text-gray-400">
-                Klik gambar untuk pilih — atur lewat toolbar & Layers.
+                Click an image to select — adjust via the toolbar & Layers.
               </p>
             </div>
           )}
         </>
       ) : legacySlots.length === 0 ? (
         <EmptyState
-          title="Section ini tidak punya slot gambar"
-          hint="Pilih section lain yang punya media."
+          title="This section has no image slots"
+          hint="Select another section that includes media."
         />
       ) : (
         <ul className="space-y-3">

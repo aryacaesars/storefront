@@ -47,8 +47,8 @@ export function AddToCartButton({
     })
   }
 
-  const pendingLabel = redirectTo ? "Memproses..." : "Menambahkan..."
-  const doneLabel = redirectTo ? label : "✓ Masuk keranjang"
+  const pendingLabel = redirectTo ? "Processing..." : "Adding..."
+  const doneLabel = redirectTo ? label : "✓ Added to cart"
 
   return (
     <button

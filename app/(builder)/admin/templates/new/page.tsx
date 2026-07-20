@@ -8,21 +8,21 @@ import {
 import { TemplateForm } from "../TemplateForm"
 import { createTemplateAction } from "./actions"
 
-export const metadata = { title: "Tambah Template" }
+export const metadata = { title: "Add Template" }
 
 export default async function NewTemplatePage() {
   await requireAdmin()
   return (
     <DashboardShell
-      pageTitle="Tambah Template"
-      pageSubtitle="Isi detail template marketplace lalu tentukan status terbitnya"
+      pageTitle="Add Template"
+      pageSubtitle="Fill in marketplace template details and set its publish status"
     >
       <div className="flex flex-col gap-4">
         <Link href="/admin/templates" className={dashboardBackLink}>
-          ← Kembali ke daftar template
+          ← Back to template list
         </Link>
         <DashboardPanel className="p-6 lg:p-8">
-          <TemplateForm action={createTemplateAction} submitLabel="Buat Template" />
+          <TemplateForm action={createTemplateAction} submitLabel="Create Template" />
         </DashboardPanel>
       </div>
     </DashboardShell>

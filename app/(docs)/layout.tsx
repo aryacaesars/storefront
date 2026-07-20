@@ -3,11 +3,11 @@ import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: {
-    default: "Dokumentasi",
-    template: "%s — Docs Etalase",
+    default: "Documentation",
+    template: "%s — Etalase Docs",
   },
   description:
-    "Panduan lengkap Etalase: buat toko, aktifkan template, kustomisasi, katalog, pesanan, dan live storefront.",
+    "Complete Etalase guide: create a store, activate templates, customize, manage catalog and orders, and publish your live storefront.",
 }
 
 export default function DocsRootLayout({ children }: { children: ReactNode }) {

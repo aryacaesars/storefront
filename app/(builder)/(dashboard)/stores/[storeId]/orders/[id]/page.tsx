@@ -21,11 +21,11 @@ export async function generateMetadata({ params }: { params: Promise<{ storeId: 
 }
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
-  PENDING: "Menunggu",
-  PAID: "Dibayar",
-  SHIPPED: "Dikirim",
-  DONE: "Selesai",
-  CANCELLED: "Dibatalkan",
+  PENDING: "Pending",
+  PAID: "Paid",
+  SHIPPED: "Shipped",
+  DONE: "Done",
+  CANCELLED: "Cancelled",
 }
 
 const STATUS_CLASS: Record<OrderStatus, string> = {
@@ -37,11 +37,11 @@ const STATUS_CLASS: Record<OrderStatus, string> = {
 }
 
 const ACTION_LABEL: Record<OrderStatus, string> = {
-  PENDING: "Tandai Menunggu",
-  PAID: "Tandai Dibayar",
-  SHIPPED: "Tandai Dikirim",
-  DONE: "Tandai Selesai",
-  CANCELLED: "Batalkan Order",
+  PENDING: "Mark as Pending",
+  PAID: "Mark as Paid",
+  SHIPPED: "Mark as Shipped",
+  DONE: "Mark as Done",
+  CANCELLED: "Cancel Order",
 }
 
 function rupiah(n: number): string {
@@ -71,7 +71,7 @@ export default async function OrderDetailPage({
   if (notice === "success") {
     initialNotice = {
       type: "success",
-      message: "Status order berhasil diperbarui.",
+      message: "Order status updated successfully.",
     }
   } else if (notice === "error" && message) {
     initialNotice = { type: "error", message: decodeURIComponent(message) }
@@ -100,13 +100,13 @@ export default async function OrderDetailPage({
       <DashboardInitialNotice notice={initialNotice} />
       <div className="flex flex-col gap-6">
         <Link href={`/stores/${storeId}/orders`} className={dashboardBackLink}>
-          ← Kembali ke daftar order
+          ← Back to order list
         </Link>
 
         <DashboardPanel className="p-5">
-          <p className="text-sm font-medium text-ink">Ubah Status</p>
+          <p className="text-sm font-medium text-ink">Update Status</p>
           {nextStatuses.length === 0 ? (
-            <p className="mt-2 text-xs text-gray-400">Status final, tidak bisa diubah lagi.</p>
+            <p className="mt-2 text-xs text-gray-400">Final status — cannot be changed.</p>
           ) : (
             <div className="mt-3 flex flex-wrap gap-2">
               {nextStatuses.map((next) => (
@@ -130,7 +130,7 @@ export default async function OrderDetailPage({
         <div className="grid gap-6 md:grid-cols-3">
           <DashboardPanel className="overflow-hidden md:col-span-2">
             <div className="border-b border-gray-100 px-5 py-3">
-              <p className="text-sm font-medium text-ink">Item Pesanan</p>
+              <p className="text-sm font-medium text-ink">Order Items</p>
             </div>
             <ul className="divide-y divide-gray-100">
               {order.items.map((item) => {
@@ -179,7 +179,7 @@ export default async function OrderDetailPage({
             </DashboardPanel>
 
             <DashboardPanel className="p-5">
-              <p className="text-sm font-medium text-ink">Alamat Pengiriman</p>
+              <p className="text-sm font-medium text-ink">Shipping Address</p>
               {address ? (
                 <div className="mt-2 text-sm text-gray-600">
                   <p>{address.street}</p>
@@ -188,7 +188,7 @@ export default async function OrderDetailPage({
                   </p>
                 </div>
               ) : (
-                <p className="mt-2 text-xs text-gray-400">Tidak ada alamat tersimpan.</p>
+                <p className="mt-2 text-xs text-gray-400">No saved address.</p>
               )}
             </DashboardPanel>
           </div>

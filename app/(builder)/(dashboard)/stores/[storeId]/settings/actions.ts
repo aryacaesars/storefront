@@ -16,21 +16,21 @@ import {
 import { notFound } from "next/navigation"
 
 const SettingsInput = z.object({
-  name: z.string().trim().min(1, "Nama store wajib diisi.").max(100),
+  name: z.string().trim().min(1, "Store name is required.").max(100),
   slug: z
     .string()
     .trim()
-    .min(1, "Subdomain wajib diisi.")
+    .min(1, "Subdomain is required.")
     .max(63)
     .transform((v) => slugify(v))
-    .refine((v) => v.length > 0, "Subdomain tidak valid."),
+    .refine((v) => v.length > 0, "Invalid subdomain."),
   contactPhone: z.string().trim().max(40).optional(),
   contactEmail: z
     .string()
     .trim()
     .max(120)
     .optional()
-    .refine((v) => !v || z.string().email().safeParse(v).success, "Email tidak valid."),
+    .refine((v) => !v || z.string().email().safeParse(v).success, "Invalid email."),
   contactAddress: z.string().trim().max(500).optional(),
 })
 
@@ -53,14 +53,14 @@ export async function updateStoreSettingsAction(
     contactAddress: String(formData.get("contactAddress") ?? ""),
   })
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Input tidak valid." }
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input." }
   }
 
   const { name, slug, contactPhone, contactEmail, contactAddress } = parsed.data
 
   if (slug !== store.slug) {
     if (await slugExistsForOtherStore(slug, storeId)) {
-      return { error: "Subdomain sudah dipakai store lain." }
+      return { error: "Subdomain is already used by another store." }
     }
     await updateStoreSlug(storeId, slug)
   }
@@ -91,14 +91,14 @@ export async function deleteStoreAction(
 
   const confirm = String(formData.get("confirmName") ?? "").trim()
   if (confirm !== store.name) {
-    return { error: "Nama toko tidak cocok. Ketik nama toko persis untuk konfirmasi." }
+    return { error: "Store name does not match. Type the exact store name to confirm." }
   }
 
   try {
     await deleteStore(storeId)
   } catch (err) {
     console.error("[settings] deleteStore failed:", err)
-    return { error: "Gagal menghapus toko. Coba lagi." }
+    return { error: "Failed to delete store. Please try again." }
   }
 
   revalidatePath("/dashboard")

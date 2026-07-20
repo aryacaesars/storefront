@@ -27,7 +27,7 @@ export async function generateMetadata({
 }) {
   const { storeId } = await params
   const store = await getStoreById(storeId)
-  return { title: store ? `Produk — ${store.name}` : "Produk" }
+  return { title: store ? `Products — ${store.name}` : "Products" }
 }
 
 export default async function ProductsPage({
@@ -45,21 +45,21 @@ export default async function ProductsPage({
 
   return (
     <DashboardShell
-      pageTitle="Produk"
+      pageTitle="Products"
       pageSubtitle={`Total: ${total}`}
       action={
         <Link href={`/stores/${storeId}/products/new`} className={dashboardBtnPrimary}>
           <Plus className="h-4 w-4" />
-          Tambah Produk
+          Add Product
         </Link>
       }
     >
       {total === 0 ? (
         <DashboardPanel className="p-12 text-center">
-          <p className="mb-4 text-sm text-gray-400">Belum ada produk.</p>
+          <p className="mb-4 text-sm text-gray-400">No products yet.</p>
           <Link href={`/stores/${storeId}/products/new`} className={dashboardBtnPrimary}>
             <Plus className="h-4 w-4" />
-            Tambah Produk Pertama
+            Add First Product
           </Link>
         </DashboardPanel>
       ) : (
@@ -67,13 +67,13 @@ export default async function ProductsPage({
           <DashboardTableElement>
             <DashboardTableHead>
               <DashboardTableHeadRow>
-                <DashboardTableHeadCell>Produk</DashboardTableHeadCell>
-                <DashboardTableHeadCell>Kategori</DashboardTableHeadCell>
-                <DashboardTableHeadCell align="right">Harga</DashboardTableHeadCell>
-                <DashboardTableHeadCell align="right">Stok</DashboardTableHeadCell>
+                <DashboardTableHeadCell>Products</DashboardTableHeadCell>
+                <DashboardTableHeadCell>Category</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">Price</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">Stock</DashboardTableHeadCell>
                 <DashboardTableHeadCell align="center">Status</DashboardTableHeadCell>
                 <DashboardTableHeadCell align="center">
-                  Aksi
+                  Actions
                 </DashboardTableHeadCell>
               </DashboardTableHeadRow>
             </DashboardTableHead>
@@ -100,13 +100,13 @@ export default async function ProductsPage({
                           : "bg-gray-100 text-gray-500"
                       }`}
                     >
-                      {product.published ? "Aktif" : "Draft"}
+                      {product.published ? "Active" : "Draft"}
                     </span>
                   </DashboardTableCell>
                   <DashboardTableCell align="center">
                     <DashboardTableActionLink
                       href={`/stores/${storeId}/products/${product.id}`}
-                      label="Edit produk"
+                      label="Edit product"
                     />
                   </DashboardTableCell>
                 </DashboardTableRow>

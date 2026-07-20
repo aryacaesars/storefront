@@ -14,10 +14,10 @@ export default async function AdminStoresPage() {
   const stores = await getAllStoresAdmin()
 
   return (
-    <DashboardShell pageTitle="Store Aktif" pageSubtitle={`${stores.length} tenant`}>
+    <DashboardShell pageTitle="Active Stores" pageSubtitle={`${stores.length} tenants`}>
       {stores.length === 0 ? (
         <div className={`${dashboardCard} p-12 text-center text-sm text-gray-400`}>
-          Belum ada store.
+          No stores yet.
         </div>
       ) : (
         <div className={`${dashboardCard} overflow-hidden`}>
@@ -27,9 +27,9 @@ export default async function AdminStoresPage() {
                 <tr className={dashboardTableHeadRow}>
                   <th className={`${dashboardTableHeadCell} text-left`}>Store</th>
                   <th className={`${dashboardTableHeadCell} text-left`}>Owner</th>
-                  <th className={`${dashboardTableHeadCell} text-right`}>Produk</th>
-                  <th className={`${dashboardTableHeadCell} text-right`}>Order</th>
-                  <th className={`${dashboardTableHeadCell} text-right`}>Dibuat</th>
+                  <th className={`${dashboardTableHeadCell} text-right`}>Products</th>
+                  <th className={`${dashboardTableHeadCell} text-right`}>Orders</th>
+                  <th className={`${dashboardTableHeadCell} text-right`}>Created</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -50,7 +50,7 @@ export default async function AdminStoresPage() {
                       {s.orderCount}
                     </td>
                     <td className="px-5 py-3.5 text-right text-xs text-gray-400">
-                      {s.createdAt.toLocaleDateString("id-ID", {
+                      {s.createdAt.toLocaleDateString("en-US", {
                         day: "numeric",
                         month: "short",
                         year: "numeric",

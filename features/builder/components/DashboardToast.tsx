@@ -64,10 +64,10 @@ const NOTICE_STYLES: Record<
 }
 
 const DEFAULT_TITLES: Record<NoticeType, string> = {
-  success: "Berhasil",
-  error: "Gagal",
-  info: "Informasi",
-  warning: "Perhatian",
+  success: "Success",
+  error: "Failed",
+  info: "Information",
+  warning: "Warning",
 }
 
 function NoticeModal({
@@ -100,7 +100,7 @@ function NoticeModal({
       <button
         type="button"
         className="absolute inset-0 bg-black/40"
-        aria-label="Tutup notifikasi"
+        aria-label="Close notification"
         onClick={handleClose}
       />
       <div

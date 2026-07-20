@@ -16,7 +16,7 @@ export default async function DashboardPage() {
 
   return (
     <DashboardShell>
-      <DashboardPageTitle>Dashboard Merchant</DashboardPageTitle>
+      <DashboardPageTitle>Dashboard</DashboardPageTitle>
       <DashboardStoreSection stores={stores} />
     </DashboardShell>
   )

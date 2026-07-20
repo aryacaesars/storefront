@@ -11,14 +11,14 @@ import { Footer as BoldFooter } from "@/themes/bold"
 import { LogoutButton } from "./LogoutButton"
 import { AccountAddressSection, AccountProfileForm } from "./AccountForms"
 
-export const metadata = { title: "Akun Saya" }
+export const metadata = { title: "My Account" }
 
 const STATUS_LABEL: Record<string, string> = {
-  PENDING: "Menunggu",
-  PAID: "Dibayar",
-  SHIPPED: "Dikirim",
-  DONE: "Selesai",
-  CANCELLED: "Dibatalkan",
+  PENDING: "Pending",
+  PAID: "Paid",
+  SHIPPED: "Shipped",
+  DONE: "Completed",
+  CANCELLED: "Cancelled",
 }
 
 export default async function AccountPage() {
@@ -35,7 +35,7 @@ export default async function AccountPage() {
   if (!customer) {
     return (
       <section className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <p className="text-sm text-[var(--theme-muted)]">Akun tidak ditemukan.</p>
+        <p className="text-sm text-[var(--theme-muted)]">Account not found.</p>
       </section>
     )
   }
@@ -57,7 +57,7 @@ export default async function AccountPage() {
                 className="mt-2 text-4xl font-black uppercase leading-none tracking-tight text-zinc-900 md:text-5xl"
                 style={{ fontFamily: "var(--theme-heading-font)" }}
               >
-                {customer.name ?? "Akun Saya"}
+                {customer.name ?? "My Account"}
               </h1>
               <p className="mt-3 text-sm text-zinc-400">{customer.email}</p>
             </div>
@@ -70,10 +70,10 @@ export default async function AccountPage() {
                 className="text-lg font-black uppercase tracking-wide text-zinc-900"
                 style={{ fontFamily: "var(--theme-heading-font)" }}
               >
-                Profil & kontak
+                Profile & contact
               </h2>
               <p className="mt-1 text-sm text-zinc-400">
-                Data ini dipakai otomatis saat checkout.
+                This information is used automatically at checkout.
               </p>
               <div className="mt-6">
                 <AccountProfileForm
@@ -97,27 +97,27 @@ export default async function AccountPage() {
                   className="text-lg font-black uppercase tracking-wide text-zinc-900"
                   style={{ fontFamily: "var(--theme-heading-font)" }}
                 >
-                  Pesanan Saya
+                  My Orders
                 </h2>
-                <p className="mt-1 text-sm text-zinc-400">Riwayat order terbaru.</p>
+                <p className="mt-1 text-sm text-zinc-400">Recent order history.</p>
               </div>
               <Link
                 href="/products"
                 className="hidden text-[10px] font-bold uppercase tracking-[0.15em] text-[var(--theme-primary)] transition-opacity hover:opacity-70 sm:inline"
               >
-                Belanja →
+                Shop →
               </Link>
             </div>
 
             {customer.orders.length === 0 ? (
               <div className="border border-dashed border-zinc-200 py-16 text-center">
-                <p className="text-sm text-zinc-400">Belum ada pesanan.</p>
+                <p className="text-sm text-zinc-400">No orders yet.</p>
                 <Link
                   href="/products"
                   className="mt-4 inline-flex h-12 items-center px-8 text-xs font-black uppercase tracking-[0.15em] text-zinc-900 transition-opacity hover:opacity-90"
                   style={{ backgroundColor: "var(--theme-accent)" }}
                 >
-                  Mulai belanja
+                  Start shopping
                 </Link>
               </div>
             ) : (
@@ -171,7 +171,7 @@ export default async function AccountPage() {
             className="mt-2 text-3xl font-bold text-[var(--theme-text)]"
             style={{ fontFamily: "var(--theme-heading-font)" }}
           >
-            {customer.name ?? "Akun Saya"}
+            {customer.name ?? "My Account"}
           </h1>
           <p className="mt-1 text-sm text-[var(--theme-muted)]">{customer.email}</p>
         </div>
@@ -180,9 +180,9 @@ export default async function AccountPage() {
 
       <div className="grid gap-6 @3xl:grid-cols-2">
         <div className="rounded-[27px] bg-white p-8 shadow-[0px_0px_19px_rgba(0,0,0,0.12)]">
-          <h2 className="text-lg font-bold text-[var(--theme-text)]">Profil & kontak</h2>
+          <h2 className="text-lg font-bold text-[var(--theme-text)]">Profile & contact</h2>
           <p className="mt-1 text-sm text-[var(--theme-muted)]">
-            Data ini dipakai otomatis saat checkout.
+            This information is used automatically at checkout.
           </p>
           <div className="mt-6">
             <AccountProfileForm
@@ -199,17 +199,17 @@ export default async function AccountPage() {
       </div>
 
       <div className="mt-6 rounded-[27px] bg-white p-8 shadow-[0px_0px_19px_rgba(0,0,0,0.12)]">
-        <h2 className="text-lg font-bold text-[var(--theme-text)]">Pesanan Saya</h2>
+        <h2 className="text-lg font-bold text-[var(--theme-text)]">My Orders</h2>
 
         {customer.orders.length === 0 ? (
           <div className="py-12 text-center">
-            <p className="text-sm text-[var(--theme-muted)]">Belum ada pesanan.</p>
+            <p className="text-sm text-[var(--theme-muted)]">No orders yet.</p>
             <Link
               href="/products"
               className="mt-3 inline-block text-sm font-semibold"
               style={{ color: "var(--theme-primary)" }}
             >
-              Mulai belanja
+              Start shopping
             </Link>
           </div>
         ) : (

@@ -11,7 +11,7 @@ import { TEMPLATE_META } from "@/themes/engine/registry"
 import { CustomizeWorkspace } from "@/features/builder/components/CustomizeWorkspace"
 import { saveThemeDraftForStore, publishThemeForStore } from "./actions"
 
-export const metadata = { title: "Kustomisasi" }
+export const metadata = { title: "Customization" }
 
 /** Prevent browser pinch/page-zoom — only the preview canvas zooms. */
 export const viewport = {

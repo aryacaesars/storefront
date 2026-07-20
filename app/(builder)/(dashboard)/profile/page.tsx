@@ -9,20 +9,20 @@ export default async function ProfilePage() {
   const session = await requireSession()
 
   return (
-    <DashboardShell pageTitle="Profile" pageSubtitle="Informasi akun merchant kamu.">
+    <DashboardShell pageTitle="Profile" pageSubtitle="Your merchant account information.">
       <DashboardPanel className={cn(dashboardFormWidth, "p-6")}>
         <dl className="space-y-5">
           <div>
-            <dt className={dashboardLabel}>Nama Merchant</dt>
+            <dt className={dashboardLabel}>Merchant Name</dt>
             <dd className="text-sm text-gray-900">{session.name}</dd>
           </div>
           <div>
-            <dt className={dashboardLabel}>Toko</dt>
+            <dt className={dashboardLabel}>Store</dt>
             {/* @ts-expect-error TODO Sprint 2: add storeSlug to SessionData */}
             <dd className="text-sm text-gray-900">{session.tenantSlug}</dd>
           </div>
           <div>
-            <dt className={dashboardLabel}>Paket</dt>
+            <dt className={dashboardLabel}>Plan</dt>
             <dd className="text-sm text-gray-900">Pro Merchant</dd>
           </div>
         </dl>

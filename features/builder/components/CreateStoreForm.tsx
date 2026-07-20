@@ -50,7 +50,7 @@ export function CreateStoreForm({ rootDomain }: { rootDomain: string }) {
 
       <div>
         <label htmlFor="name" className={dashboardLabel}>
-          Nama Store <span className="text-red-500">*</span>
+          Store Name <span className="text-red-500">*</span>
         </label>
         <input
           id="name"
@@ -59,12 +59,12 @@ export function CreateStoreForm({ rootDomain }: { rootDomain: string }) {
           required
           value={name}
           onChange={(e) => onNameChange(e.target.value)}
-          placeholder="Toko Sepatu Keren"
+          placeholder="Cool Shoe Store"
           autoComplete="organization"
           className={dashboardInput}
         />
         <p className="mt-1.5 text-xs text-dash-muted">
-          Nama yang tampil di dashboard dan storefront.
+          Name displayed on the dashboard and storefront.
         </p>
       </div>
 
@@ -83,7 +83,7 @@ export function CreateStoreForm({ rootDomain }: { rootDomain: string }) {
               setSlugTouched(true)
               setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
             }}
-            placeholder="toko-sepatu"
+            placeholder="cool-shoes"
             pattern="[a-z0-9][a-z0-9\-]*[a-z0-9]|[a-z0-9]"
             autoComplete="off"
             spellCheck={false}
@@ -94,7 +94,7 @@ export function CreateStoreForm({ rootDomain }: { rootDomain: string }) {
           </span>
         </div>
         <p className="mt-1.5 text-xs leading-relaxed text-dash-muted">
-          Huruf kecil, angka, dan tanda hubung. Alamat toko publik kamu.
+          Lowercase letters, numbers, and hyphens. Your public store address.
         </p>
         {slug.length >= 2 && (
           <p className="mt-2 truncate rounded-xl bg-dash-bg px-3 py-2 text-xs text-dash-ink">
@@ -112,7 +112,7 @@ export function CreateStoreForm({ rootDomain }: { rootDomain: string }) {
           disabled={pending}
           className={cn(dashboardBtnPrimary, "w-full sm:w-auto")}
         >
-          {pending ? "Membuat store..." : "Buat Store"}
+          {pending ? "Creating store..." : "Create Store"}
         </button>
       </div>
     </form>

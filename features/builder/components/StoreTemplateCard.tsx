@@ -38,7 +38,7 @@ export function StoreTemplateCard({
   const themeId = normalizeThemeSlug(template.slug)
   const isFree = template.price === 0
   const isOwned = isPurchased || isFree || isActive
-  const priceLabel = isFree ? "Gratis" : `Rp ${template.price.toLocaleString("id-ID")}`
+  const priceLabel = isFree ? "Free" : `Rp ${template.price.toLocaleString("id-ID")}`
   const customizeHref = `/stores/${storeId}/customize?template=${themeId ?? template.slug}`
   const activate = buyAction.bind(null, storeId, template.id)
   const activateForLive = activateForLiveAction.bind(null, storeId, template.id)
@@ -59,7 +59,7 @@ export function StoreTemplateCard({
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-gray-400">
-            Preview tidak tersedia
+            Preview unavailable
           </div>
         )}
       </div>
@@ -74,11 +74,11 @@ export function StoreTemplateCard({
           </div>
           {isActive ? (
             <span className="shrink-0 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-white">
-              aktif
+              Active
             </span>
           ) : isOwned ? (
             <span className="shrink-0 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-500">
-              tidak aktif
+              Inactive
             </span>
           ) : (
             <span className="shrink-0 text-sm font-semibold text-brand">{priceLabel}</span>
@@ -88,18 +88,18 @@ export function StoreTemplateCard({
         <div className="mt-6 flex flex-col gap-3">
           {isActive ? (
             <Link href={customizeHref} className={cn(dashboardBtnPrimary, "w-full py-3")}>
-              Kelola Template
+              Manage Template
             </Link>
           ) : isPurchased || isFree ? (
             <form action={activate}>
               <button type="submit" className={cn(dashboardBtnPrimary, "w-full py-3")}>
-                Aktifkan Template
+                Activate Template
               </button>
             </form>
           ) : (
             <form action={activate}>
               <button type="submit" className={cn(dashboardBtnPrimary, "w-full py-3")}>
-                Beli — {priceLabel}
+                Buy — {priceLabel}
               </button>
             </form>
           )}

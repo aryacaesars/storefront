@@ -34,15 +34,15 @@ export interface PublicTemplateCardProps {
 type PickerMode = "buy" | "customize" | null
 
 function ownershipLabel(ownedCount: number, storeCount: number, isFree: boolean): string {
-  if (storeCount === 0) return isFree ? "Gratis" : "Belum dimiliki"
+  if (storeCount === 0) return isFree ? "Free" : "Not owned"
   if (isFree) {
-    if (ownedCount === 0) return "Gratis · siap diaktifkan"
-    if (ownedCount >= storeCount) return "Di semua toko"
-    return `Di ${ownedCount} dari ${storeCount} toko`
+    if (ownedCount === 0) return "Free · ready to activate"
+    if (ownedCount >= storeCount) return "On all stores"
+    return `On ${ownedCount} of ${storeCount} stores`
   }
-  if (ownedCount === 0) return "Belum dimiliki"
-  if (ownedCount >= storeCount) return "Di semua toko"
-  return `Di ${ownedCount} dari ${storeCount} toko`
+  if (ownedCount === 0) return "Not owned"
+  if (ownedCount >= storeCount) return "On all stores"
+  return `On ${ownedCount} of ${storeCount} stores`
 }
 
 /**
@@ -63,7 +63,7 @@ export function PublicTemplateCard({
   const [pending, startTransition] = useTransition()
 
   const isFree = template.price === 0
-  const priceLabel = isFree ? "Gratis" : `Rp ${template.price.toLocaleString("id-ID")}`
+  const priceLabel = isFree ? "Free" : `Rp ${template.price.toLocaleString("id-ID")}`
 
   const ownedSet = useMemo(() => new Set(ownedStoreIds), [ownedStoreIds])
   const ownedCount = ownedStoreIds.length
@@ -135,12 +135,12 @@ export function PublicTemplateCard({
   }
 
   const primaryLabel = (() => {
-    if (!isLoggedIn) return isFree ? "Aktifkan Template" : `Beli — ${priceLabel}`
-    if (storeCount === 0) return isFree ? "Buat Toko & Aktifkan" : `Beli — ${priceLabel}`
-    if (allOwned && !isFree) return "Kelola di Toko"
-    if (ownedCount > 0 && storeCount > 1 && !isFree) return "Beli untuk Toko Lain"
-    if (isFree) return storeCount > 1 ? "Aktifkan di Toko" : "Aktifkan Template"
-    return `Beli — ${priceLabel}`
+    if (!isLoggedIn) return isFree ? "Activate Template" : `Buy — ${priceLabel}`
+    if (storeCount === 0) return isFree ? "Create Store & Activate" : `Buy — ${priceLabel}`
+    if (allOwned && !isFree) return "Manage in Store"
+    if (ownedCount > 0 && storeCount > 1 && !isFree) return "Buy for Another Store"
+    if (isFree) return storeCount > 1 ? "Activate in Store" : "Activate Template"
+    return `Buy — ${priceLabel}`
   })()
 
   return (
@@ -159,7 +159,7 @@ export function PublicTemplateCard({
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-gray-400">
-            Preview tidak tersedia
+            Preview unavailable
           </div>
         )}
       </div>
@@ -192,7 +192,7 @@ export function PublicTemplateCard({
             onClick={handlePrimaryClick}
             className={cn(dashboardBtnPrimary, "w-full py-3 disabled:opacity-50")}
           >
-            {pending ? "Memproses..." : primaryLabel}
+            {pending ? "Processing..." : primaryLabel}
           </button>
 
           <div className="grid grid-cols-2 gap-3">
@@ -226,13 +226,13 @@ export function PublicTemplateCard({
 
       {picker && (
         <StorePickerDialog
-          title={picker === "buy" ? "Pilih toko untuk template ini" : "Customize di toko mana?"}
+          title={picker === "buy" ? "Choose a store for this template" : "Customize in which store?"}
           description={
             picker === "buy"
               ? isFree
-                ? "Template gratis — aktifkan per toko."
-                : "Setiap toko butuh license sendiri (1 beli = 1 toko)."
-              : "Config builder tersimpan per toko."
+                ? "Free template — activate per store."
+                : "Each store needs its own license (1 purchase = 1 store)."
+              : "Builder config is saved per store."
           }
           stores={stores}
           ownedStoreIds={ownedSet}
@@ -273,7 +273,7 @@ function StorePickerDialog({
       <button
         type="button"
         className="absolute inset-0 bg-black/40"
-        aria-label="Tutup"
+        aria-label="Close"
         onClick={onClose}
       />
       <div
@@ -294,10 +294,10 @@ function StorePickerDialog({
               mode === "customize"
                 ? "Customize"
                 : owned && !isFree
-                  ? "Buka →"
+                  ? "Open →"
                   : isFree
-                    ? "Aktifkan"
-                    : "Beli untuk toko ini"
+                    ? "Activate"
+                    : "Buy for this store"
 
             return (
               <li key={store.id}>
@@ -330,7 +330,7 @@ function StorePickerDialog({
                       {store.name}
                     </span>
                     <span className="block text-xs text-gray-500">
-                      {owned ? "License aktif di toko ini" : "Belum punya license"}
+                      {owned ? "Active license on this store" : "No license yet"}
                     </span>
                   </span>
                   <span
@@ -353,7 +353,7 @@ function StorePickerDialog({
           onClick={onClose}
           className="mt-4 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
         >
-          Kembali
+          Back
         </button>
       </div>
     </div>

@@ -36,15 +36,16 @@ export default async function AdminThemeBuilderPage({
     return (
       <div className="flex flex-col gap-4 p-6">
         <Link href={`/admin/templates/${id}`} className={dashboardBackLink}>
-          ← Kembali ke template
+          ← Back to template
         </Link>
         <DashboardPanel className="p-6">
           <p className="text-sm font-semibold text-gray-900">
-            Builder visual tidak tersedia
+            Visual builder unavailable
           </p>
           <p className="mt-1 text-sm text-gray-500">
-            Builder visual hanya untuk theme engine (bento / bold / fashion /
-            minimalist). Slug template ini: <span className="font-mono">{template.slug}</span>.
+            The visual builder is only available for theme engine templates (bento / bold /
+            fashion / minimalist). This template&apos;s slug:{" "}
+            <span className="font-mono">{template.slug}</span>.
           </p>
         </DashboardPanel>
       </div>

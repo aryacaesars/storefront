@@ -13,7 +13,7 @@ import { notFound } from "next/navigation"
 import type { CategoryFormState } from "@/features/builder/components/CategoryForm"
 
 const CategoryInput = z.object({
-  name: z.string().trim().min(1, "Nama kategori wajib diisi.").max(100),
+  name: z.string().trim().min(1, "Category name is required.").max(100),
 })
 
 async function requireOwner(storeId: string) {
@@ -34,13 +34,13 @@ export async function updateCategoryAction(
   await requireOwner(storeId)
 
   const parsed = CategoryInput.safeParse({ name: formData.get("name") })
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Input tidak valid." }
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input." }
 
   const slug = slugify(parsed.data.name)
-  if (!slug) return { error: "Nama menghasilkan slug kosong. Gunakan nama lain." }
+  if (!slug) return { error: "Name produces an empty slug. Use a different name." }
 
   if (await categorySlugExists(storeId, slug, categoryId)) {
-    return { error: `Kategori "${parsed.data.name}" sudah ada.` }
+    return { error: `Category "${parsed.data.name}" already exists.` }
   }
 
   await updateCategory(categoryId, storeId, {
@@ -65,6 +65,6 @@ export async function deleteCategoryAction(
     revalidatePath(`/stores/${storeId}/products`)
     return { ok: true }
   } catch {
-    return { ok: false, error: "Gagal menghapus kategori." }
+    return { ok: false, error: "Failed to delete category." }
   }
 }

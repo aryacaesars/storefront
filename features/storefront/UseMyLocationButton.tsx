@@ -33,7 +33,7 @@ export function UseMyLocationButton({ className }: UseMyLocationButtonProps) {
     if (!form) return
 
     if (!("geolocation" in navigator)) {
-      setError("Browser tidak mendukung lokasi.")
+      setError("Your browser does not support location.")
       return
     }
 
@@ -71,7 +71,7 @@ export function UseMyLocationButton({ className }: UseMyLocationButtonProps) {
           setDone(true)
           setTimeout(() => setDone(false), 2500)
         } catch {
-          setError("Gagal ambil alamat. Isi manual ya.")
+          setError("Could not fetch address. Please enter it manually.")
         } finally {
           setLoading(false)
         }
@@ -79,8 +79,8 @@ export function UseMyLocationButton({ className }: UseMyLocationButtonProps) {
       (geoErr) => {
         setError(
           geoErr.code === geoErr.PERMISSION_DENIED
-            ? "Izin lokasi ditolak."
-            : "Tidak bisa ambil lokasi.",
+            ? "Location permission denied."
+            : "Could not get your location.",
         )
         setLoading(false)
       },
@@ -98,10 +98,10 @@ export function UseMyLocationButton({ className }: UseMyLocationButtonProps) {
         aria-live="polite"
       >
         {loading
-          ? "Mengambil lokasi..."
+          ? "Getting location..."
           : done
-            ? "✓ Lokasi terisi"
-            : "📍 Pakai lokasi saya"}
+            ? "✓ Location filled"
+            : "📍 Use my location"}
       </button>
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>

@@ -163,17 +163,17 @@ export function BuilderToolPanels({
     return (
       <div className="flex flex-col gap-4 p-5">
         <div>
-          <h2 className="text-sm font-semibold text-gray-900">Konten Halaman</h2>
+          <h2 className="text-sm font-semibold text-gray-900">Page Content</h2>
           <p className="mt-1 text-xs text-gray-400">
-            Edit teks, gambar, dan kartu untuk halaman ini.
+            Edit text, images, and cards for this page.
           </p>
         </div>
         <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center">
           <p className="text-xs font-medium text-gray-500">
-            Editor konten halaman akan tersedia segera.
+            Page content editor coming soon.
           </p>
           <p className="mt-1 text-[11px] text-gray-400">
-            Teks, gambar, dan kartu akan bisa diedit dari sini.
+            Text, images, and cards will be editable from here.
           </p>
         </div>
       </div>
@@ -185,11 +185,11 @@ export function BuilderToolPanels({
       {isCatalogPage && (
         <div className="border-b border-amber-100 bg-amber-50 px-4 py-3">
           <p className="text-xs font-medium text-amber-800">
-            Halaman dikontrol katalog
+            Catalog-controlled page
           </p>
           <p className="mt-0.5 text-[11px] text-amber-700">
-            Data produk, harga, dan inventori ditarik dari katalog toko — tidak
-            diedit di builder.
+            Product data, prices, and inventory are pulled from the store catalog — not
+            edited in the builder.
           </p>
         </div>
       )}

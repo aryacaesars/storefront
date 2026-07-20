@@ -21,7 +21,7 @@ import { DashboardPanel } from "@/features/builder/components/dashboard-ui"
 export async function generateMetadata({ params }: { params: Promise<{ storeId: string }> }) {
   const { storeId } = await params
   const store = await getStoreById(storeId)
-  return { title: store ? `Pelanggan — ${store.name}` : "Pelanggan" }
+  return { title: store ? `Customers — ${store.name}` : "Customers" }
 }
 
 export default async function CustomersPage({
@@ -39,13 +39,13 @@ export default async function CustomersPage({
 
   return (
     <DashboardShell
-      pageTitle="Pelanggan"
-      pageSubtitle={`Total: ${total} user terdaftar di toko`}
+      pageTitle="Customers"
+      pageSubtitle={`Total: ${total} users registered in this store`}
     >
       {total === 0 ? (
         <DashboardPanel className="p-12 text-center">
           <p className="text-sm text-gray-400">
-            Belum ada user yang mendaftar di storefront toko ini.
+            No users have registered on this store's storefront yet.
           </p>
         </DashboardPanel>
       ) : (
@@ -53,12 +53,12 @@ export default async function CustomersPage({
           <DashboardTableElement>
             <DashboardTableHead>
               <DashboardTableHeadRow>
-                <DashboardTableHeadCell>Pelanggan</DashboardTableHeadCell>
-                <DashboardTableHeadCell align="right">Total Order</DashboardTableHeadCell>
-                <DashboardTableHeadCell align="right">Total Belanja</DashboardTableHeadCell>
-                <DashboardTableHeadCell align="right">Bergabung</DashboardTableHeadCell>
+                <DashboardTableHeadCell>Customers</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">Total Orders</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">Total Spent</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">Joined</DashboardTableHeadCell>
                 <DashboardTableHeadCell align="center">
-                  Aksi
+                  Actions
                 </DashboardTableHeadCell>
               </DashboardTableHeadRow>
             </DashboardTableHead>
@@ -87,7 +87,7 @@ export default async function CustomersPage({
                   <DashboardTableCell align="center">
                     <DashboardTableActionLink
                       href={`/stores/${storeId}/customers/${customer.id}`}
-                      label="Lihat customer"
+                      label="View customer"
                       icon="eye"
                     />
                   </DashboardTableCell>

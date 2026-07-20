@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { ClearCart } from "@/features/storefront/ClearCart"
 
-export const metadata = { title: "Order Berhasil" }
+export const metadata = { title: "Order Successful" }
 
 export default async function CheckoutSuccessPage({
   searchParams,
@@ -24,21 +24,21 @@ export default async function CheckoutSuccessPage({
           className="text-3xl font-bold text-gray-900"
           style={{ fontFamily: "var(--theme-heading-font, inherit)" }}
         >
-          Order Berhasil!
+          Order Successful!
         </h1>
         {order && (
           <p className="mt-3 text-gray-500 text-sm">
-            Order <span className="font-bold text-gray-900">#{order}</span> sudah kami terima.
+            Order <span className="font-bold text-gray-900">#{order}</span> has been received.
           </p>
         )}
         <p className="mt-2 text-gray-400 text-sm">
-          Kami akan memproses pesananmu segera. Cek email untuk konfirmasi.
+          We will process your order shortly. Check your email for confirmation.
         </p>
         <Link
           href="/"
           className="mt-8 inline-block px-8 py-3 bg-zinc-900 text-white text-sm font-bold rounded-full hover:bg-zinc-700 transition-colors"
         >
-          Kembali ke Home
+          Back to Home
         </Link>
       </div>
     </div>

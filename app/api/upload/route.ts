@@ -64,19 +64,19 @@ export async function POST(request: Request) {
   const form = await request.formData()
   const entry = form.get("file")
   if (!entry || typeof entry === "string") {
-    return NextResponse.json({ error: "File tidak ditemukan" }, { status: 400 })
+    return NextResponse.json({ error: "File not found" }, { status: 400 })
   }
 
   const file = entry as Blob & { name?: string }
   const ext = resolveUploadExt(file)
   if (!ext) {
     return NextResponse.json(
-      { error: "Tipe file tidak didukung (PNG, JPG, WebP, SVG)" },
+      { error: "Unsupported file type (PNG, JPG, WebP, SVG)" },
       { status: 400 },
     )
   }
   if (file.size > MAX_SIZE) {
-    return NextResponse.json({ error: "Ukuran file maks. 2MB" }, { status: 400 })
+    return NextResponse.json({ error: "Maximum file size is 2MB" }, { status: 400 })
   }
 
   const body = Buffer.from(await file.arrayBuffer())
@@ -108,7 +108,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ url: local.url, key: local.key })
     } catch (localErr) {
       console.error("[upload] local fallback failed:", localErr)
-      return NextResponse.json({ error: "Storage tidak tersedia." }, { status: 503 })
+      return NextResponse.json({ error: "Storage unavailable." }, { status: 503 })
     }
   }
 }

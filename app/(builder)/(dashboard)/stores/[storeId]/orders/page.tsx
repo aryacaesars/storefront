@@ -23,15 +23,15 @@ import { DashboardPanel } from "@/features/builder/components/dashboard-ui"
 export async function generateMetadata({ params }: { params: Promise<{ storeId: string }> }) {
   const { storeId } = await params
   const store = await getStoreById(storeId)
-  return { title: store ? `Order — ${store.name}` : "Order" }
+  return { title: store ? `Orders — ${store.name}` : "Orders" }
 }
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
-  PENDING: "Menunggu",
-  PAID: "Dibayar",
-  SHIPPED: "Dikirim",
-  DONE: "Selesai",
-  CANCELLED: "Dibatalkan",
+  PENDING: "Pending",
+  PAID: "Paid",
+  SHIPPED: "Shipped",
+  DONE: "Done",
+  CANCELLED: "Cancelled",
 }
 
 const STATUS_CLASS: Record<OrderStatus, string> = {
@@ -56,10 +56,10 @@ export default async function OrdersPage({
   const total = orders.length
 
   return (
-    <DashboardShell pageTitle="Order" pageSubtitle={`Total: ${total}`}>
+    <DashboardShell pageTitle="Orders" pageSubtitle={`Total: ${total}`}>
       {total === 0 ? (
         <DashboardPanel className="p-12 text-center">
-          <p className="text-sm text-gray-400">Belum ada order.</p>
+          <p className="text-sm text-gray-400">No orders yet.</p>
         </DashboardPanel>
       ) : (
         <DashboardTable>
@@ -70,9 +70,9 @@ export default async function OrdersPage({
                 <DashboardTableHeadCell>Customer</DashboardTableHeadCell>
                 <DashboardTableHeadCell align="right">Total</DashboardTableHeadCell>
                 <DashboardTableHeadCell align="center">Status</DashboardTableHeadCell>
-                <DashboardTableHeadCell align="right">Tanggal</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">Date</DashboardTableHeadCell>
                 <DashboardTableHeadCell align="center">
-                  Aksi
+                  Actions
                 </DashboardTableHeadCell>
               </DashboardTableHeadRow>
             </DashboardTableHead>
@@ -108,7 +108,7 @@ export default async function OrdersPage({
                   <DashboardTableCell align="center">
                     <DashboardTableActionLink
                       href={`/stores/${storeId}/orders/${order.id}`}
-                      label="Lihat order"
+                      label="View order"
                       icon="eye"
                     />
                   </DashboardTableCell>

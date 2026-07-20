@@ -55,7 +55,7 @@ export function DocsArticleView({ article }: DocsArticleProps) {
               >
                 <span className="inline-flex items-center gap-1 text-xs font-medium text-dash-muted">
                   <ArrowLeft className="h-3.5 w-3.5" />
-                  Sebelumnya
+                  Previous
                 </span>
                 <span className="mt-1 text-sm font-semibold text-ink group-hover:text-brand">
                   {prev.title}
@@ -70,7 +70,7 @@ export function DocsArticleView({ article }: DocsArticleProps) {
                 className="group flex flex-col items-end rounded-2xl border border-dash-border bg-white p-4 text-right transition-colors hover:border-brand/30 hover:bg-brand/[0.03] sm:col-start-2"
               >
                 <span className="inline-flex items-center gap-1 text-xs font-medium text-dash-muted">
-                  Berikutnya
+                  Next
                   <ArrowRight className="h-3.5 w-3.5" />
                 </span>
                 <span className="mt-1 text-sm font-semibold text-ink group-hover:text-brand">
@@ -83,7 +83,7 @@ export function DocsArticleView({ article }: DocsArticleProps) {
 
         <aside className="sticky top-28 mt-10 hidden h-fit lg:mt-0 lg:block">
           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted/80">
-            Di halaman ini
+            On this page
           </p>
           <ul className="mt-3 space-y-2 border-l border-dash-border pl-3">
             {article.sections.map((section) => (

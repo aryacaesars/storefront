@@ -7,7 +7,7 @@ import {
   dashboardTableHeadRow,
 } from "@/features/builder/components/dashboard-ui"
 
-export const metadata = { title: "Transaksi" }
+export const metadata = { title: "Transactions" }
 
 const STATUS_CLASS: Record<string, string> = {
   PAID: "bg-green-50 text-green-700",
@@ -21,12 +21,12 @@ export default async function AdminOrdersPage() {
 
   return (
     <DashboardShell
-      pageTitle="Transaksi Template"
-      pageSubtitle={`${purchases.length} transaksi`}
+      pageTitle="Template Transactions"
+      pageSubtitle={`${purchases.length} transactions`}
     >
       {purchases.length === 0 ? (
         <div className={`${dashboardCard} p-12 text-center text-sm text-gray-400`}>
-          Belum ada transaksi.
+          No transactions yet.
         </div>
       ) : (
         <div className={`${dashboardCard} overflow-hidden`}>
@@ -36,9 +36,9 @@ export default async function AdminOrdersPage() {
                 <tr className={dashboardTableHeadRow}>
                   <th className={`${dashboardTableHeadCell} text-left`}>Store</th>
                   <th className={`${dashboardTableHeadCell} text-left`}>Template</th>
-                  <th className={`${dashboardTableHeadCell} text-right`}>Harga</th>
+                  <th className={`${dashboardTableHeadCell} text-right`}>Price</th>
                   <th className={`${dashboardTableHeadCell} text-center`}>Status</th>
-                  <th className={`${dashboardTableHeadCell} text-right`}>Tanggal</th>
+                  <th className={`${dashboardTableHeadCell} text-right`}>Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -60,7 +60,7 @@ export default async function AdminOrdersPage() {
                       </span>
                     </td>
                     <td className="px-5 py-3.5 text-right text-xs text-gray-400">
-                      {(p.paidAt ?? p.createdAt).toLocaleDateString("id-ID", {
+                      {(p.paidAt ?? p.createdAt).toLocaleDateString("en-US", {
                         day: "numeric",
                         month: "short",
                         year: "numeric",

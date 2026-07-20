@@ -26,8 +26,8 @@ type ProductCatalogFiltersProps = {
 type SelectOption = { value: string; label: string }
 
 const SORT_OPTIONS: { value: CatalogSort; label: string }[] = [
-  { value: "name", label: "Nama A–Z" },
-  { value: "popular", label: "Terlaris" },
+  { value: "name", label: "Name A–Z" },
+  { value: "popular", label: "Best sellers" },
 ]
 
 function buildQuery(next: CatalogListFilters): string {
@@ -241,10 +241,10 @@ export function ProductCatalogFilters({
 
   const priceLabel =
     active.sort === "price-desc"
-      ? "Harga ↓"
+      ? "Price ↓"
       : active.sort === "price-asc"
-        ? "Harga ↑"
-        : "Harga"
+        ? "Price ↑"
+        : "Price"
 
   const PriceIcon =
     active.sort === "price-asc" ? ArrowUpNarrowWide : ArrowDownWideNarrow
@@ -252,7 +252,7 @@ export function ProductCatalogFilters({
   const sortSelectValue = active.sort === "popular" ? "popular" : "name"
 
   const categoryOptions: SelectOption[] = [
-    { value: "", label: "Semua kategori" },
+    { value: "", label: "All categories" },
     ...categories.map((cat) => ({ value: cat.slug, label: cat.name })),
   ]
 
@@ -269,16 +269,16 @@ export function ProductCatalogFilters({
             type="search"
             value={q}
             onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Cari produk..."
+            placeholder="Search products..."
             className={`${control} w-full pl-9 pr-8 [&::-webkit-search-cancel-button]:hidden`}
-            aria-label="Cari produk"
+            aria-label="Search products"
           />
           {q ? (
             <button
               type="button"
               onClick={() => handleSearchChange("")}
               className="absolute right-2 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-[#515160] hover:bg-black/5"
-              aria-label="Hapus pencarian"
+              aria-label="Clear search"
             >
               <X className="h-3.5 w-3.5" strokeWidth={2} />
             </button>
@@ -287,7 +287,7 @@ export function ProductCatalogFilters({
 
         {categories.length > 0 && (
           <ThemeSelect
-            label="Kategori"
+            label="Category"
             value={active.category ?? ""}
             options={categoryOptions}
             onChange={(value) =>
@@ -314,7 +314,7 @@ export function ProductCatalogFilters({
         </button>
 
         <ThemeSelect
-          label="Urutkan"
+          label="Sort"
           value={sortSelectValue}
           options={SORT_OPTIONS}
           onChange={(value) =>
@@ -327,7 +327,7 @@ export function ProductCatalogFilters({
           }
         />
 
-        <span className="ml-auto text-xs text-[#515160]">{resultCount} produk</span>
+        <span className="ml-auto text-xs text-[#515160]">{resultCount} products</span>
 
         {hasActive && (
           <button

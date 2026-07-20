@@ -13,7 +13,7 @@ interface ProductsSearchBarProps {
 
 export function ProductsSearchBar({
   defaultValue = "",
-  placeholder = "Cari produk...",
+  placeholder = "Search products...",
 }: ProductsSearchBarProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -50,14 +50,14 @@ export function ProductsSearchBar({
         onChange={(event) => setValue(event.target.value)}
         placeholder={placeholder}
         className={cn(dashboardInput, "h-10 pl-10 pr-10")}
-        aria-label="Cari produk"
+        aria-label="Search products"
       />
       {value && (
         <button
           type="button"
           onClick={() => setValue("")}
           className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-          aria-label="Hapus pencarian"
+          aria-label="Clear search"
         >
           <X className="h-4 w-4" />
         </button>

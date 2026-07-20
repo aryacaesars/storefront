@@ -44,7 +44,7 @@ export function StoreOverviewCard({
         </div>
         <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-200/80 bg-[#ecfdf5] px-2.5 py-1 text-xs font-medium text-[#007a55]">
           <span className="h-1.5 w-1.5 rounded-full bg-[#00bc7d]" aria-hidden />
-          Aktif
+          Active
         </span>
       </div>
 
@@ -54,7 +54,7 @@ export function StoreOverviewCard({
             href={`/stores/${id}/dashboard`}
             className={`${dashboardBtnPrimary} w-full rounded-[26px] py-3`}
           >
-            Buka Dashboard Toko
+            Open Store Dashboard
           </Link>
         )}
 
@@ -64,7 +64,7 @@ export function StoreOverviewCard({
             className={`${dashboardBtnOutline} rounded-[27px] py-2.5`}
           >
             <Pencil className="h-4 w-4 shrink-0" aria-hidden />
-            Kustomisasi
+            Customize
           </Link>
           <a
             href={storefrontUrl}
@@ -73,7 +73,7 @@ export function StoreOverviewCard({
             className={`${dashboardBtnOutline} rounded-[27px] py-2.5`}
           >
             <ExternalLink className="h-4 w-4 shrink-0" aria-hidden />
-            Kunjungi Toko
+            Visit Store
           </a>
         </div>
       </div>

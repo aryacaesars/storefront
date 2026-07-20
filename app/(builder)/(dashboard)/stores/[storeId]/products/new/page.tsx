@@ -11,7 +11,7 @@ import {
 } from "@/features/builder/components/dashboard-ui"
 import { createProductAction } from "./actions"
 
-export const metadata = { title: "Tambah Produk" }
+export const metadata = { title: "Add Product" }
 
 export default async function NewProductPage({
   params,
@@ -28,19 +28,19 @@ export default async function NewProductPage({
 
   return (
     <DashboardShell
-      pageTitle="Tambah Produk"
-      pageSubtitle="Isi detail produk lalu tentukan apakah langsung tampil di storefront"
+      pageTitle="Add Product"
+      pageSubtitle="Fill in product details, then choose whether it appears on the storefront right away"
     >
       <div className="flex flex-col gap-4">
         <Link href={`/stores/${storeId}/products`} className={dashboardBackLink}>
-          ← Kembali ke daftar produk
+          ← Back to product list
         </Link>
         <DashboardPanel className="w-full p-6 lg:p-8">
           <ProductForm
             storeId={storeId}
             categories={categories}
             action={action}
-            submitLabel="Tambah Produk"
+            submitLabel="Add Product"
           />
         </DashboardPanel>
       </div>

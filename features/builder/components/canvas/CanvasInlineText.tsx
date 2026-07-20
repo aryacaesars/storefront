@@ -28,7 +28,7 @@ export function CanvasInlineText({ value, onChange, className, style }: CanvasIn
         }
       }}
       className={cn(
-        "outline-none empty:before:content-['Kategori'] empty:before:text-white/50",
+        "outline-none empty:before:content-['Category'] empty:before:text-white/50",
         "rounded-sm focus:ring-2 focus:ring-white/40",
         className,
       )}

@@ -30,15 +30,15 @@ const TOP_NAV = [
 const STORE_NAV = [
   { href: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "templates", label: "Template", icon: LayoutTemplate },
-  { href: "products", label: "Produk", icon: Package },
-  { href: "categories", label: "Kategori", icon: Tag },
-  { href: "orders", label: "Order", icon: ShoppingCart },
-  { href: "customers", label: "Pelanggan", icon: Users },
-  { href: "customize", label: "Kustomisasi", icon: Palette },
-  { href: "settings", label: "Pengaturan", icon: Settings },
+  { href: "products", label: "Products", icon: Package },
+  { href: "categories", label: "Categories", icon: Tag },
+  { href: "orders", label: "Orders", icon: ShoppingCart },
+  { href: "customers", label: "Customers", icon: Users },
+  { href: "customize", label: "Customize", icon: Palette },
+  { href: "settings", label: "Settings", icon: Settings },
 ]
 
-const TOOLS_NAV = [{ href: "/support", label: "Bantuan", icon: HelpCircle }]
+const TOOLS_NAV = [{ href: "/support", label: "Support", icon: HelpCircle }]
 
 type StoreItem = { id: string; name: string }
 
@@ -145,7 +145,7 @@ export function SidebarNavLinks({
 
       {stores.length > 0 && (
         <div>
-          <p className={sidebarSectionLabel}>Toko Saya</p>
+          <p className={sidebarSectionLabel}>My Stores</p>
           <div className="flex flex-col gap-1">
             {stores.map((store) => {
               const isActive = activeStoreId === store.id

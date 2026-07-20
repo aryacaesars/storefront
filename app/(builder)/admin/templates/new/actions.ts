@@ -8,9 +8,9 @@ import { createTemplate } from "@/server/services/admin.service"
 import type { TemplateFormState } from "../form-state"
 
 const Input = z.object({
-  name: z.string().trim().min(1, "Nama wajib diisi."),
+  name: z.string().trim().min(1, "Name is required."),
   description: z.string().trim().optional(),
-  price: z.coerce.number().min(0, "Harga tidak valid."),
+  price: z.coerce.number().min(0, "Invalid price."),
   previewUrl: z.string().optional(),
   published: z.boolean(),
 })
@@ -27,7 +27,7 @@ export async function createTemplateAction(
     previewUrl: (formData.get("previewUrl") as string) || undefined,
     published: formData.get("published") === "on",
   })
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Input tidak valid." }
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input." }
 
   await createTemplate({
     name: parsed.data.name,

@@ -99,7 +99,7 @@ export function TemplateForm({
       const data = (await res.json()) as { url: string }
       setPreviewUrl(data.url)
     } catch {
-      setUploadError("Gagal upload gambar.")
+      setUploadError("Failed to upload image.")
     } finally {
       setUploading(false)
       e.target.value = ""
@@ -119,7 +119,7 @@ export function TemplateForm({
         <div className="flex flex-col gap-5">
           <div>
             <label className={dashboardLabel}>
-              Nama Template <span className="text-red-500">*</span>
+              Template Name <span className="text-red-500">*</span>
             </label>
             <input
               name="name"
@@ -132,19 +132,19 @@ export function TemplateForm({
           </div>
 
           <div>
-            <label className={dashboardLabel}>Deskripsi</label>
+            <label className={dashboardLabel}>Description</label>
             <textarea
               name="description"
               rows={4}
               defaultValue={defaultValues.description ?? ""}
-              placeholder="Template modern untuk..."
+              placeholder="Modern template for..."
               className={cn(dashboardInput, "resize-none")}
             />
           </div>
 
           <div>
             <label className={dashboardLabel}>
-              Harga (Rp) <span className="text-red-500">*</span>
+              Price (Rp) <span className="text-red-500">*</span>
             </label>
             <input type="hidden" name="price" value={priceDigits} />
             <div className="relative">
@@ -161,7 +161,7 @@ export function TemplateForm({
                 className={cn(dashboardInput, "pl-9")}
               />
             </div>
-            <p className="mt-1.5 text-xs text-dash-muted">Isi 0 untuk template gratis.</p>
+            <p className="mt-1.5 text-xs text-dash-muted">Enter 0 for a free template.</p>
           </div>
         </div>
 
@@ -169,11 +169,11 @@ export function TemplateForm({
           <div className="rounded-2xl border border-dash-border bg-dash-bg/50 p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-dash-ink">Status Marketplace</p>
+                <p className="text-sm font-semibold text-dash-ink">Marketplace Status</p>
                 <p className="mt-1 text-xs leading-relaxed text-dash-muted">
                   {published
-                    ? "Terbit — tampil di marketplace untuk dibeli merchant."
-                    : "Draft — disimpan tapi tidak tampil di marketplace."}
+                    ? "Published — visible in the marketplace for merchants to purchase."
+                    : "Draft — saved but not shown in the marketplace."}
                 </p>
               </div>
               <PublishToggle published={published} onChange={setPublished} />
@@ -186,20 +186,20 @@ export function TemplateForm({
                   : "bg-dash-border/60 text-dash-muted",
               )}
             >
-              {published ? "Terbit" : "Draft"}
+              {published ? "Published" : "Draft"}
             </p>
           </div>
 
           <div>
             <div className="mb-1.5 flex items-center justify-between gap-2">
-              <label className="text-sm font-medium text-dash-ink">Preview kartu</label>
+              <label className="text-sm font-medium text-dash-ink">Card preview</label>
               {hasCustomPreview ? (
                 <span className="rounded-full bg-dash-primary-light px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-dash-primary">
-                  Gambar kustom
+                  Custom image
                 </span>
               ) : showLiveThumb ? (
                 <span className="rounded-full bg-dash-bg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-dash-muted ring-1 ring-dash-border">
-                  Live dari base
+                  Live from base
                 </span>
               ) : null}
             </div>
@@ -225,15 +225,15 @@ export function TemplateForm({
               ) : (
                 <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center">
                   <ImagePlus className="h-8 w-8 text-dash-muted/50" />
-                  <p className="text-sm font-medium text-dash-muted">Belum ada preview</p>
+                  <p className="text-sm font-medium text-dash-muted">No preview yet</p>
                 </div>
               )}
             </div>
 
             <p className="mt-2 text-xs leading-relaxed text-dash-muted">
-              Default menampilkan render hero dari{" "}
-              <span className="font-medium text-dash-ink">base template</span>. Upload gambar
-              sendiri jika ingin override. Rekomendasi:{" "}
+              By default, this shows a hero render from the{" "}
+              <span className="font-medium text-dash-ink">base template</span>. Upload your own
+              image to override. Recommended:{" "}
               <span className="font-medium text-dash-ink">{PREVIEW_SIZE_HINT}</span> · PNG, JPG,
               WebP.
             </p>
@@ -247,7 +247,7 @@ export function TemplateForm({
                 )}
               >
                 <Upload className="h-3.5 w-3.5" />
-                {uploading ? "Mengupload..." : hasCustomPreview ? "Ganti gambar" : "Upload gambar"}
+                {uploading ? "Uploading..." : hasCustomPreview ? "Replace image" : "Upload image"}
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
@@ -266,12 +266,12 @@ export function TemplateForm({
                   {baseThemeConfig ? (
                     <>
                       <RefreshCw className="h-3.5 w-3.5" />
-                      Pakai live base
+                      Use live base
                     </>
                   ) : (
                     <>
                       <X className="h-3.5 w-3.5" />
-                      Hapus
+                      Delete
                     </>
                   )}
                 </button>
@@ -285,7 +285,7 @@ export function TemplateForm({
 
       <div className="flex flex-wrap items-center gap-3 border-t border-dash-border pt-6">
         <button type="submit" disabled={pending || uploading} className={dashboardBtnPrimary}>
-          {pending ? "Menyimpan..." : submitLabel}
+          {pending ? "Saving..." : submitLabel}
         </button>
       </div>
     </form>

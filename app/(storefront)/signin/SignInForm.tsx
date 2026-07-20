@@ -30,7 +30,7 @@ export function SignInForm() {
         className="h-12 w-full rounded-full text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
         style={{ backgroundColor: "var(--theme-primary)" }}
       >
-        {pending ? "Memproses..." : "Masuk"}
+        {pending ? "Processing..." : "Sign In"}
       </button>
     </form>
   )

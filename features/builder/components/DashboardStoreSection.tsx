@@ -29,12 +29,12 @@ export function DashboardStoreSection({ stores }: { stores: StoreItem[] }) {
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-dash-primary-light text-dash-primary">
           <Store className="h-7 w-7" strokeWidth={1.75} aria-hidden />
         </div>
-        <h2 className="mt-5 font-display text-xl font-bold text-dash-ink">Belum ada toko</h2>
+        <h2 className="mt-5 font-display text-xl font-bold text-dash-ink">No stores yet</h2>
         <p className="mt-2 max-w-sm text-sm leading-relaxed text-dash-muted">
-          Mulai dengan membuat toko pertamamu. Hanya butuh beberapa menit untuk siap berjualan.
+          Start by creating your first store. It only takes a few minutes to get selling.
         </p>
         <Link href="/stores/new" className={`${dashboardBtnPrimary} mt-8`}>
-          Buat Toko Sekarang
+          Create Store Now
         </Link>
       </div>
     )
@@ -57,14 +57,14 @@ export function DashboardStoreSection({ stores }: { stores: StoreItem[] }) {
             </span>
           </div>
           <Link href="/stores/new" className={`${dashboardBtnPrimary} shrink-0 px-5 py-2.5`}>
-            + Buat Toko
+            + Create Store
           </Link>
         </div>
       </div>
 
       <div className="mb-4">
         <p className={dashboardSectionTitle}>
-          {filteredStores.length} {filteredStores.length === 1 ? "Toko" : "Toko"}
+          {filteredStores.length} {filteredStores.length === 1 ? "Store" : "Stores"}
         </p>
       </div>
 

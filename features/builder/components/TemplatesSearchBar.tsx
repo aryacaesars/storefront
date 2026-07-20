@@ -14,7 +14,7 @@ interface TemplatesSearchBarProps {
 /** Search bar scoped ke query `?q=` — filter dilakukan di server (owned only). */
 export function TemplatesSearchBar({
   defaultValue = "",
-  placeholder = "Cari template...",
+  placeholder = "Search templates...",
 }: TemplatesSearchBarProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -51,14 +51,14 @@ export function TemplatesSearchBar({
         onChange={(event) => setValue(event.target.value)}
         placeholder={placeholder}
         className={cn(dashboardInput, "h-10 pl-10 pr-10")}
-        aria-label="Cari template milikmu"
+        aria-label="Search your templates"
       />
       {value && (
         <button
           type="button"
           onClick={() => setValue("")}
           className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-          aria-label="Hapus pencarian"
+          aria-label="Clear search"
         >
           <X className="h-4 w-4" />
         </button>

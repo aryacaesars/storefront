@@ -51,26 +51,28 @@ export function SidebarAccountMenu({
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-haspopup="menu"
+        aria-label={isHeader ? `Account ${displayName}` : undefined}
         className={cn(
-          "flex w-full items-center text-left transition-colors",
+          "flex items-center text-left transition-colors",
           isHeader
-            ? "gap-2 rounded-full border border-dash-border/70 bg-dash-surface py-1.5 pl-1.5 pr-2.5 hover:border-dash-border"
+            ? cn(
+                "rounded-full border border-dash-border/70 bg-dash-surface text-dash-muted hover:border-dash-border hover:text-dash-ink",
+                // Mobile: icon only; sm+: pill with name
+                "inline-flex h-9 w-9 shrink-0 items-center justify-center",
+                "sm:h-auto sm:w-full sm:justify-start sm:gap-2 sm:py-1.5 sm:pl-1.5 sm:pr-2.5 sm:text-inherit",
+              )
             : cn(
-                "gap-2.5 rounded-lg px-3 py-2.5",
+                "w-full gap-2.5 rounded-lg px-3 py-2.5",
                 open ? "bg-dash-primary/8 ring-1 ring-dash-primary/15" : "hover:bg-dash-bg",
               ),
         )}
       >
-        <span
-          className={cn(
-            "flex shrink-0 items-center justify-center rounded-full bg-dash-primary/10",
-            isHeader ? "h-8 w-8" : "h-9 w-9",
-          )}
-        >
-          <User2 className={cn("text-dash-primary", isHeader ? "h-3.5 w-3.5" : "h-4 w-4")} />
-        </span>
         {isHeader ? (
           <>
+            <User2 className="h-4 w-4 sm:hidden" strokeWidth={1.75} />
+            <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-full bg-dash-primary/10 sm:flex">
+              <User2 className="h-3.5 w-3.5 text-dash-primary" />
+            </span>
             <span className="hidden min-w-0 flex-1 sm:block">
               <span className="block truncate text-[13px] font-semibold leading-tight text-dash-ink">
                 {displayName}
@@ -86,6 +88,9 @@ export function SidebarAccountMenu({
           </>
         ) : (
           <>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-dash-primary/10">
+              <User2 className="h-4 w-4 text-dash-primary" />
+            </span>
             <div className="min-w-0 flex-1">
               <span className="block truncate text-xs font-semibold leading-tight text-dash-ink">
                 {displayName}

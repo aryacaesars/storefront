@@ -48,7 +48,7 @@ export function EditorTopbar({
             "inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-indigo-600 px-2.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 md:px-3",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1",
           )}
-          aria-label="Kembali ke dashboard"
+          aria-label="Back to dashboard"
         >
           <ArrowLeft className="h-4 w-4" />
           <span className="hidden sm:inline">Dashboard</span>
@@ -112,7 +112,7 @@ export function EditorTopbar({
 
         {mode === "edit" && device === "mobile" && (
           <span className="hidden items-center rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-700 sm:inline-flex">
-            Layer Mobile
+            Mobile Layers
           </span>
         )}
 
@@ -150,7 +150,7 @@ export function EditorTopbar({
           </Button>
           <button
             type="button"
-            aria-label="Menu lainnya"
+            aria-label="More menu"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((v) => !v)}
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
@@ -161,7 +161,7 @@ export function EditorTopbar({
             <>
               <button
                 type="button"
-                aria-label="Tutup menu"
+                aria-label="Close menu"
                 className="fixed inset-0 z-40"
                 onClick={() => setMenuOpen(false)}
               />

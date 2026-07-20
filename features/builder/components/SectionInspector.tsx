@@ -49,7 +49,7 @@ interface HeroImageListPanelProps {
   onChange: (images: CanvasImageItem[]) => void
 }
 
-function HeroImageListPanel({ title = "Gambar Hero", images, onChange }: HeroImageListPanelProps) {
+function HeroImageListPanel({ title = "Hero Images", images, onChange }: HeroImageListPanelProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   function openFilePicker(onUrl: (url: string) => void) {
@@ -97,7 +97,7 @@ function HeroImageListPanel({ title = "Gambar Hero", images, onChange }: HeroIma
 
       {images.length === 0 && (
         <p className="text-[11px] text-gray-400">
-          Belum ada gambar. Klik tombol di bawah untuk menambah.
+          No images yet. Click the button below to add one.
         </p>
       )}
 
@@ -118,7 +118,7 @@ function HeroImageListPanel({ title = "Gambar Hero", images, onChange }: HeroIma
                   className="flex-1 truncate text-left"
                 >
                   <span className="block text-[11px] font-medium text-gray-700">
-                    Gambar {idx + 1}
+                    Image {idx + 1}
                   </span>
                   <span className="block text-[10px] text-gray-400">
                     {Math.round(img.width)}%×{Math.round(img.height)}% · {img.rotation}°
@@ -129,7 +129,7 @@ function HeroImageListPanel({ title = "Gambar Hero", images, onChange }: HeroIma
                   type="button"
                   onClick={() => handleUpdate(img.id)}
                   className="rounded p-1 text-gray-400 hover:bg-indigo-50 hover:text-indigo-600"
-                  title="Ganti gambar"
+                  title="Replace image"
                 >
                   <Pencil className="h-3 w-3" />
                 </button>
@@ -138,7 +138,7 @@ function HeroImageListPanel({ title = "Gambar Hero", images, onChange }: HeroIma
                   type="button"
                   onClick={() => handleDelete(img.id)}
                   className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
-                  title="Hapus gambar"
+                  title="Remove image"
                 >
                   <Trash2 className="h-3 w-3" />
                 </button>
@@ -146,7 +146,7 @@ function HeroImageListPanel({ title = "Gambar Hero", images, onChange }: HeroIma
 
               {isExpanded && (
                 <div className="space-y-3 border-t border-gray-100 px-2 pb-3 pt-2">
-                  <SettingsField label={`Lebar (${Math.round(img.width)}% kanvas)`}>
+                  <SettingsField label={`Width (${Math.round(img.width)}% canvas)`}>
                     <input
                       type="range"
                       min={5}
@@ -158,7 +158,7 @@ function HeroImageListPanel({ title = "Gambar Hero", images, onChange }: HeroIma
                     />
                   </SettingsField>
 
-                  <SettingsField label={`Tinggi (${Math.round(img.height)}% kanvas)`}>
+                  <SettingsField label={`Height (${Math.round(img.height)}% canvas)`}>
                     <input
                       type="range"
                       min={5}
@@ -170,7 +170,7 @@ function HeroImageListPanel({ title = "Gambar Hero", images, onChange }: HeroIma
                     />
                   </SettingsField>
 
-                  <SettingsField label={`Rotasi (${img.rotation}°)`}>
+                  <SettingsField label={`Rotation (${img.rotation}°)`}>
                     <input
                       type="range"
                       min={-180}
@@ -182,7 +182,7 @@ function HeroImageListPanel({ title = "Gambar Hero", images, onChange }: HeroIma
                     />
                   </SettingsField>
 
-                  <SettingsField label={`Skala zoom (${Math.round(img.scale * 100)}%)`}>
+                  <SettingsField label={`Zoom scale (${Math.round(img.scale * 100)}%)`}>
                     <div className="flex items-center gap-2">
                       <input
                         type="range"
@@ -204,7 +204,7 @@ function HeroImageListPanel({ title = "Gambar Hero", images, onChange }: HeroIma
                   </SettingsField>
 
                   <p className="text-[10px] text-gray-400">
-                    Drag gambar di canvas untuk geser · ⊙ zoom · □ resize bingkai
+                    Drag the image on the canvas to move · ⊙ zoom · □ resize frame
                   </p>
                 </div>
               )}
@@ -219,15 +219,15 @@ function HeroImageListPanel({ title = "Gambar Hero", images, onChange }: HeroIma
         className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-indigo-300 bg-indigo-50 px-3 py-2.5 text-[11px] font-semibold text-indigo-600 transition-colors hover:border-indigo-400 hover:bg-indigo-100"
       >
         <ImagePlus className="h-3.5 w-3.5" />
-        Tambah Gambar Baru
+        Add New Image
       </button>
     </div>
   )
 }
 
 const HERO_TITLE_LAYER_OPTIONS = [
-  { value: "front", label: "Di depan" },
-  { value: "behind", label: "Di belakang" },
+  { value: "front", label: "In front" },
+  { value: "behind", label: "Behind" },
 ] as const
 
 const LABEL_LAYER_OPTIONS = HERO_TITLE_LAYER_OPTIONS
@@ -244,14 +244,14 @@ const ALL_HERO_FONT_OPTIONS = [
 
 const FONT_WEIGHT_OPTIONS = [
   { value: "", label: "Auto" },
-  { value: "300", label: "Tipis" },
-  { value: "700", label: "Tebal" },
-  { value: "900", label: "Hitam" },
+  { value: "300", label: "Light" },
+  { value: "700", label: "Bold" },
+  { value: "900", label: "Black" },
 ] as const
 
 const FONT_STYLE_OPTIONS = [
   { value: "normal", label: "Normal" },
-  { value: "italic", label: "Miring" },
+  { value: "italic", label: "Italic" },
 ] as const
 
 interface TitleStyleFieldsProps {
@@ -282,7 +282,7 @@ function TitleStyleFields({ line, lineLabel, settings, onChange }: TitleStyleFie
 
   return (
     <>
-      <SettingsField label={`Warna ${lineLabel}`}>
+      <SettingsField label={`Color ${lineLabel}`}>
         <div className="flex items-center gap-2">
           <input
             type="color"
@@ -292,7 +292,7 @@ function TitleStyleFields({ line, lineLabel, settings, onChange }: TitleStyleFie
           />
           <SettingsInput
             value={currentColor}
-            placeholder="Default tema"
+            placeholder="Theme default"
             onChange={(e) => onChange({ [colorKey]: e.target.value })}
           />
           {currentColor && (
@@ -300,7 +300,7 @@ function TitleStyleFields({ line, lineLabel, settings, onChange }: TitleStyleFie
               type="button"
               onClick={() => onChange({ [colorKey]: "" })}
               className="shrink-0 text-[13px] font-medium text-gray-400 hover:text-gray-600"
-              title="Reset ke warna default tema"
+              title="Reset to theme default color"
             >
               ↺
             </button>
@@ -313,7 +313,7 @@ function TitleStyleFields({ line, lineLabel, settings, onChange }: TitleStyleFie
           onChange={(e) => onChange({ [fontFamilyKey]: e.target.value })}
           className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/30"
         >
-          <option value="">Default (tema)</option>
+          <option value="">Default (theme)</option>
           {ALL_HERO_FONT_OPTIONS.map((f) => (
             <option key={f} value={f}>
               {f}
@@ -321,7 +321,7 @@ function TitleStyleFields({ line, lineLabel, settings, onChange }: TitleStyleFie
           ))}
         </select>
       </SettingsField>
-      <SettingsField label={`Ketebalan ${lineLabel}`}>
+      <SettingsField label={`Weight ${lineLabel}`}>
         <SegmentedControl
           value={currentWeight}
           options={[...FONT_WEIGHT_OPTIONS]}
@@ -330,7 +330,7 @@ function TitleStyleFields({ line, lineLabel, settings, onChange }: TitleStyleFie
           }
         />
       </SettingsField>
-      <SettingsField label={`Gaya ${lineLabel}`}>
+      <SettingsField label={`Style ${lineLabel}`}>
         <SegmentedControl
           value={currentStyle}
           options={[...FONT_STYLE_OPTIONS]}
@@ -382,7 +382,7 @@ export function SectionInspector({
     return (
       <div className="border-t border-gray-200 bg-gray-50 px-4 py-6 text-center">
         <p className="text-xs text-gray-500">
-          Pilih section di daftar atau klik langsung di preview untuk mengedit konten.
+          Select a section from the list or click directly on the preview to edit content.
         </p>
       </div>
     )
@@ -508,18 +508,17 @@ export function SectionInspector({
         {!selectedBlock ? (
           <>
             <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
-              Klik gambar hero atau tombol CTA di canvas untuk opsi lanjutan (layer judul, ukuran
-              font, posisi CTA).
+              Click the hero image or CTA button on the canvas for advanced options (title layers, font size, CTA position).
             </p>
             <div className="space-y-3">
-              <SettingsField label="Judul baris 1">
+              <SettingsField label="Title line 1">
                 <SettingsInput
                   value={config.hero?.title ?? ""}
                   placeholder="Quiet Luxury"
                   onChange={(e) => onHeroChange("title", e.target.value)}
                 />
               </SettingsField>
-              <SettingsField label="Judul baris 2">
+              <SettingsField label="Title line 2">
                 <SettingsInput
                   value={config.hero?.subtitle ?? ""}
                   placeholder="Curated essentials designed with intention"
@@ -533,7 +532,7 @@ export function SectionInspector({
             <div className="mb-3">
               <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                 {selectedBlock.type === "hero-media"
-                  ? "Opsi Lanjutan"
+                  ? "Advanced Options"
                   : selectedDef?.label ?? selectedBlock.type}
               </span>
             </div>
@@ -543,23 +542,23 @@ export function SectionInspector({
                   <>
                     <div className="space-y-3 border-t border-gray-100 pt-3">
                       <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-                        Judul
+                        Title
                       </p>
-                      <SettingsField label="Judul baris 1">
+                      <SettingsField label="Title line 1">
                         <SettingsInput
                           value={config.hero?.title ?? ""}
                           placeholder="Quiet Luxury"
                           onChange={(e) => onHeroChange("title", e.target.value)}
                         />
                       </SettingsField>
-                      <SettingsField label="Judul baris 2">
+                      <SettingsField label="Title line 2">
                         <SettingsInput
                           value={config.hero?.subtitle ?? ""}
                           placeholder="Curated essentials designed with intention"
                           onChange={(e) => onHeroChange("subtitle", e.target.value)}
                         />
                       </SettingsField>
-                      <SettingsField label="Layer judul baris 1" hint="Urutan tampilan relatif ke gambar hero">
+                      <SettingsField label="Title line 1 layer" hint="Display order relative to the hero image">
                         <SegmentedControl
                           value={resolvedSettings?.title1Layer === "behind" ? "behind" : "front"}
                           options={[...HERO_TITLE_LAYER_OPTIONS]}
@@ -568,7 +567,7 @@ export function SectionInspector({
                           }
                         />
                       </SettingsField>
-                      <SettingsField label="Layer judul baris 2" hint="Urutan tampilan relatif ke gambar hero">
+                      <SettingsField label="Title line 2 layer" hint="Display order relative to the hero image">
                         <SegmentedControl
                           value={resolvedSettings?.title2Layer === "behind" ? "behind" : "front"}
                           options={[...HERO_TITLE_LAYER_OPTIONS]}
@@ -579,8 +578,8 @@ export function SectionInspector({
                       </SettingsField>
                     </div>
                     <SettingsField
-                      label={`Ukuran font baris 1 (${Math.round(title1LabelHPct * 10) / 10}% tinggi hero)`}
-                      hint="Atur lewat slider atau tarik handle ungu di canvas"
+                      label={`Title line 1 font size (${Math.round(title1LabelHPct * 10) / 10}% of hero height)`}
+                      hint="Adjust with the slider or drag the purple handle on the canvas"
                     >
                       <input
                         type="range"
@@ -597,8 +596,8 @@ export function SectionInspector({
                       />
                     </SettingsField>
                     <SettingsField
-                      label={`Ukuran font baris 2 (${Math.round(title2LabelHPct * 10) / 10}% tinggi hero)`}
-                      hint="Atur lewat slider atau tarik handle ungu di canvas"
+                      label={`Title line 2 font size (${Math.round(title2LabelHPct * 10) / 10}% of hero height)`}
+                      hint="Adjust with the slider or drag the purple handle on the canvas"
                     >
                       <input
                         type="range"
@@ -616,29 +615,29 @@ export function SectionInspector({
                     </SettingsField>
                     <div className="space-y-3 border-t border-gray-100 pt-3">
                       <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-                        Styling Teks
+                        Text Styling
                       </p>
                       <TitleStyleFields
                         line="title1"
-                        lineLabel="baris 1"
+                        lineLabel="line 1"
                         settings={resolvedSettings}
                         onChange={(patch) => updateBlockSettings(selectedIdx, patch)}
                       />
                       <TitleStyleFields
                         line="title2"
-                        lineLabel="baris 2"
+                        lineLabel="line 2"
                         settings={resolvedSettings}
                         onChange={(patch) => updateBlockSettings(selectedIdx, patch)}
                       />
                     </div>
                     <p className="text-[11px] text-gray-500">
-                      Posisi & lebar teks: drag box judul di canvas atau tarik handle ungu.
+                      Text position & width: drag the title box on the canvas or pull the purple handle.
                     </p>
                   </>
                 )}
                 {selectedBlock.type === "hero-cta" && (
                   <p className="text-[11px] text-gray-500">
-                    Posisi & ukuran tombol: tarik tepi/sudut di canvas.
+                    Button position & size: drag edges/corners on the canvas.
                   </p>
                 )}
               </div>
@@ -708,18 +707,17 @@ export function SectionInspector({
         {!selectedBlock ? (
           <>
             <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
-              Klik gambar hero atau tombol CTA di canvas untuk opsi lanjutan (layer judul, ukuran
-              font, posisi CTA).
+              Click the hero image or CTA button on the canvas for advanced options (title layers, font size, CTA position).
             </p>
             <div className="space-y-3">
-              <SettingsField label="Judul baris 1">
+              <SettingsField label="Title line 1">
                 <SettingsInput
                   value={config.hero?.title ?? ""}
                   placeholder="Curated For Everyday Beauty"
                   onChange={(e) => onHeroChange("title", e.target.value)}
                 />
               </SettingsField>
-              <SettingsField label="Judul baris 2">
+              <SettingsField label="Title line 2">
                 <SettingsInput
                   value={config.hero?.subtitle ?? ""}
                   placeholder="New Season Arrival"
@@ -733,7 +731,7 @@ export function SectionInspector({
             <div className="mb-3">
               <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                 {selectedBlock.type === "hero-media"
-                  ? "Opsi Lanjutan"
+                  ? "Advanced Options"
                   : selectedDef?.label ?? selectedBlock.type}
               </span>
             </div>
@@ -743,23 +741,23 @@ export function SectionInspector({
                   <>
                     <div className="space-y-3 border-t border-gray-100 pt-3">
                       <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-                        Judul
+                        Title
                       </p>
-                      <SettingsField label="Judul baris 1">
+                      <SettingsField label="Title line 1">
                         <SettingsInput
                           value={config.hero?.title ?? ""}
                           placeholder="Curated For Everyday Beauty"
                           onChange={(e) => onHeroChange("title", e.target.value)}
                         />
                       </SettingsField>
-                      <SettingsField label="Judul baris 2">
+                      <SettingsField label="Title line 2">
                         <SettingsInput
                           value={config.hero?.subtitle ?? ""}
                           placeholder="New Season Arrival"
                           onChange={(e) => onHeroChange("subtitle", e.target.value)}
                         />
                       </SettingsField>
-                      <SettingsField label="Layer judul baris 1" hint="Urutan tampilan relatif ke gambar hero">
+                      <SettingsField label="Title line 1 layer" hint="Display order relative to the hero image">
                         <SegmentedControl
                           value={resolvedSettings?.title1Layer === "behind" ? "behind" : "front"}
                           options={[...HERO_TITLE_LAYER_OPTIONS]}
@@ -768,7 +766,7 @@ export function SectionInspector({
                           }
                         />
                       </SettingsField>
-                      <SettingsField label="Layer judul baris 2" hint="Urutan tampilan relatif ke gambar hero">
+                      <SettingsField label="Title line 2 layer" hint="Display order relative to the hero image">
                         <SegmentedControl
                           value={resolvedSettings?.title2Layer === "behind" ? "behind" : "front"}
                           options={[...HERO_TITLE_LAYER_OPTIONS]}
@@ -779,8 +777,8 @@ export function SectionInspector({
                       </SettingsField>
                     </div>
                     <SettingsField
-                      label={`Ukuran font baris 1 (${Math.round(title1LabelHPct * 10) / 10}% tinggi hero)`}
-                      hint="Atur lewat slider atau tarik handle ungu di canvas"
+                      label={`Title line 1 font size (${Math.round(title1LabelHPct * 10) / 10}% of hero height)`}
+                      hint="Adjust with the slider or drag the purple handle on the canvas"
                     >
                       <input
                         type="range"
@@ -797,8 +795,8 @@ export function SectionInspector({
                       />
                     </SettingsField>
                     <SettingsField
-                      label={`Ukuran font baris 2 (${Math.round(title2LabelHPct * 10) / 10}% tinggi hero)`}
-                      hint="Atur lewat slider atau tarik handle ungu di canvas"
+                      label={`Title line 2 font size (${Math.round(title2LabelHPct * 10) / 10}% of hero height)`}
+                      hint="Adjust with the slider or drag the purple handle on the canvas"
                     >
                       <input
                         type="range"
@@ -816,29 +814,29 @@ export function SectionInspector({
                     </SettingsField>
                     <div className="space-y-3 border-t border-gray-100 pt-3">
                       <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-                        Styling Teks
+                        Text Styling
                       </p>
                       <TitleStyleFields
                         line="title1"
-                        lineLabel="baris 1"
+                        lineLabel="line 1"
                         settings={resolvedSettings}
                         onChange={(patch) => updateBlockSettings(selectedIdx, patch)}
                       />
                       <TitleStyleFields
                         line="title2"
-                        lineLabel="baris 2"
+                        lineLabel="line 2"
                         settings={resolvedSettings}
                         onChange={(patch) => updateBlockSettings(selectedIdx, patch)}
                       />
                     </div>
                     <p className="text-[11px] text-gray-500">
-                      Posisi & lebar teks: drag box judul di canvas atau tarik handle ungu.
+                      Text position & width: drag the title box on the canvas or pull the purple handle.
                     </p>
                   </>
                 )}
                 {selectedBlock.type === "hero-cta" && (
                   <p className="text-[11px] text-gray-500">
-                    Posisi & ukuran tombol: tarik tepi/sudut di canvas.
+                    Button position & size: drag edges/corners on the canvas.
                   </p>
                 )}
               </div>
@@ -908,18 +906,17 @@ export function SectionInspector({
         {!selectedBlock ? (
           <>
             <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
-              Klik gambar hero atau tombol CTA di canvas untuk opsi lanjutan (layer judul, ukuran
-              font, posisi CTA).
+              Click the hero image or CTA button on the canvas for advanced options (title layers, font size, CTA position).
             </p>
             <div className="space-y-3">
-              <SettingsField label="Judul baris 1">
+              <SettingsField label="Title line 1">
                 <SettingsInput
                   value={config.hero?.title ?? ""}
                   placeholder="Wireless"
                   onChange={(e) => onHeroChange("title", e.target.value)}
                 />
               </SettingsField>
-              <SettingsField label="Judul baris 2">
+              <SettingsField label="Title line 2">
                 <SettingsInput
                   value={config.hero?.subtitle ?? ""}
                   placeholder="Headphones"
@@ -933,7 +930,7 @@ export function SectionInspector({
             <div className="mb-3">
               <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                 {selectedBlock.type === "hero-media"
-                  ? "Opsi Lanjutan"
+                  ? "Advanced Options"
                   : selectedDef?.label ?? selectedBlock.type}
               </span>
             </div>
@@ -943,23 +940,23 @@ export function SectionInspector({
                   <>
                     <div className="space-y-3 border-t border-gray-100 pt-3">
                       <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-                        Judul
+                        Title
                       </p>
-                      <SettingsField label="Judul baris 1">
+                      <SettingsField label="Title line 1">
                         <SettingsInput
                           value={config.hero?.title ?? ""}
                           placeholder="Wireless"
                           onChange={(e) => onHeroChange("title", e.target.value)}
                         />
                       </SettingsField>
-                      <SettingsField label="Judul baris 2">
+                      <SettingsField label="Title line 2">
                         <SettingsInput
                           value={config.hero?.subtitle ?? ""}
                           placeholder="Headphones"
                           onChange={(e) => onHeroChange("subtitle", e.target.value)}
                         />
                       </SettingsField>
-                      <SettingsField label="Layer judul baris 1" hint="Urutan tampilan relatif ke gambar hero">
+                      <SettingsField label="Title line 1 layer" hint="Display order relative to the hero image">
                         <SegmentedControl
                           value={
                             resolvedSettings?.title1Layer === "behind" ? "behind" : "front"
@@ -970,7 +967,7 @@ export function SectionInspector({
                           }
                         />
                       </SettingsField>
-                      <SettingsField label="Layer judul baris 2" hint="Urutan tampilan relatif ke gambar hero">
+                      <SettingsField label="Title line 2 layer" hint="Display order relative to the hero image">
                         <SegmentedControl
                           value={
                             resolvedSettings?.title2Layer === "behind" ? "behind" : "front"
@@ -983,8 +980,8 @@ export function SectionInspector({
                       </SettingsField>
                     </div>
                     <SettingsField
-                      label={`Ukuran font baris 1 (${Math.round(title1LabelHPct * 10) / 10}% tinggi hero)`}
-                      hint="Atur lewat slider atau tarik handle ungu di canvas"
+                      label={`Title line 1 font size (${Math.round(title1LabelHPct * 10) / 10}% of hero height)`}
+                      hint="Adjust with the slider or drag the purple handle on the canvas"
                     >
                       <input
                         type="range"
@@ -1001,8 +998,8 @@ export function SectionInspector({
                       />
                     </SettingsField>
                     <SettingsField
-                      label={`Ukuran font baris 2 (${Math.round(title2LabelHPct * 10) / 10}% tinggi hero)`}
-                      hint="Atur lewat slider atau tarik handle ungu di canvas"
+                      label={`Title line 2 font size (${Math.round(title2LabelHPct * 10) / 10}% of hero height)`}
+                      hint="Adjust with the slider or drag the purple handle on the canvas"
                     >
                       <input
                         type="range"
@@ -1020,29 +1017,29 @@ export function SectionInspector({
                     </SettingsField>
                     <div className="space-y-3 border-t border-gray-100 pt-3">
                       <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-                        Styling Teks
+                        Text Styling
                       </p>
                       <TitleStyleFields
                         line="title1"
-                        lineLabel="baris 1"
+                        lineLabel="line 1"
                         settings={resolvedSettings}
                         onChange={(patch) => updateBlockSettings(selectedIdx, patch)}
                       />
                       <TitleStyleFields
                         line="title2"
-                        lineLabel="baris 2"
+                        lineLabel="line 2"
                         settings={resolvedSettings}
                         onChange={(patch) => updateBlockSettings(selectedIdx, patch)}
                       />
                     </div>
                     <p className="text-[11px] text-gray-500">
-                      Posisi & lebar teks: drag box judul di canvas atau tarik handle ungu.
+                      Text position & width: drag the title box on the canvas or pull the purple handle.
                     </p>
                   </>
                 )}
                 {selectedBlock.type === "hero-cta" && (
                   <p className="text-[11px] text-gray-500">
-                    Posisi & ukuran tombol: tarik tepi/sudut di canvas.
+                    Button position & size: drag edges/corners on the canvas.
                   </p>
                 )}
               </div>
@@ -1107,8 +1104,8 @@ export function SectionInspector({
               }
             />
             <SettingsField
-              label={`Zoom gambar (${Math.round(Number(mediaSettings?.imgScale ?? 100))}%)`}
-              hint="Perbesar foto hero dari tengah — tanpa drag di canvas"
+              label={`Image zoom (${Math.round(Number(mediaSettings?.imgScale ?? 100))}%)`}
+              hint="Zoom the hero photo from the center — without dragging on the canvas"
             >
               <input
                 type="range"
@@ -1130,25 +1127,24 @@ export function SectionInspector({
         {!selectedBlock ? (
           <>
             <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
-              Klik judul atau tombol CTA di canvas untuk opsi lanjutan (layer judul, ukuran font,
-              posisi CTA). Drag box judul untuk pindah posisi.
+              Click the title or CTA button on the canvas for advanced options (title layers, font size, CTA position). Drag the title box to move it.
             </p>
             <div className="space-y-3">
-              <SettingsField label="Judul baris 1">
+              <SettingsField label="Title line 1">
                 <SettingsInput
                   value={config.hero?.title ?? ""}
                   placeholder="NO LIMITS."
                   onChange={(e) => onHeroChange("title", e.target.value)}
                 />
               </SettingsField>
-              <SettingsField label="Judul baris 2">
+              <SettingsField label="Title line 2">
                 <SettingsInput
                   value={config.hero?.subtitle ?? ""}
                   placeholder="MORE MOTION"
                   onChange={(e) => onHeroChange("subtitle", e.target.value)}
                 />
               </SettingsField>
-              <SettingsField label="Teks tombol CTA">
+              <SettingsField label="CTA button text">
                 <SettingsInput
                   value={config.hero?.ctaLabel ?? ""}
                   placeholder="SHOP NOW"
@@ -1162,7 +1158,7 @@ export function SectionInspector({
             <div className="mb-3">
               <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                 {selectedBlock.type === "hero-media"
-                  ? "Opsi Lanjutan"
+                  ? "Advanced Options"
                   : selectedDef?.label ?? selectedBlock.type}
               </span>
             </div>
@@ -1172,23 +1168,23 @@ export function SectionInspector({
                   <>
                 <div className="space-y-3 border-t border-gray-100 pt-3">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-                    Judul
+                    Title
                   </p>
-                  <SettingsField label="Judul baris 1">
+                  <SettingsField label="Title line 1">
                     <SettingsInput
                       value={config.hero?.title ?? ""}
                       placeholder="NO LIMITS."
                       onChange={(e) => onHeroChange("title", e.target.value)}
                     />
                   </SettingsField>
-                  <SettingsField label="Judul baris 2">
+                  <SettingsField label="Title line 2">
                     <SettingsInput
                       value={config.hero?.subtitle ?? ""}
                       placeholder="MORE MOTION"
                       onChange={(e) => onHeroChange("subtitle", e.target.value)}
                     />
                   </SettingsField>
-                  <SettingsField label="Layer judul baris 1" hint="Urutan tampilan relatif ke gambar hero">
+                  <SettingsField label="Title line 1 layer" hint="Display order relative to the hero image">
                     <SegmentedControl
                       value={resolvedSettings?.title1Layer === "behind" ? "behind" : "front"}
                       options={[...HERO_TITLE_LAYER_OPTIONS]}
@@ -1197,7 +1193,7 @@ export function SectionInspector({
                       }
                     />
                   </SettingsField>
-                  <SettingsField label="Layer judul baris 2" hint="Urutan tampilan relatif ke gambar hero">
+                  <SettingsField label="Title line 2 layer" hint="Display order relative to the hero image">
                     <SegmentedControl
                       value={resolvedSettings?.title2Layer === "behind" ? "behind" : "front"}
                       options={[...HERO_TITLE_LAYER_OPTIONS]}
@@ -1208,8 +1204,8 @@ export function SectionInspector({
                   </SettingsField>
                 </div>
                 <SettingsField
-                  label={`Ukuran font baris 1 (${Math.round(title1LabelHPct * 10) / 10}% tinggi hero)`}
-                  hint="Atur lewat slider atau tarik handle ungu di canvas"
+                  label={`Title line 1 font size (${Math.round(title1LabelHPct * 10) / 10}% of hero height)`}
+                  hint="Adjust with the slider or drag the purple handle on the canvas"
                 >
                   <input
                     type="range"
@@ -1226,8 +1222,8 @@ export function SectionInspector({
                   />
                 </SettingsField>
                 <SettingsField
-                  label={`Ukuran font baris 2 (${Math.round(title2LabelHPct * 10) / 10}% tinggi hero)`}
-                  hint="Atur lewat slider atau tarik handle ungu di canvas"
+                  label={`Title line 2 font size (${Math.round(title2LabelHPct * 10) / 10}% of hero height)`}
+                  hint="Adjust with the slider or drag the purple handle on the canvas"
                 >
                   <input
                     type="range"
@@ -1245,29 +1241,29 @@ export function SectionInspector({
                 </SettingsField>
                 <div className="space-y-3 border-t border-gray-100 pt-3">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-                    Styling Teks
+                    Text Styling
                   </p>
                   <TitleStyleFields
                     line="title1"
-                    lineLabel="baris 1"
+                    lineLabel="line 1"
                     settings={resolvedSettings}
                     onChange={(patch) => updateBlockSettings(selectedIdx, patch)}
                   />
                   <TitleStyleFields
                     line="title2"
-                    lineLabel="baris 2"
+                    lineLabel="line 2"
                     settings={resolvedSettings}
                     onChange={(patch) => updateBlockSettings(selectedIdx, patch)}
                   />
                 </div>
                 <p className="text-[11px] text-gray-500">
-                  Posisi & lebar teks: drag box judul di canvas atau tarik handle ungu.
+                  Text position & width: drag the title box on the canvas or pull the purple handle.
                 </p>
                   </>
                 )}
                 {selectedBlock.type === "hero-cta" && (
                   <>
-                    <SettingsField label="Teks tombol CTA">
+                    <SettingsField label="CTA button text">
                       <SettingsInput
                         value={config.hero?.ctaLabel ?? ""}
                         placeholder="SHOP NOW"
@@ -1275,7 +1271,7 @@ export function SectionInspector({
                       />
                     </SettingsField>
                     <p className="text-[11px] text-gray-500">
-                      Posisi & ukuran tombol: tarik tepi/sudut di canvas.
+                      Button position & size: drag edges/corners on the canvas.
                     </p>
                   </>
                 )}
@@ -1345,7 +1341,7 @@ export function SectionInspector({
             {config.templateId === "bento" && (
               <>
                 <SettingsField
-                  label={`Rotasi gambar (${Math.round(Number(resolvedSettings?.imgRotation ?? 0))}°)`}
+                  label={`Image rotation (${Math.round(Number(resolvedSettings?.imgRotation ?? 0))}°)`}
                 >
                   <input
                     type="range"
@@ -1362,7 +1358,7 @@ export function SectionInspector({
                   />
                 </SettingsField>
                 <SettingsField
-                  label={`Skala gambar (${Math.round(Number(resolvedSettings?.imgSliderScale ?? 1) * 100)}%)`}
+                  label={`Image scale (${Math.round(Number(resolvedSettings?.imgSliderScale ?? 1) * 100)}%)`}
                 >
                   <div className="flex items-center gap-2">
                     <input
@@ -1387,7 +1383,7 @@ export function SectionInspector({
                     </button>
                   </div>
                 </SettingsField>
-                <SettingsField label="Layer judul" hint="Urutan tampilan relatif ke gambar kartu">
+                <SettingsField label="Title layer" hint="Display order relative to the card image">
                   <SegmentedControl
                     value={resolvedSettings?.labelLayer === "behind" ? "behind" : "front"}
                     options={[...LABEL_LAYER_OPTIONS]}
@@ -1395,8 +1391,8 @@ export function SectionInspector({
                   />
                 </SettingsField>
                 <SettingsField
-                  label={`Ukuran font judul (${Number.isFinite(labelHPct) ? Math.round(labelHPct * 10) / 10 : 20}% tinggi kartu)`}
-                  hint="Atur lewat slider atau tarik handle ungu di canvas"
+                  label={`Title font size (${Number.isFinite(labelHPct) ? Math.round(labelHPct * 10) / 10 : 20}% of card height)`}
+                  hint="Adjust with the slider or drag the purple handle on the canvas"
                 >
                   <input
                     type="range"
@@ -1413,14 +1409,14 @@ export function SectionInspector({
                   />
                 </SettingsField>
                 <p className="text-[11px] text-gray-500">
-                  Posisi & lebar teks: drag box judul di canvas atau tarik handle ungu.
+                  Text position & width: drag the title box on the canvas or pull the purple handle.
                 </p>
               </>
             )}
             {config.templateId === "minimalist" && (
               <>
                 <SettingsField
-                  label={`Rotasi gambar (${Math.round(Number(resolvedSettings?.imgRotation ?? 0))}°)`}
+                  label={`Image rotation (${Math.round(Number(resolvedSettings?.imgRotation ?? 0))}°)`}
                 >
                   <input
                     type="range"
@@ -1437,7 +1433,7 @@ export function SectionInspector({
                   />
                 </SettingsField>
                 <SettingsField
-                  label={`Skala gambar (${Math.round(Number(resolvedSettings?.imgSliderScale ?? 1) * 100)}%)`}
+                  label={`Image scale (${Math.round(Number(resolvedSettings?.imgSliderScale ?? 1) * 100)}%)`}
                 >
                   <div className="flex items-center gap-2">
                     <input
@@ -1462,7 +1458,7 @@ export function SectionInspector({
                     </button>
                   </div>
                 </SettingsField>
-                <SettingsField label="Layer judul" hint="Urutan tampilan relatif ke gambar kartu">
+                <SettingsField label="Title layer" hint="Display order relative to the card image">
                   <SegmentedControl
                     value={resolvedSettings?.labelLayer === "behind" ? "behind" : "front"}
                     options={[...LABEL_LAYER_OPTIONS]}
@@ -1470,8 +1466,8 @@ export function SectionInspector({
                   />
                 </SettingsField>
                 <SettingsField
-                  label={`Ukuran font judul (${Number.isFinite(labelHPct) ? Math.round(labelHPct * 10) / 10 : 16}% tinggi kartu)`}
-                  hint="Atur lewat slider atau tarik handle ungu di canvas"
+                  label={`Title font size (${Number.isFinite(labelHPct) ? Math.round(labelHPct * 10) / 10 : 16}% of card height)`}
+                  hint="Adjust with the slider or drag the purple handle on the canvas"
                 >
                   <input
                     type="range"
@@ -1488,7 +1484,7 @@ export function SectionInspector({
                   />
                 </SettingsField>
                 <p className="text-[11px] text-gray-500">
-                  Posisi & lebar teks: drag box judul di canvas atau tarik handle ungu.
+                  Text position & width: drag the title box on the canvas or pull the purple handle.
                 </p>
               </>
             )}
@@ -1535,7 +1531,7 @@ export function SectionInspector({
               blockIndex={selectedIdx}
             />
             <SettingsField
-              label={`Rotasi gambar (${Math.round(Number(resolvedSettings?.imgRotation ?? 0))}°)`}
+              label={`Image rotation (${Math.round(Number(resolvedSettings?.imgRotation ?? 0))}°)`}
             >
               <input
                 type="range"
@@ -1552,7 +1548,7 @@ export function SectionInspector({
               />
             </SettingsField>
             <SettingsField
-              label={`Skala gambar (${Math.round(Number(resolvedSettings?.imgSliderScale ?? 1) * 100)}%)`}
+              label={`Image scale (${Math.round(Number(resolvedSettings?.imgSliderScale ?? 1) * 100)}%)`}
             >
               <div className="flex items-center gap-2">
                 <input
@@ -1578,7 +1574,7 @@ export function SectionInspector({
               </div>
             </SettingsField>
             <p className="text-[11px] text-gray-500">
-              Drag gambar di canvas untuk geser · tarik handle ⊙ untuk zoom.
+              Drag the image on the canvas to move · pull the ⊙ handle to zoom.
             </p>
           </div>
         </div>
@@ -1607,7 +1603,7 @@ export function SectionInspector({
         {!selectedBlock ? (
           <>
             <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
-              Tambah beberapa gambar ke kanvas. Setiap gambar bisa digeser, di-resize, dirotasi, dan di-zoom secara independen.
+              Add multiple images to the canvas. Each image can be moved, resized, rotated, and zoomed independently.
             </p>
 
             {currentBlocks.length > 0 ? (
@@ -1626,13 +1622,13 @@ export function SectionInspector({
                         )}
                       </div>
                       <span className="flex-1 truncate text-[11px] font-medium text-gray-700">
-                        Gambar {idx + 1}
+                        Image {idx + 1}
                       </span>
                       <button
                         type="button"
                         onClick={() => removeBlock(idx)}
                         className="rounded p-0.5 text-gray-400 hover:bg-red-100 hover:text-red-600"
-                        aria-label="Hapus gambar"
+                        aria-label="Remove image"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
@@ -1642,7 +1638,7 @@ export function SectionInspector({
               </ul>
             ) : (
               <p className="mb-3 text-center text-[11px] text-gray-400">
-                Belum ada gambar. Klik tombol di bawah untuk menambah.
+                No images yet. Click the button below to add one.
               </p>
             )}
 
@@ -1653,11 +1649,11 @@ export function SectionInspector({
               className="inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-indigo-600 px-3 py-2 text-[11px] font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Plus className="h-3.5 w-3.5" />
-              Tambah Gambar Baru
+              Add New Image
             </button>
             {atBlockLimit && (
               <p className="mt-1.5 text-center text-[10px] text-gray-400">
-                Maks. {maxBlocks} gambar
+                Max. {maxBlocks} images
               </p>
             )}
           </>
@@ -1674,7 +1670,7 @@ export function SectionInspector({
                   />
                 )}
               </div>
-              <span className="text-xs font-medium text-gray-700">Gambar {selectedIdx + 1}</span>
+              <span className="text-xs font-medium text-gray-700">Image {selectedIdx + 1}</span>
               <span className="ml-auto rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
                 {device === "mobile" ? "Mobile" : "Desktop"}
               </span>
@@ -1689,7 +1685,7 @@ export function SectionInspector({
                 />
               )}
               <SettingsField
-                label={`Rotasi (${Math.round(Number(resolvedSettings?.imgRotation ?? 0))}°)`}
+                label={`Rotation (${Math.round(Number(resolvedSettings?.imgRotation ?? 0))}°)`}
               >
                 <input
                   type="range"
@@ -1706,7 +1702,7 @@ export function SectionInspector({
                 />
               </SettingsField>
               <SettingsField
-                label={`Skala (${Math.round(Number(resolvedSettings?.imgSliderScale ?? 1) * 100)}%)`}
+                label={`Scale (${Math.round(Number(resolvedSettings?.imgSliderScale ?? 1) * 100)}%)`}
               >
                 <div className="flex items-center gap-2">
                   <input
@@ -1732,7 +1728,7 @@ export function SectionInspector({
                 </div>
               </SettingsField>
               <p className="text-[11px] text-gray-500">
-                Drag badge "pindah" di canvas untuk geser · handle biru untuk resize.
+                Drag the "move" badge on the canvas to reposition · blue handle to resize.
               </p>
             </div>
           </>
@@ -1769,7 +1765,7 @@ export function SectionInspector({
         {imageBlockInstance && imageIdx >= 0 && (
           <div className="mt-4 border-t border-gray-100 pt-4">
             <HeroImageListPanel
-              title="Gambar CTA"
+              title="CTA Images"
               images={parseCanvasImages(imageSettings)}
               onChange={(imgs) =>
                 updateBlockSettings(imageIdx, {
@@ -1791,7 +1787,7 @@ export function SectionInspector({
       <div className="border-t border-gray-200 bg-gray-50 px-4 py-6 text-center">
         <p className="text-xs font-medium text-gray-700">{label}</p>
         <p className="mt-1 text-xs text-gray-500">
-          Section ini belum punya field konten yang bisa diedit.
+          This section has no editable content fields yet.
         </p>
       </div>
     )
@@ -1818,13 +1814,13 @@ export function SectionInspector({
             (config.templateId === "bento" || config.templateId === "minimalist") && (
               <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
                 {config.templateId === "bento"
-                  ? `Maks. ${MAX_CATEGORY_CARDS} kartu. Edit di canvas — ukuran kartu & zoom gambar pakai handle resize.`
-                  : `Maks. ${MAX_CATEGORY_CARDS} kartu. Edit di canvas — ukuran kartu & zoom gambar pakai handle resize.`}
+                  ? `Max. ${MAX_CATEGORY_CARDS} cards. Edit on the canvas — card size & image zoom use the resize handles.`
+                  : `Max. ${MAX_CATEGORY_CARDS} cards. Edit on the canvas — card size & image zoom use the resize handles.`}
               </p>
             )}
           {instance.type === "category-cards" && config.templateId === "fashion" && (
             <p className="mb-3 text-[11px] leading-relaxed text-gray-500">
-              Klik kartu di canvas untuk edit gambar & warna.
+              Click a card on the canvas to edit image & color.
             </p>
           )}
           <div className="mb-2 flex items-center justify-between">
@@ -1900,7 +1896,7 @@ export function SectionInspector({
                     {(config.templateId === "bento" || config.templateId === "minimalist") && instance.type === "category-grid" && (
                       <div className="mt-3 space-y-3 border-t border-gray-100 pt-3">
                         <SettingsField
-                          label={`Rotasi gambar (${Math.round(Number(resolveDeviceSettings(block.settings as Record<string, unknown> | undefined, device === "mobile")?.imgRotation ?? 0))}°)`}
+                          label={`Image rotation (${Math.round(Number(resolveDeviceSettings(block.settings as Record<string, unknown> | undefined, device === "mobile")?.imgRotation ?? 0))}°)`}
                         >
                           <input
                             type="range"
@@ -1915,7 +1911,7 @@ export function SectionInspector({
                           />
                         </SettingsField>
                         <SettingsField
-                          label={`Skala gambar (${Math.round(Number(resolveDeviceSettings(block.settings as Record<string, unknown> | undefined, device === "mobile")?.imgSliderScale ?? 1) * 100)}%)`}
+                          label={`Image scale (${Math.round(Number(resolveDeviceSettings(block.settings as Record<string, unknown> | undefined, device === "mobile")?.imgSliderScale ?? 1) * 100)}%)`}
                         >
                           <div className="flex items-center gap-2">
                             <input
@@ -1939,8 +1935,8 @@ export function SectionInspector({
                           </div>
                         </SettingsField>
                         <SettingsField
-                          label="Layer judul"
-                          hint="Urutan tampilan relatif ke gambar kartu"
+                          label="Title layer"
+                          hint="Display order relative to the card image"
                         >
                           <SegmentedControl
                             value={
@@ -1958,7 +1954,7 @@ export function SectionInspector({
                           />
                         </SettingsField>
                         <p className="text-[11px] text-gray-500">
-                          Posisi & ukuran teks: drag box judul di canvas atau tarik handle ungu.
+                          Text position & size: drag the title box on the canvas or pull the purple handle.
                         </p>
                       </div>
                     )}
@@ -1970,7 +1966,7 @@ export function SectionInspector({
 
           {currentBlocks.length === 0 && (
             <p className="mt-2 text-[11px] text-gray-400">
-              Belum ada item. Klik Add untuk menambah.
+              No items yet. Click Add to create one.
             </p>
           )}
         </div>

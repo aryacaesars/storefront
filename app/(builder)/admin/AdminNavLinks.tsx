@@ -8,7 +8,7 @@ import { sidebarNavItemClass, sidebarSectionLabel } from "@/features/builder/com
 const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
   { href: "/admin/templates", label: "Template", icon: LayoutTemplate, exact: false },
-  { href: "/admin/orders", label: "Transaksi", icon: ShoppingCart, exact: false },
+  { href: "/admin/orders", label: "Transactions", icon: ShoppingCart, exact: false },
   { href: "/admin/stores", label: "Store", icon: Store, exact: false },
 ]
 

@@ -41,11 +41,11 @@ export function TemplateCard({
         {active ? (
           <Badge className="absolute top-3 right-3 bg-white text-indigo-700 border-indigo-200 shadow-sm gap-1 px-3 py-1">
             <CheckCircle2 className="w-3 h-3 fill-indigo-600 text-white" />
-            TERPASANG
+            INSTALLED
           </Badge>
         ) : (
           <Badge className="absolute top-3 right-3 bg-white text-gray-600 border-gray-200 shadow-sm px-3 py-1">
-            {previewReady ? "SIAP PREVIEW" : "SEGERA"}
+            {previewReady ? "PREVIEW READY" : "COMING SOON"}
           </Badge>
         )}
       </div>
@@ -54,7 +54,7 @@ export function TemplateCard({
         <h3 className="text-xl font-bold text-gray-900 mb-2">{name}</h3>
         <p className="text-sm text-gray-500 leading-relaxed">{description}</p>
         {purchasedAt && (
-          <p className="text-xs text-gray-400 mt-2">Dibeli pada {purchasedAt}</p>
+          <p className="text-xs text-gray-400 mt-2">Purchased on {purchasedAt}</p>
         )}
       </CardContent>
 
@@ -65,7 +65,7 @@ export function TemplateCard({
               href="/customize"
               className="flex-1 inline-flex items-center justify-center h-9 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors"
             >
-              Kelola
+              Manage
             </Link>
             <Link
               href={getTemplatePreviewHref(id)}
@@ -80,7 +80,7 @@ export function TemplateCard({
             <form action={activateTemplate} className="flex-1">
               <input type="hidden" name="templateId" value={id} />
               <Button type="submit" variant="default" className="w-full">
-                Aktifkan
+                Activate
               </Button>
             </form>
             {previewReady ? (

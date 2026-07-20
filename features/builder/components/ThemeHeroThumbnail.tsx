@@ -110,9 +110,14 @@ export function ThemeHeroThumbnail({ config, className }: ThemeHeroThumbnailProp
       className={cn("relative overflow-hidden bg-gray-100", className)}
       aria-hidden
     >
+      {/*
+        Artboard fixed desktop (absolute) — jangan ikut lebar card/viewport.
+        Scale hanya visual; layout + @container tetap 1200px supaya hero
+        tidak “jadi mobile” saat kartu dilihat di HP.
+      */}
       <div
         className={cn(
-          "pointer-events-none origin-top-left select-none",
+          "pointer-events-none absolute top-0 left-0 origin-top-left select-none",
           // Strip chrome section (padding / max-width / radius) — penyebab
           // thumbnail bento/minimalist letterbox & terasa "cacat".
           "[&_section]:!m-0 [&_section]:!max-w-none [&_section]:!px-0 [&_section]:!py-0",
@@ -120,12 +125,19 @@ export function ThemeHeroThumbnail({ config, className }: ThemeHeroThumbnailProp
         )}
         style={{
           width: THUMB_DESIGN_WIDTH,
+          minWidth: THUMB_DESIGN_WIDTH,
+          height: designH,
           transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
           visibility: ready ? "visible" : "hidden",
         }}
       >
         <ThemeFontScope templateId={config.templateId} fill={false}>
-          <ThemeProvider config={thumbConfig} forcedDevice="desktop" surface={false}>
+          <ThemeProvider
+            config={thumbConfig}
+            forcedDevice="desktop"
+            surface={false}
+            containerWidth={THUMB_DESIGN_WIDTH}
+          >
             <Component
               config={thumbConfig}
               settings={resolvedSettings}

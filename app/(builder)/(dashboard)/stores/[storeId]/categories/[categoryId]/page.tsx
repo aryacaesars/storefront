@@ -19,7 +19,7 @@ export async function generateMetadata({
 }) {
   const { categoryId, storeId } = await params
   const category = await getCategoryById(categoryId, storeId)
-  return { title: category ? `Edit — ${category.name}` : "Edit Kategori" }
+  return { title: category ? `Edit — ${category.name}` : "Edit Category" }
 }
 
 export default async function EditCategoryPage({
@@ -41,11 +41,11 @@ export default async function EditCategoryPage({
   return (
     <DashboardShell
       pageTitle={`Edit: ${category.name}`}
-      pageSubtitle="Ubah nama kategori produk di toko kamu"
+      pageSubtitle="Update the product category name for your store"
     >
       <div className="flex flex-col gap-4">
         <Link href={`/stores/${storeId}/categories`} className={dashboardBackLink}>
-          ← Kembali ke daftar kategori
+          ← Back to category list
         </Link>
 
         <DashboardPanel className="w-full max-w-3xl p-6 lg:p-8">
@@ -53,14 +53,15 @@ export default async function EditCategoryPage({
             action={updateAction}
             defaultValues={{ name: category.name, slug: category.slug }}
             productCount={category._count.products}
-            submitLabel="Simpan Perubahan"
+            submitLabel="Save Changes"
           />
         </DashboardPanel>
 
         <DashboardPanel className="border-red-100 p-6">
-          <p className="text-sm font-semibold text-red-700">Zona Berbahaya</p>
+          <p className="text-sm font-semibold text-red-700">Danger Zone</p>
           <p className="mt-1 text-sm text-gray-500">
-            Menghapus kategori tidak menghapus produk — produk hanya kehilangan label kategori.
+            Deleting a category does not delete products — products will only lose their category
+            label.
           </p>
           <div className="mt-4">
             <CategoryDeleteButton

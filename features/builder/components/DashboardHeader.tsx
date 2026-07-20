@@ -20,35 +20,38 @@ export function DashboardHeader({
   const { title } = useDashboardHeaderTitle()
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 bg-transparent px-6 lg:px-8">
+    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 bg-transparent px-4 sm:h-16 sm:gap-3 sm:px-6 lg:px-8">
       {onMenuClick && (
         <button
           type="button"
           onClick={onMenuClick}
-          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-dash-border/70 bg-dash-surface text-dash-muted transition-colors duration-200 hover:border-dash-border hover:text-dash-ink lg:hidden"
-          aria-label="Buka menu"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-dash-border/70 bg-dash-surface text-dash-muted transition-colors duration-200 hover:border-dash-border hover:text-dash-ink sm:h-10 sm:w-10 lg:hidden"
+          aria-label="Open menu"
         >
           <Menu className="h-5 w-5" strokeWidth={1.75} />
         </button>
       )}
 
       {title && (
-        <h1 className="min-w-0 flex-1 truncate font-display text-lg font-semibold leading-7 tracking-tight text-dash-ink lg:text-xl">
+        <h1
+          title={title}
+          className="min-w-0 flex-1 truncate font-display text-sm font-semibold leading-5 tracking-tight text-dash-ink sm:text-base sm:leading-6 lg:text-lg lg:leading-7"
+        >
           {title}
         </h1>
       )}
 
-      <div className={`flex shrink-0 items-center gap-2 ${title ? "" : "ml-auto"}`}>
+      <div className={`flex shrink-0 items-center gap-1.5 sm:gap-2 ${title ? "" : "ml-auto"}`}>
         <button
           type="button"
-          className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-dash-border/70 bg-dash-surface text-dash-muted transition-colors duration-200 hover:border-dash-border hover:text-dash-ink"
-          aria-label="Notifikasi"
+          className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-dash-border/70 bg-dash-surface text-dash-muted transition-colors duration-200 hover:border-dash-border hover:text-dash-ink sm:h-10 sm:w-10"
+          aria-label="Notifications"
         >
-          <Bell className="h-5 w-5" strokeWidth={1.75} />
-          <span className="absolute right-2.5 top-2 h-2 w-2 rounded-full bg-dash-primary" />
+          <Bell className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} />
+          <span className="absolute right-2 top-1.5 h-2 w-2 rounded-full bg-dash-primary sm:right-2.5 sm:top-2" />
         </button>
 
-        <div className="w-[168px] sm:w-[192px]">
+        <div className="shrink-0 sm:w-[192px]">
           <SidebarAccountMenu
             displayName={displayName}
             subtitle={subtitle}

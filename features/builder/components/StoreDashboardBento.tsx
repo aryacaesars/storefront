@@ -212,7 +212,7 @@ function ProductStatistic({ soldItems, categories }: { soldItems: number; catego
           <p className="text-3xl font-bold tabular-nums tracking-tight text-dash-ink">
             {soldItems.toLocaleString("id-ID")}
           </p>
-          <p className="text-xs text-dash-muted">Total produk terjual</p>
+          <p className="text-xs text-dash-muted">Total products sold</p>
         </div>
         <div className="space-y-2 text-sm">
           <div className="flex items-center justify-between">
@@ -225,7 +225,7 @@ function ProductStatistic({ soldItems, categories }: { soldItems: number; catego
           <div className="flex items-center justify-between">
             <span className="inline-flex items-center gap-2 text-dash-ink">
               <span className="h-2 w-2 rounded-full bg-[#5b4bff]/40" aria-hidden />
-              Kategori
+              Categories
             </span>
             <span className="tabular-nums text-dash-ink">{categories.toLocaleString("id-ID")}</span>
           </div>
@@ -249,7 +249,7 @@ export function StoreDashboardBento({
           <KpiCard
             title="Total Sales"
             value={formatCurrency(stats.revenueTotal)}
-            sublabel="Revenue dari order PAID"
+            sublabel="Revenue from PAID orders"
             icon={ChartLine}
             tone="primary"
             index={0}
@@ -257,35 +257,35 @@ export function StoreDashboardBento({
           <KpiCard
             title="Total Orders"
             value={stats.totalOrders.toLocaleString("id-ID")}
-            sublabel="Semua order toko"
+            sublabel="All store orders"
             icon={ShoppingCart}
             index={1}
           />
           <KpiCard
             title="Total Sold Products"
             value={stats.totalSoldItems.toLocaleString("id-ID")}
-            sublabel="Akumulasi kuantitas item terjual"
+            sublabel="Cumulative quantity of items sold"
             icon={Box}
             index={2}
           />
           <KpiCard
             title="Total Customers"
             value={stats.totalCustomers.toLocaleString("id-ID")}
-            sublabel="Jumlah pelanggan terdaftar"
+            sublabel="Registered customers"
             icon={Users}
             index={3}
           />
         </div>
 
         <div className="mt-5 lg:mt-6">
-          <p className={dashboardSectionTitle}>Aksi Cepat</p>
+          <p className={dashboardSectionTitle}>Quick Actions</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {[
-              { href: `/stores/${storeId}/products`, label: "Produk" },
-              { href: `/stores/${storeId}/orders`, label: "Order" },
-              { href: `/stores/${storeId}/customers`, label: "Pelanggan" },
-              { href: `/stores/${storeId}/customize`, label: "Kustomisasi" },
-              { href: `/stores/${storeId}/settings`, label: "Pengaturan" },
+              { href: `/stores/${storeId}/products`, label: "Products" },
+              { href: `/stores/${storeId}/orders`, label: "Orders" },
+              { href: `/stores/${storeId}/customers`, label: "Customers" },
+              { href: `/stores/${storeId}/customize`, label: "Customize" },
+              { href: `/stores/${storeId}/settings`, label: "Settings" },
             ].map((action) => (
               <Link
                 key={action.href}
@@ -304,7 +304,7 @@ export function StoreDashboardBento({
         <div className="grid gap-5 lg:gap-6">
           <Panel
             title="Product Statistic"
-            subtitle="Ringkasan produk dan kategori"
+            subtitle="Product and category summary"
             action={
               <span className="rounded-full bg-dash-bg px-3 py-1 text-[11px] font-semibold text-dash-muted">
                 Real data

@@ -1,13 +1,19 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
+import Credentials from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/db/prisma"
+import { verifyPassword } from "@/lib/auth/password"
 import type { Role } from "@prisma/client"
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "")
   .split(",")
   .map((e) => e.trim())
   .filter(Boolean)
+
+export function resolveMerchantRole(email: string): Role {
+  return ADMIN_EMAILS.includes(email) ? "ADMIN" : "OWNER"
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: process.env.AUTH_SECRET,
@@ -17,8 +23,39 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
+    Credentials({
+      credentials: {
+        email: {},
+        password: {},
+      },
+      async authorize(credentials) {
+        const email =
+          typeof credentials?.email === "string"
+            ? credentials.email.trim().toLowerCase()
+            : ""
+        const password =
+          typeof credentials?.password === "string" ? credentials.password : ""
+        if (!email || !password) return null
+
+        const dbUser = await prisma.user.findUnique({ where: { email } })
+        if (!dbUser?.passwordHash) return null
+
+        const ok = await verifyPassword(password, dbUser.passwordHash)
+        if (!ok) return null
+
+        return {
+          id: dbUser.id,
+          email: dbUser.email,
+          name: dbUser.name,
+          image: dbUser.image,
+        }
+      },
+    }),
   ],
   session: { strategy: "jwt" },
+  pages: {
+    signIn: "/login",
+  },
   cookies: {
     sessionToken: {
       name: "sf_session",
@@ -44,7 +81,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (email) {
         const dbUser = await prisma.user.findUnique({ where: { email } })
         if (dbUser) {
-          const role: Role = ADMIN_EMAILS.includes(dbUser.email) ? "ADMIN" : "OWNER"
+          const role = resolveMerchantRole(dbUser.email)
           if (dbUser.role !== role) {
             await prisma.user.update({ where: { id: dbUser.id }, data: { role } })
           }

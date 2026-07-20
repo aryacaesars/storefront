@@ -21,13 +21,13 @@ export async function logoutAction(): Promise<void> {
 }
 
 const ProfileInput = z.object({
-  name: z.string().trim().min(1, "Nama wajib diisi."),
+  name: z.string().trim().min(1, "Name is required."),
   phone: z
     .string()
     .trim()
-    .min(8, "No. HP minimal 8 digit.")
-    .max(20, "No. HP terlalu panjang.")
-    .regex(/^[0-9+\-\s()]+$/, "No. HP tidak valid."),
+    .min(8, "Phone number must be at least 8 digits.")
+    .max(20, "Phone number is too long.")
+    .regex(/^[0-9+\-\s()]+$/, "Invalid phone number."),
 })
 
 export async function updateProfileAction(
@@ -40,7 +40,7 @@ export async function updateProfileAction(
     phone: formData.get("phone"),
   })
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Input tidak valid." }
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input." }
   }
 
   await updateCustomerProfile(session.customerId, {
@@ -49,16 +49,16 @@ export async function updateProfileAction(
   })
   revalidatePath("/account")
   revalidatePath("/checkout")
-  return { ok: true, message: "Profil disimpan." }
+  return { ok: true, message: "Profile saved." }
 }
 
 const AddressInput = z.object({
   addressId: z.string().optional(),
   label: z.string().optional(),
-  street: z.string().trim().min(1, "Alamat wajib diisi."),
-  city: z.string().trim().min(1, "Kota wajib diisi."),
-  province: z.string().trim().min(1, "Provinsi wajib diisi."),
-  postalCode: z.string().trim().min(1, "Kode pos wajib diisi."),
+  street: z.string().trim().min(1, "Address is required."),
+  city: z.string().trim().min(1, "City is required."),
+  province: z.string().trim().min(1, "Province is required."),
+  postalCode: z.string().trim().min(1, "Postal code is required."),
   makeDefault: z.boolean().optional(),
 })
 
@@ -78,7 +78,7 @@ export async function saveAddressAction(
     makeDefault: formData.get("makeDefault") === "on" || formData.get("makeDefault") === "1",
   })
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Input tidak valid." }
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input." }
   }
 
   try {
@@ -93,13 +93,13 @@ export async function saveAddressAction(
       makeDefault: parsed.data.makeDefault,
     })
   } catch {
-    return { error: "Gagal menyimpan alamat." }
+    return { error: "Failed to save address." }
   }
 
   revalidatePath("/account")
   revalidatePath("/checkout")
   return {
     ok: true,
-    message: parsed.data.addressId ? "Alamat diperbarui." : "Alamat ditambahkan.",
+    message: parsed.data.addressId ? "Address updated." : "Address added.",
   }
 }

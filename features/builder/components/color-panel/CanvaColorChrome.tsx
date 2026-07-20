@@ -102,7 +102,7 @@ export function CanvaColorChrome({
   designColors = [],
   onChangeTarget,
   onClose,
-  emptyMessage = "Pilih elemen di canvas untuk mengatur warnanya.",
+  emptyMessage = "Select an element on the canvas to adjust its color.",
 }: CanvaColorChromeProps) {
   const [query, setQuery] = useState("")
   const [popover, setPopover] = useState<PickerPopover>(null)
@@ -207,7 +207,7 @@ export function CanvaColorChrome({
         <section className="mb-6">
           <SectionTitle
             icon={<SquareStack className="h-3.5 w-3.5" />}
-            label={targets.length === 1 ? targets[0].label : "Warna dokumen"}
+            label={targets.length === 1 ? targets[0].label : "Document colors"}
           />
           {targets.length > 1 && (
             <div className="mb-3 flex flex-wrap gap-1.5">
@@ -482,7 +482,7 @@ function PanelHeader({
         {onClose && (
           <button
             type="button"
-            aria-label="Tutup"
+            aria-label="Close"
             onClick={onClose}
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
           >
@@ -538,7 +538,7 @@ function Swatch({
   return (
     <button
       type="button"
-      aria-label={color ? `Warna ${color}` : "Gradient"}
+      aria-label={color ? `Color ${color}` : "Gradient"}
       onClick={onClick}
       className={cn(
         dim,
@@ -582,7 +582,7 @@ function AddColorButton({
   return (
     <button
       type="button"
-      aria-label="Tambah warna custom"
+      aria-label="Add custom color"
       aria-expanded={active}
       onClick={onClick}
       className={cn(
@@ -681,7 +681,7 @@ const ColorPickerPopover = forwardRef<
         <span className="text-xs font-semibold text-gray-500">Custom color</span>
         <button
           type="button"
-          aria-label="Tutup picker"
+          aria-label="Close picker"
           onClick={onClose}
           className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
         >
@@ -735,7 +735,7 @@ function EyedropperButton({ onPick }: { onPick: (hex: string) => void }) {
       type="button"
       aria-label="Eyedropper"
       disabled={!supported}
-      title={supported ? "Ambil warna dari layar" : "Eyedropper tidak didukung browser ini"}
+      title={supported ? "Pick a color from the screen" : "Eyedropper is not supported in this browser"}
       onClick={async () => {
         try {
           // EyeDropper is Chromium-only

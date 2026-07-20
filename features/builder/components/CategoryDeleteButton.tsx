@@ -30,7 +30,7 @@ export function CategoryDeleteButton({
       const result = await deleteAction()
       setOpen(false)
       if (result.ok) {
-        toast.success(`Kategori "${categoryName}" berhasil dihapus.`, "Berhasil", () => {
+        toast.success(`Category "${categoryName}" deleted successfully.`, "Success", () => {
           if (redirectTo) router.push(redirectTo)
         })
         return
@@ -47,14 +47,14 @@ export function CategoryDeleteButton({
           onClick={() => setOpen(true)}
           className="rounded-lg border border-red-300 px-5 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
         >
-          Hapus Kategori
+          Delete Category
         </button>
       ) : (
         <button
           type="button"
           onClick={() => setOpen(true)}
           className="p-1.5 text-gray-400 transition-colors hover:text-red-500"
-          title="Hapus kategori"
+          title="Delete category"
         >
           <Trash2 className="h-4 w-4" />
         </button>
@@ -62,14 +62,14 @@ export function CategoryDeleteButton({
 
       <DashboardAlertDialog
         open={open}
-        title="Hapus kategori?"
+        title="Delete category?"
         description={
           <>
-            Kategori <strong>{categoryName}</strong> akan dihapus. Produk di kategori ini tidak
-            ikut terhapus.
+            Category <strong>{categoryName}</strong> will be deleted. Products in this category
+            will not be deleted.
           </>
         }
-        confirmLabel="Ya, hapus"
+        confirmLabel="Yes, delete"
         variant="danger"
         loading={pending}
         onConfirm={handleConfirm}

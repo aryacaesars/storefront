@@ -15,15 +15,15 @@ import { Package, ShoppingCart, Calendar } from "lucide-react"
 export async function generateMetadata({ params }: { params: Promise<{ storeId: string; id: string }> }) {
   const { storeId, id } = await params
   const customer = await getCustomerById(id, storeId)
-  return { title: customer ? `Pelanggan — ${customer.name ?? customer.email}` : "Pelanggan" }
+  return { title: customer ? `Customer — ${customer.name ?? customer.email}` : "Customer" }
 }
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
-  PENDING: "Menunggu",
-  PAID: "Dibayar",
-  SHIPPED: "Dikirim",
-  DONE: "Selesai",
-  CANCELLED: "Dibatalkan",
+  PENDING: "Pending",
+  PAID: "Paid",
+  SHIPPED: "Shipped",
+  DONE: "Done",
+  CANCELLED: "Cancelled",
 }
 
 const STATUS_CLASS: Record<OrderStatus, string> = {
@@ -61,7 +61,7 @@ export default async function CustomerDetailPage({
     <DashboardShell pageTitle={customer.name ?? "—"} pageSubtitle={customer.email}>
       <div className="flex flex-col gap-6">
         <Link href={`/stores/${storeId}/customers`} className={dashboardBackLink}>
-          ← Kembali ke daftar pelanggan
+          ← Back to customer list
         </Link>
 
         <div className="grid gap-6 sm:grid-cols-3">
@@ -70,9 +70,9 @@ export default async function CustomerDetailPage({
             value={customer.orders.length}
             icon={ShoppingCart}
           />
-          <DashboardStatCard label="Total Belanja" value={rupiah(totalSpent)} icon={Package} />
+          <DashboardStatCard label="Total Spent" value={rupiah(totalSpent)} icon={Package} />
           <DashboardStatCard
-            label="Bergabung"
+            label="Joined"
             value={customer.createdAt.toLocaleDateString("id-ID", {
               day: "numeric",
               month: "short",
@@ -85,10 +85,10 @@ export default async function CustomerDetailPage({
         <div className="grid gap-6 md:grid-cols-3">
           <DashboardPanel className="overflow-hidden md:col-span-2">
             <div className="border-b border-gray-100 px-5 py-3">
-              <p className="text-sm font-medium text-ink">Riwayat Order</p>
+              <p className="text-sm font-medium text-ink">Order History</p>
             </div>
             {customer.orders.length === 0 ? (
-              <p className="px-5 py-8 text-center text-sm text-gray-400">Belum ada order.</p>
+              <p className="px-5 py-8 text-center text-sm text-gray-400">No orders yet.</p>
             ) : (
               <ul className="divide-y divide-gray-100">
                 {customer.orders.map((order) => {
@@ -129,7 +129,7 @@ export default async function CustomerDetailPage({
           </DashboardPanel>
 
           <DashboardPanel className="p-5">
-            <p className="text-sm font-medium text-ink">Alamat</p>
+            <p className="text-sm font-medium text-ink">Address</p>
             {defaultAddress ? (
               <div className="mt-2 text-sm text-gray-600">
                 <p>{defaultAddress.street}</p>
@@ -138,7 +138,7 @@ export default async function CustomerDetailPage({
                 </p>
               </div>
             ) : (
-              <p className="mt-2 text-xs text-gray-400">Tidak ada alamat tersimpan.</p>
+              <p className="mt-2 text-xs text-gray-400">No saved address.</p>
             )}
           </DashboardPanel>
         </div>

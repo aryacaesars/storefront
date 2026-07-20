@@ -15,7 +15,7 @@ export function CategoryAddForm({ storeId }: { storeId: string }) {
   )
 
   useDashboardActionNotice(state, {
-    successMessage: "Kategori berhasil ditambahkan.",
+    successMessage: "Category added successfully.",
   })
 
   return (
@@ -23,7 +23,7 @@ export function CategoryAddForm({ storeId }: { storeId: string }) {
       <input
         name="name"
         type="text"
-        placeholder="Nama kategori baru..."
+        placeholder="New category name..."
         required
         className={dashboardInput}
       />
@@ -32,7 +32,7 @@ export function CategoryAddForm({ storeId }: { storeId: string }) {
         disabled={pending}
         className={cn(dashboardBtnPrimary, "shrink-0 px-5")}
       >
-        {pending ? "..." : "Tambah"}
+        {pending ? "..." : "Add"}
       </button>
     </form>
   )

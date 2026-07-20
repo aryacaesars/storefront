@@ -266,12 +266,12 @@ export function CanvasElementToolbar({
       }
       const data = (await res.json()) as { url?: string; error?: string }
       if (!res.ok || !data.url) {
-        throw new Error(data.error ?? "Gagal menghapus background.")
+        throw new Error(data.error ?? "Failed to remove background.")
       }
       apply(data.url)
     } catch (err) {
       setRemoveBgError(
-        err instanceof Error ? err.message : "Gagal menghapus background.",
+        err instanceof Error ? err.message : "Failed to remove background.",
       )
     } finally {
       setRemovingBg(false)
@@ -294,8 +294,8 @@ export function CanvasElementToolbar({
       <div className="space-y-3">
         <p className="text-[11px] leading-snug text-gray-500">
           {hasCardWrapper
-            ? "Atur warna card hero dan latar section lewat panel Warna di sidebar."
-            : "Atur warna latar hero lewat panel Warna di sidebar."}
+            ? "Adjust hero card and section background colors in the Color panel in the sidebar."
+            : "Adjust hero background color in the Color panel in the sidebar."}
         </p>
         <button
           type="button"
@@ -310,7 +310,7 @@ export function CanvasElementToolbar({
           }
           className="inline-flex h-7 w-full items-center justify-center rounded-lg border border-gray-200 text-[11px] font-medium text-gray-500 hover:bg-gray-50"
         >
-          Reset warna ke default tema
+          Reset colors to theme default
         </button>
       </div>
     )
@@ -365,7 +365,7 @@ export function CanvasElementToolbar({
             const res = await fetch("/api/upload", { method: "POST", body: form })
             const data = (await res.json()) as { url?: string; error?: string }
             if (!res.ok || !data.url) {
-              throw new Error(data.error ?? "Upload gagal")
+              throw new Error(data.error ?? "Upload failed")
             }
             // Mobile: foto baru khusus device ini. Desktop: shared src.
             patchItem(
@@ -375,7 +375,7 @@ export function CanvasElementToolbar({
             )
           } catch (err) {
             setRemoveBgError(
-              err instanceof Error ? err.message : "Gagal ganti foto.",
+              err instanceof Error ? err.message : "Failed to replace photo.",
             )
           } finally {
             setReplacingImage(false)
@@ -398,7 +398,7 @@ export function CanvasElementToolbar({
           )}
         >
           <ImageIcon className="h-3.5 w-3.5" />
-          {isBackground ? "Kembalikan ukuran normal" : "Jadikan background hero"}
+          {isBackground ? "Restore normal size" : "Set as hero background"}
         </button>
         <button
           type="button"
@@ -411,7 +411,7 @@ export function CanvasElementToolbar({
           ) : (
             <Upload className="h-3.5 w-3.5" />
           )}
-          {device === "mobile" ? "Ganti foto (khusus mobile)" : "Ganti foto"}
+          {device === "mobile" ? "Replace photo (mobile only)" : "Replace photo"}
         </button>
         {device === "mobile" && (
           <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-gray-100 bg-gray-50 px-2.5 py-2">
@@ -428,9 +428,9 @@ export function CanvasElementToolbar({
               className="mt-0.5 h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
             />
             <span className="text-[11px] leading-snug text-gray-600">
-              Foto terpisah dari desktop
+              Photo separate from desktop
               <span className="mt-0.5 block text-[10px] text-gray-400">
-                Matikan untuk ikut foto desktop lagi
+                Turn off to follow the desktop photo again
               </span>
             </span>
           </label>
@@ -461,7 +461,7 @@ export function CanvasElementToolbar({
           </PanelIconToggle>
         </PanelRow>
         <PanelSlider
-          label="Rotasi"
+          label="Rotation"
           value={item.rotation}
           min={-180}
           max={180}
@@ -481,7 +481,7 @@ export function CanvasElementToolbar({
             )}
           >
             <Crop className="h-3.5 w-3.5" />
-            {isCropping ? "Selesai" : "Crop"}
+            {isCropping ? "Done" : "Crop"}
           </button>
           {item.crop && (
             <button
@@ -523,7 +523,7 @@ export function CanvasElementToolbar({
           className="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 text-[11px] font-semibold text-red-700 hover:bg-red-100"
         >
           <Trash2 className="h-3.5 w-3.5" />
-          Hapus gambar
+          Remove image
         </button>
       </div>
     )
@@ -563,7 +563,7 @@ export function CanvasElementToolbar({
           </PanelIconToggle>
         </PanelRow>
         <PanelSlider
-          label="Rotasi"
+          label="Rotation"
           value={rotation}
           min={-180}
           max={180}
@@ -591,7 +591,7 @@ export function CanvasElementToolbar({
             className="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 text-[11px] font-semibold text-red-700 hover:bg-red-100"
           >
             <Trash2 className="h-3.5 w-3.5" />
-            Hapus gambar
+            Remove image
           </button>
         )}
       </div>
@@ -635,7 +635,7 @@ export function CanvasElementToolbar({
             onChange={(e) => patch({ [key("FontFamily")]: e.target.value })}
             className="h-7 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-[11px] text-gray-800 outline-none focus:border-indigo-300"
           >
-            <option value="">Default tema</option>
+            <option value="">Theme default</option>
             {HEADING_FONT_OPTIONS.map((f) => (
               <option key={f} value={f}>
                 {f}
@@ -665,7 +665,7 @@ export function CanvasElementToolbar({
             ))}
           </div>
         </PanelRow>
-        <PanelRow label="Ukuran">
+        <PanelRow label="Size">
           <input
             type="number"
             value={fontPx}
@@ -676,7 +676,7 @@ export function CanvasElementToolbar({
           />
           <span className="text-[10px] font-medium text-gray-400">px</span>
         </PanelRow>
-        <PanelRow label="Gaya">
+        <PanelRow label="Style">
           <PanelIconToggle
             label="Italic"
             active={italic}
@@ -736,7 +736,7 @@ export function CanvasElementToolbar({
             onClick={() => onCopiedTextStyleChange(copyableStyle)}
             className="inline-flex h-7 w-full items-center justify-center rounded-lg border border-gray-200 text-[11px] font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {copyableStyle ? "Salin style teks ini" : "Belum ada style custom"}
+            {copyableStyle ? "Copy this text style" : "No custom style yet"}
           </button>
           <button
             type="button"
@@ -747,7 +747,7 @@ export function CanvasElementToolbar({
             }}
             className="inline-flex h-7 w-full items-center justify-center rounded-lg border border-gray-200 text-[11px] font-medium text-gray-500 hover:bg-gray-50"
           >
-            Reset style ke default tema
+            Reset style to theme default
           </button>
           <button
             type="button"
@@ -758,7 +758,7 @@ export function CanvasElementToolbar({
             className="inline-flex h-7 w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 text-[11px] font-medium text-red-600 hover:bg-red-50"
           >
             <Trash2 className="h-3.5 w-3.5" />
-            Hapus teks
+            Remove text
           </button>
           <p className="text-center text-[10px] text-gray-400">
             Copy: Ctrl+Shift+C · Paste: Ctrl+Shift+V
@@ -787,7 +787,7 @@ export function CanvasElementToolbar({
           <input
             type="text"
             value={label}
-            placeholder="Judul kategori"
+            placeholder="Category title"
             onChange={(e) => patch({ label: e.target.value })}
             className="h-7 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-[11px] text-gray-800 outline-none focus:border-indigo-300"
           />
@@ -806,13 +806,13 @@ export function CanvasElementToolbar({
                     : "text-gray-500 hover:text-gray-800",
                 )}
               >
-                {option === "front" ? "Depan gambar" : "Belakang gambar"}
+                {option === "front" ? "In front of image" : "Behind image"}
               </button>
             ))}
           </div>
         </PanelRow>
         <p className="text-[10px] text-gray-400">
-          Ukuran & posisi label: drag box label / handle ungu di kartu.
+          Label size & position: drag the label box / purple handle on the card.
         </p>
       </div>
     )
@@ -842,7 +842,7 @@ export function CanvasElementToolbar({
             }
             className="h-7 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-[11px] text-gray-800 outline-none focus:border-indigo-300"
           >
-            <option value="">Default tema</option>
+            <option value="">Theme default</option>
             {HEADING_FONT_OPTIONS.map((f) => (
               <option key={f} value={f}>
                 {f}
@@ -872,7 +872,7 @@ export function CanvasElementToolbar({
             ))}
           </div>
         </PanelRow>
-        <PanelRow label="Ukuran">
+        <PanelRow label="Size">
           <input
             type="number"
             value={item.fontSize}
@@ -889,7 +889,7 @@ export function CanvasElementToolbar({
           />
           <span className="text-[10px] font-medium text-gray-400">px</span>
         </PanelRow>
-        <PanelRow label="Gaya">
+        <PanelRow label="Style">
           <PanelIconToggle
             label="Italic"
             active={item.fontStyle === "italic"}
@@ -962,7 +962,7 @@ export function CanvasElementToolbar({
             className="inline-flex h-7 w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 text-[11px] font-medium text-red-600 hover:bg-red-50"
           >
             <Trash2 className="h-3.5 w-3.5" />
-            Hapus teks
+            Remove text
           </button>
           <p className="mt-1.5 text-center text-[10px] text-gray-400">
             Copy: Ctrl+Shift+C · Paste: Ctrl+Shift+V
@@ -997,13 +997,13 @@ export function CanvasElementToolbar({
           <input
             type="text"
             value={item.label}
-            placeholder="Teks tombol"
+            placeholder="Button text"
             onChange={(e) => patchButton({ label: e.target.value })}
             className="h-7 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-[11px] text-gray-800 outline-none focus:border-indigo-300"
           />
         </PanelRow>
         <PanelSlider
-          label="Lebar"
+          label="Width"
           value={item.wPct}
           min={5}
           max={100}
@@ -1012,7 +1012,7 @@ export function CanvasElementToolbar({
           onChange={(v) => patchButton({ wPct: v })}
         />
         <PanelSlider
-          label="Tinggi"
+          label="Height"
           value={item.hPx}
           min={MIN_BUTTON_HEIGHT}
           max={MAX_BUTTON_HEIGHT}
@@ -1046,7 +1046,7 @@ export function CanvasElementToolbar({
             className="inline-flex h-7 w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 text-[11px] font-medium text-red-600 hover:bg-red-50"
           >
             <Trash2 className="h-3.5 w-3.5" />
-            Hapus tombol
+            Remove button
           </button>
         </div>
       </div>
@@ -1065,13 +1065,13 @@ export function CanvasElementToolbar({
           <input
             type="text"
             value={label}
-            placeholder="Teks tombol"
+            placeholder="Button text"
             onChange={(e) => patch({ label: e.target.value })}
             className="h-7 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-[11px] text-gray-800 outline-none focus:border-indigo-300"
           />
         </PanelRow>
         <PanelSlider
-          label="Lebar"
+          label="Width"
           value={wPct}
           min={10}
           max={100}
@@ -1080,7 +1080,7 @@ export function CanvasElementToolbar({
           onChange={(v) => patch({ wPct: v })}
         />
         <PanelSlider
-          label="Tinggi"
+          label="Height"
           value={hPx}
           min={36}
           max={120}
@@ -1140,7 +1140,7 @@ function RemoveBgAction({
     return (
       <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-2.5 text-center">
         <p className="text-[11px] font-medium text-gray-500">
-          Remove background — fitur belum tersedia
+          Remove background — feature not available yet
         </p>
       </div>
     )

@@ -30,7 +30,7 @@ export default async function StoreDashboardPage({
 
   return (
     <DashboardShell
-      pageSubtitle="Ringkasan performa dan aktivitas toko kamu."
+      pageSubtitle="Summary of your store's performance and activity."
       action={
         <a
           href={storefrontUrl}

@@ -21,10 +21,10 @@ export default function StorefrontError({
         <AlertTriangle className="h-7 w-7" strokeWidth={1.75} />
       </span>
       <h1 className="mt-6 text-2xl font-bold tracking-tight text-[var(--theme-text,#1a1c1b)]">
-        Terjadi kesalahan
+        Something went wrong
       </h1>
       <p className="mt-2 text-sm leading-relaxed text-[var(--theme-muted,#515160)]">
-        Halaman tidak bisa dimuat. Coba lagi, atau kembali ke beranda.
+        This page could not be loaded. Try again, or return to the home page.
       </p>
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
         <button
@@ -33,13 +33,13 @@ export default function StorefrontError({
           className="inline-flex h-11 items-center rounded-full px-6 text-sm font-semibold text-white transition-opacity hover:opacity-90"
           style={{ backgroundColor: "var(--theme-primary, #5b4ee6)" }}
         >
-          Coba lagi
+          Try again
         </button>
         <Link
           href="/"
           className="inline-flex h-11 items-center rounded-full border border-black/10 px-6 text-sm font-semibold text-[var(--theme-text,#1a1c1b)]"
         >
-          Ke beranda
+          Go to home
         </Link>
       </div>
     </section>

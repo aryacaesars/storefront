@@ -76,7 +76,7 @@ export function ProductForm({
   categories,
   action,
   defaultValues = {},
-  submitLabel = "Simpan",
+  submitLabel = "Save",
   initialToast,
   extraActions,
 }: ProductFormProps) {
@@ -93,7 +93,7 @@ export function ProductForm({
   const [uploading, setUploading] = useState(false)
 
   useDashboardActionNotice(state, {
-    successMessage: "Perubahan produk berhasil disimpan.",
+    successMessage: "Product changes saved successfully.",
     initialNotice: initialToast,
   })
 
@@ -107,13 +107,13 @@ export function ProductForm({
       const res = await fetch("/api/upload", { method: "POST", body: fd })
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
-        throw new Error((body as { error?: string }).error ?? "Upload gagal")
+        throw new Error((body as { error?: string }).error ?? "Upload failed")
       }
       const data = (await res.json()) as { url: string }
       setImageUrl(data.url)
-      toast.success("Gambar berhasil diunggah.")
+      toast.success("Image uploaded successfully.")
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload gagal")
+      toast.error(err instanceof Error ? err.message : "Upload failed")
     } finally {
       setUploading(false)
     }
@@ -128,25 +128,25 @@ export function ProductForm({
         <div className="flex flex-col gap-5">
           <div>
             <label className={dashboardLabel}>
-              Nama Produk <span className="text-red-500">*</span>
+              Product Name <span className="text-red-500">*</span>
             </label>
             <input
               name="name"
               type="text"
               required
               defaultValue={defaultValues.name}
-              placeholder="Kaos Polos Hitam"
+              placeholder="Black Plain T-Shirt"
               className={dashboardInput}
             />
           </div>
 
           <div>
-            <label className={dashboardLabel}>Deskripsi</label>
+            <label className={dashboardLabel}>Description</label>
             <textarea
               name="description"
               rows={4}
               defaultValue={defaultValues.description ?? ""}
-              placeholder="Deskripsi produk..."
+              placeholder="Product description..."
               className={cn(dashboardInput, "resize-none")}
             />
           </div>
@@ -154,7 +154,7 @@ export function ProductForm({
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className={dashboardLabel}>
-                Harga (Rp) <span className="text-red-500">*</span>
+                Price (Rp) <span className="text-red-500">*</span>
               </label>
               <input type="hidden" name="price" value={priceDigits} />
               <div className="relative">
@@ -176,7 +176,7 @@ export function ProductForm({
             </div>
             <div>
               <label className={dashboardLabel}>
-                Stok <span className="text-red-500">*</span>
+                Stock <span className="text-red-500">*</span>
               </label>
               <input
                 name="stock"
@@ -191,11 +191,11 @@ export function ProductForm({
 
           <DashboardSelect
             name="categoryId"
-            label="Kategori"
+            label="Category"
             defaultValue={defaultValues.categoryId ?? ""}
-            placeholder="— Tanpa kategori —"
+            placeholder="— No category —"
             options={[
-              { value: "", label: "— Tanpa kategori —" },
+              { value: "", label: "— No category —" },
               ...categories.map((cat) => ({ value: cat.id, label: cat.name })),
             ]}
           />
@@ -205,11 +205,11 @@ export function ProductForm({
           <div className="rounded-lg border border-gray-100 bg-gray-50/80 p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-ink">Status di Storefront</p>
+                <p className="text-sm font-semibold text-ink">Storefront Status</p>
                 <p className="mt-1 text-xs leading-relaxed text-gray-500">
                   {published
-                    ? "Produk aktif — terlihat di katalog toko pelanggan."
-                    : "Draft — disimpan tapi tidak tampil di storefront."}
+                    ? "Active — visible in the customer store catalog."
+                    : "Draft — saved but not shown on the storefront."}
                 </p>
               </div>
               <PublishToggle published={published} onChange={setPublished} />
@@ -220,16 +220,16 @@ export function ProductForm({
                 published ? "bg-emerald-100 text-emerald-700" : "bg-gray-200 text-gray-600",
               )}
             >
-              {published ? "Aktif" : "Draft"}
+              {published ? "Active" : "Draft"}
             </p>
           </div>
 
           <div>
-            <label className={dashboardLabel}>Gambar Produk</label>
+            <label className={dashboardLabel}>Product Image</label>
             {imageUrl ? (
               <div className="group relative aspect-square w-full overflow-hidden rounded-lg border border-gray-200">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imageUrl} alt="Preview gambar produk" className="h-full w-full object-cover" />
+                <img src={imageUrl} alt="Product image preview" className="h-full w-full object-cover" />
                 <button
                   type="button"
                   onClick={() => setImageUrl("")}
@@ -241,7 +241,7 @@ export function ProductForm({
             ) : (
               <label className="flex aspect-square w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:border-brand/40 hover:bg-brand/5">
                 <ImagePlus className="mb-2 h-8 w-8 text-gray-400" />
-                <span className="text-sm font-medium text-gray-500">Upload foto</span>
+                <span className="text-sm font-medium text-gray-500">Upload photo</span>
                 <span className="mt-1 text-xs text-gray-400">PNG, JPG, WebP</span>
                 <input
                   type="file"
@@ -252,14 +252,14 @@ export function ProductForm({
                 />
               </label>
             )}
-            {uploading && <p className="mt-2 text-xs text-gray-500">Mengupload...</p>}
+            {uploading && <p className="mt-2 text-xs text-gray-500">Uploading...</p>}
           </div>
         </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3 border-t border-gray-100 pt-6">
         <button type="submit" disabled={pending || uploading} className={dashboardBtnPrimary}>
-          {pending ? "Menyimpan..." : submitLabel}
+          {pending ? "Saving..." : submitLabel}
         </button>
         {extraActions}
       </div>

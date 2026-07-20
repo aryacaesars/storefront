@@ -37,21 +37,21 @@ export function DocsSidebar({ activeSlug, className, onNavigate }: DocsSidebarPr
     <aside className={cn("flex h-full flex-col", className)}>
       <div className="px-4 pb-3 pt-1">
         <label className="sr-only" htmlFor="docs-search">
-          Cari dokumentasi
+          Search documentation
         </label>
         <input
           id="docs-search"
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Cari artikel…"
+          placeholder="Search articles…"
           className="w-full rounded-xl border border-dash-border bg-white px-3.5 py-2 text-sm text-dash-ink placeholder:text-dash-muted/70 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
         />
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 pb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {categories.length === 0 ? (
-          <p className="px-2 py-4 text-sm text-dash-muted">Tidak ada hasil.</p>
+          <p className="px-2 py-4 text-sm text-dash-muted">No results.</p>
         ) : (
           categories.map((category) => (
             <CategoryGroup

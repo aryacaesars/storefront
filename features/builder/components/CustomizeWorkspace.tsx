@@ -138,9 +138,9 @@ export function CustomizeWorkspace({
     setIsSaving(true)
     try {
       await (onSaveDraft ?? saveThemeDraft)(next)
-      setStatus("Gambar tersimpan ke database.")
+      setStatus("Image saved to database.")
     } catch {
-      setStatus("Gagal menyimpan gambar — coba Save Draft manual.")
+      setStatus("Failed to save image — try Save Draft manually.")
     } finally {
       setIsSaving(false)
     }
@@ -463,9 +463,9 @@ export function CustomizeWorkspace({
     setStatus(null)
     try {
       await (onSaveDraft ?? saveThemeDraft)(config)
-      setStatus("Draft tersimpan.")
+      setStatus("Draft saved.")
     } catch {
-      setStatus("Gagal menyimpan draft.")
+      setStatus("Failed to save draft.")
     } finally {
       setIsSaving(false)
     }
@@ -477,13 +477,13 @@ export function CustomizeWorkspace({
     setPaymentRequired(false)
     try {
       await (onPublish ?? publishTheme)(config)
-      setStatus("Perubahan dipublish ke storefront live.")
+      setStatus("Changes published to the Live Store.")
     } catch (err) {
       const msg = err instanceof Error ? err.message : ""
       if (msg === "PAYMENT_REQUIRED") {
         setPaymentRequired(true)
       } else {
-        setStatus("Gagal publish perubahan.")
+        setStatus("Failed to publish changes.")
       }
     } finally {
       setIsSaving(false)
@@ -492,7 +492,7 @@ export function CustomizeWorkspace({
 
   async function handleResetLayout() {
     const confirmed = window.confirm(
-      "Layout homepage/about akan kembali ke default. Logo dan warna tetap disimpan. Lanjutkan?",
+      "Homepage/about layout will reset to default. Logo and colors will be kept. Continue?",
     )
     if (!confirmed) return
 
@@ -506,9 +506,9 @@ export function CustomizeWorkspace({
     setIsSaving(true)
     try {
       await (onSaveDraft ?? saveThemeDraft)(next)
-      setStatus("Layout direset ke default. Klik Publish untuk tampil di storefront.")
+      setStatus("Layout reset to default. Click Publish to show on the storefront.")
     } catch {
-      setStatus("Gagal menyimpan reset layout.")
+      setStatus("Failed to save layout reset.")
     } finally {
       setIsSaving(false)
     }
@@ -567,9 +567,9 @@ export function CustomizeWorkspace({
       {paymentRequired && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Beli Template untuk Publish</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Purchase Template to Publish</h2>
             <p className="text-sm text-gray-500 mb-5">
-              Kamu bisa edit template ini gratis, tapi untuk publish ke storefront perlu membeli lisensinya terlebih dahulu.
+              You can edit this template for free, but publishing to the storefront requires purchasing a license first.
             </p>
             <div className="flex gap-3">
               {storeId && (
@@ -577,7 +577,7 @@ export function CustomizeWorkspace({
                   href={`/stores/${storeId}/templates`}
                   className="flex-1 py-2 px-4 bg-black text-white text-sm font-medium rounded-lg text-center hover:bg-gray-800 transition-colors"
                 >
-                  Beli Template
+                  Purchase Template
                 </a>
               )}
               <button
@@ -585,7 +585,7 @@ export function CustomizeWorkspace({
                 onClick={() => setPaymentRequired(false)}
                 className="flex-1 py-2 px-4 border border-gray-200 text-sm font-medium rounded-lg text-center hover:bg-gray-50 transition-colors"
               >
-                Nanti
+                Later
               </button>
             </div>
           </div>

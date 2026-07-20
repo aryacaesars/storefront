@@ -64,6 +64,7 @@ model User {
   emailVerified DateTime? @map("email_verified")
   name          String?
   image         String?
+  passwordHash  String?   @map("password_hash")
   role          Role      @default(OWNER)
   accounts      Account[]
   stores        Store[]

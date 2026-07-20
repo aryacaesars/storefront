@@ -28,7 +28,7 @@ export async function generateMetadata({
 }) {
   const { storeId } = await params
   const store = await getStoreById(storeId)
-  return { title: store ? `Kategori — ${store.name}` : "Kategori" }
+  return { title: store ? `Categories — ${store.name}` : "Categories" }
 }
 
 export default async function CategoriesPage({
@@ -46,26 +46,26 @@ export default async function CategoriesPage({
 
   return (
     <DashboardShell
-      pageTitle="Kategori"
-      pageSubtitle={`Total: ${total} kategori`}
+      pageTitle="Categories"
+      pageSubtitle={`Total: ${total} categories`}
     >
       <DashboardPanel className="mb-6 p-6">
-        <p className="mb-3 text-sm font-medium text-ink">Tambah Kategori</p>
+        <p className="mb-3 text-sm font-medium text-ink">Add Category</p>
         <CategoryAddForm storeId={storeId} />
       </DashboardPanel>
 
       {total === 0 ? (
         <DashboardPanel className="p-12 text-center">
-          <p className="text-sm text-gray-400">Belum ada kategori.</p>
+          <p className="text-sm text-gray-400">No categories yet.</p>
         </DashboardPanel>
       ) : (
         <DashboardTable>
           <DashboardTableElement>
             <DashboardTableHead>
               <DashboardTableHeadRow>
-                <DashboardTableHeadCell>Kategori</DashboardTableHeadCell>
-                <DashboardTableHeadCell align="right">Produk</DashboardTableHeadCell>
-                <DashboardTableHeadCell align="center">Aksi</DashboardTableHeadCell>
+                <DashboardTableHeadCell>Categories</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="right">Products</DashboardTableHeadCell>
+                <DashboardTableHeadCell align="center">Actions</DashboardTableHeadCell>
               </DashboardTableHeadRow>
             </DashboardTableHead>
             <DashboardTableBody>
@@ -84,7 +84,7 @@ export default async function CategoriesPage({
                     <div className="flex items-center justify-center gap-1">
                       <DashboardTableActionLink
                         href={`/stores/${storeId}/categories/${category.id}`}
-                        label="Edit kategori"
+                        label="Edit category"
                       />
                       <CategoryDeleteButton
                         categoryName={category.name}

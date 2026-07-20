@@ -26,7 +26,7 @@ export function ProductDeleteButton({
     startTransition(async () => {
       const result = await deleteAction()
       if (result.ok) {
-        toast.success(`"${productName}" berhasil dihapus.`, "Berhasil", () => {
+        toast.success(`"${productName}" deleted successfully.`, "Success", () => {
           router.push(`/stores/${storeId}/products`)
         })
         return
@@ -43,19 +43,19 @@ export function ProductDeleteButton({
         onClick={() => setOpen(true)}
         className="rounded-lg border border-red-300 px-5 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
       >
-        Hapus Produk
+        Delete Product
       </button>
 
       <DashboardAlertDialog
         open={open}
-        title="Hapus produk?"
+        title="Delete product?"
         description={
           <>
-            Produk <strong>{productName}</strong> akan dihapus permanen. Tindakan ini tidak bisa
-            dibatalkan.
+            Product <strong>{productName}</strong> will be permanently deleted. This action cannot
+            be undone.
           </>
         }
-        confirmLabel="Ya, hapus"
+        confirmLabel="Yes, delete"
         variant="danger"
         loading={pending}
         onConfirm={handleConfirm}

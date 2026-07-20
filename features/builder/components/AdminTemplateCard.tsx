@@ -20,7 +20,7 @@ interface AdminTemplateCardProps {
 export function AdminTemplateCard({ template, themeConfig }: AdminTemplateCardProps) {
   const themeId = normalizeThemeSlug(template.slug)
   const priceLabel =
-    template.price === 0 ? "Gratis" : `Rp ${template.price.toLocaleString("id-ID")}`
+    template.price === 0 ? "Free" : `Rp ${template.price.toLocaleString("id-ID")}`
   const editDataHref = `/admin/templates/${template.id}`
   const editBaseHref = themeId
     ? `/admin/templates/${template.id}/builder`
@@ -43,7 +43,7 @@ export function AdminTemplateCard({ template, themeConfig }: AdminTemplateCardPr
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-gray-400">
-            Preview tidak tersedia
+            Preview unavailable
           </div>
         )}
       </div>
@@ -56,7 +56,7 @@ export function AdminTemplateCard({ template, themeConfig }: AdminTemplateCardPr
               {template.description ?? themeId ?? template.slug}
             </p>
             <p className="mt-1 text-xs text-gray-400">
-              {template.purchaseCount} pembelian · {priceLabel}
+              {template.purchaseCount} purchases · {priceLabel}
             </p>
           </div>
           <span
@@ -67,7 +67,7 @@ export function AdminTemplateCard({ template, themeConfig }: AdminTemplateCardPr
                 : "bg-gray-100 text-gray-500",
             )}
           >
-            {template.published ? "terbit" : "draft"}
+            {template.published ? "published" : "draft"}
           </span>
         </div>
 

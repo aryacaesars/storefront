@@ -5,14 +5,14 @@ const MOCK_ORDERS = [
   {
     id: "ORD-28491",
     date: "12 Jun 2026",
-    status: "Dikirim",
+    status: "Shipped",
     total: 437,
     items: 2,
   },
   {
     id: "ORD-27103",
-    date: "28 Mei 2026",
-    status: "Selesai",
+    date: "28 May 2026",
+    status: "Completed",
     total: 189,
     items: 1,
   },
@@ -35,10 +35,10 @@ export function AccountPageContent() {
           className="mt-2 text-3xl font-bold text-[var(--theme-text)] @2xl:text-4xl"
           style={{ fontFamily: "var(--theme-heading-font)" }}
         >
-          Akun Saya
+          My Account
         </h1>
         <p className="mt-2 max-w-xl text-sm text-[var(--theme-muted)]">
-          Kelola profil, alamat pengiriman, dan pantau pesanan kamu di sini.
+          Manage your profile, shipping address, and track your orders here.
         </p>
       </div>
 
@@ -53,9 +53,9 @@ export function AccountPageContent() {
                 <User className="h-5 w-5" strokeWidth={1.5} />
               </span>
               <div>
-                <h2 className="text-sm font-bold text-[var(--theme-text)]">Profil</h2>
+                <h2 className="text-sm font-bold text-[var(--theme-text)]">Profile</h2>
                 <p className="text-xs text-[var(--theme-muted)]">
-                  Informasi kontak untuk pesanan dan notifikasi.
+                  Contact information for orders and notifications.
                 </p>
               </div>
             </div>
@@ -64,13 +64,13 @@ export function AccountPageContent() {
               <div className="grid gap-4 @2xl:grid-cols-2">
                 <label className="block space-y-1.5">
                   <span className="text-xs font-semibold text-[var(--theme-text)]">
-                    Nama depan
+                    First name
                   </span>
                   <input type="text" defaultValue="Budi" className={inputClass} />
                 </label>
                 <label className="block space-y-1.5">
                   <span className="text-xs font-semibold text-[var(--theme-text)]">
-                    Nama belakang
+                    Last name
                   </span>
                   <input type="text" defaultValue="Santoso" className={inputClass} />
                 </label>
@@ -85,7 +85,7 @@ export function AccountPageContent() {
               </label>
               <label className="block space-y-1.5">
                 <span className="text-xs font-semibold text-[var(--theme-text)]">
-                  Nomor telepon
+                  Phone number
                 </span>
                 <input type="tel" defaultValue="+62 812 3456 7890" className={inputClass} />
               </label>
@@ -94,7 +94,7 @@ export function AccountPageContent() {
                 className="mt-2 inline-flex h-11 items-center justify-center rounded-full px-6 text-sm font-bold text-white transition-opacity hover:opacity-90"
                 style={{ backgroundColor: "var(--theme-primary)" }}
               >
-                Simpan Perubahan
+                Save changes
               </button>
             </form>
           </div>
@@ -109,10 +109,10 @@ export function AccountPageContent() {
               </span>
               <div>
                 <h2 className="text-sm font-bold text-[var(--theme-text)]">
-                  Alamat Pengiriman
+                  Shipping Address
                 </h2>
                 <p className="text-xs text-[var(--theme-muted)]">
-                  Alamat utama untuk pengiriman pesanan.
+                  Primary address for order delivery.
                 </p>
               </div>
             </div>
@@ -129,7 +129,7 @@ export function AccountPageContent() {
               type="button"
               className="mt-4 text-sm font-semibold text-[var(--theme-primary)] transition-opacity hover:opacity-80"
             >
-              Ubah alamat
+              Change address
             </button>
           </div>
         </div>
@@ -145,10 +145,10 @@ export function AccountPageContent() {
               </span>
               <div>
                 <h2 className="text-sm font-bold text-[var(--theme-text)]">
-                  Pesanan Terbaru
+                  Recent Orders
                 </h2>
                 <p className="text-xs text-[var(--theme-muted)]">
-                  Riwayat pesanan kamu.
+                  Your order history.
                 </p>
               </div>
             </div>
@@ -188,7 +188,7 @@ export function AccountPageContent() {
               href="/cart"
               className="mt-5 block text-center text-xs font-semibold text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-primary)]"
             >
-              Lihat keranjang
+              View cart
             </Link>
           </div>
         </aside>

@@ -58,7 +58,7 @@ export function BuilderElementColorPanel({
         targets={[]}
         onChangeTarget={() => {}}
         onClose={onClose}
-        emptyMessage="Pilih elemen di canvas untuk mengatur warnanya."
+        emptyMessage="Select an element on the canvas to adjust its color."
       />
     )
   }
@@ -72,7 +72,7 @@ export function BuilderElementColorPanel({
         targets={[]}
         onChangeTarget={() => {}}
         onClose={onClose}
-        emptyMessage="Elemen tidak ditemukan."
+        emptyMessage="Element not found."
       />
     )
   }
@@ -102,7 +102,7 @@ export function BuilderElementColorPanel({
       targets={targets}
       designColors={designColors}
       onClose={onClose}
-      emptyMessage="Elemen ini belum punya pengaturan warna."
+      emptyMessage="This element has no color settings yet."
       onChangeTarget={(targetId: string, next) => applyChange(targetId, next)}
     />
   )

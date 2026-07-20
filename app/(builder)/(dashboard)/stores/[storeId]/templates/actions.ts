@@ -84,19 +84,19 @@ export async function activateOwnedTemplateForLive(
   const session = await requireSession()
   const store = await getStoreById(storeId)
   if (!store || store.ownerId !== session.userId) {
-    return { ok: false, error: "Store tidak ditemukan." }
+    return { ok: false, error: "Store not found." }
   }
 
   const template = await getTemplateById(templateId)
   if (!template || !template.published) {
-    return { ok: false, error: "Template tidak ditemukan." }
+    return { ok: false, error: "Template not found." }
   }
 
   const isFree = template.price === 0
   if (!isFree) {
     const purchasedIds = await getPurchasedTemplateIds(storeId)
     if (!purchasedIds.has(templateId)) {
-      return { ok: false, error: "Template belum dibeli." }
+      return { ok: false, error: "Template not purchased yet." }
     }
   }
 
@@ -105,6 +105,6 @@ export async function activateOwnedTemplateForLive(
     revalidatePath("/", "layout")
     return { ok: true, url: getStorefrontUrl(store.slug) }
   } catch {
-    return { ok: false, error: "Gagal mengaktifkan template." }
+    return { ok: false, error: "Failed to activate template." }
   }
 }
