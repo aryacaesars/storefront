@@ -1,10 +1,23 @@
 /** View model shared between storefront themes and the catalog mapper. */
+export type CatalogProductVariant = {
+  id: string
+  label: string
+  sku?: string
+  size?: string
+  color?: string
+  price: number
+  stock: number
+  imageUrl?: string
+}
+
+/** View model shared between storefront themes and the catalog mapper. */
 export type CatalogProduct = {
   id: string;
   slug: string;
   name: string;
   subtitle: string;
   price: number;
+  priceMax?: number;
   salePrice?: number;
   badge?: "NEW" | "SALE";
   imageUrl?: string;
@@ -12,6 +25,10 @@ export type CatalogProduct = {
   imageClass: string;
   description?: string;
   inStock: boolean;
+  variants?: CatalogProductVariant[];
+  /** Distinct option values for storefront pickers. */
+  optionSizes?: string[];
+  optionColors?: string[];
 };
 
 export type StorefrontCategory = {

@@ -22,6 +22,9 @@ export function CanvasInlineText({ value, onChange, className, style }: CanvasIn
         }
       }}
       onKeyDown={(event) => {
+        // Parent canvas wrappers often use role="button" + Space/Enter → select.
+        // Stop bubbling so Space inserts a character instead of "activating" the parent.
+        event.stopPropagation()
         if (event.key === "Enter") {
           event.preventDefault()
           event.currentTarget.blur()

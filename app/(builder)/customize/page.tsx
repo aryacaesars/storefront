@@ -1,5 +1,6 @@
 import { requireSession } from "@/features/auth/dal"
 import { CustomizeWorkspace } from "@/features/builder/components/CustomizeWorkspace"
+import { LocaleShell } from "@/features/i18n/LocaleShell"
 import {
   getActiveTemplateId,
   getThemeConfig,
@@ -44,12 +45,14 @@ export default async function CustomizePage({
   const storefrontHost = getStorefrontHost(session.tenantSlug)
 
   return (
-    <CustomizeWorkspace
-      templateId={previewTemplateId}
-      templateName={meta.name}
-      initialConfig={initialConfig}
-      storefrontHost={storefrontHost}
-      initialMode={initialMode}
-    />
+    <LocaleShell>
+      <CustomizeWorkspace
+        templateId={previewTemplateId}
+        templateName={meta.name}
+        initialConfig={initialConfig}
+        storefrontHost={storefrontHost}
+        initialMode={initialMode}
+      />
+    </LocaleShell>
   )
 }

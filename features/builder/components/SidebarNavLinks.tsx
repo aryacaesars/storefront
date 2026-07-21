@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { useEffect, useMemo, useState, useTransition } from "react"
+import { useMemo, useState, useTransition } from "react"
 import {
   LayoutDashboard,
   Store,
@@ -35,7 +35,7 @@ export function SidebarNavLinks({
   const t = useMessages().dashboard
   const pathname = usePathname()
   const router = useRouter()
-  const [stores, setStores] = useState(initialStores)
+  const stores = initialStores
   const [isPending, startTransition] = useTransition()
   const [pendingStoreId, setPendingStoreId] = useState<string | null>(null)
 
@@ -70,40 +70,17 @@ export function SidebarNavLinks({
   const activeStoreId = storeMatch?.[1] ?? null
 
   const [openStoreId, setOpenStoreId] = useState<string | null>(activeStoreId)
+  const [prevActiveStoreId, setPrevActiveStoreId] = useState<string | null>(activeStoreId)
 
-  useEffect(() => {
-    setStores(initialStores)
-  }, [initialStores])
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function refreshStores() {
-      try {
-        const res = await fetch("/api/stores", { cache: "no-store" })
-        if (!res.ok) return
-        const data = (await res.json()) as StoreItem[]
-        if (!cancelled) setStores(data)
-      } catch {
-        // keep last known list
-      }
-    }
-
-    void refreshStores()
-    return () => {
-      cancelled = true
-    }
-  }, [pathname])
-
-  useEffect(() => {
+  // Sinkronkan saat navigasi mengganti store aktif — adjust state ketika render
+  // (bukan di effect): auto-buka store aktif & bersihkan status pending switch.
+  if (activeStoreId !== prevActiveStoreId) {
+    setPrevActiveStoreId(activeStoreId)
     setOpenStoreId(activeStoreId)
-  }, [activeStoreId])
-
-  useEffect(() => {
     if (pendingStoreId && activeStoreId === pendingStoreId) {
       setPendingStoreId(null)
     }
-  }, [activeStoreId, pendingStoreId])
+  }
 
   function onStoreClick(storeId: string) {
     const isOpen = openStoreId === storeId

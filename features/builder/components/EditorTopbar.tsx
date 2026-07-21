@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ArrowLeft, MoreHorizontal, Monitor, Smartphone } from "lucide-react"
+import { ArrowLeft, MoreHorizontal, Monitor, Redo2, Smartphone, Undo2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
@@ -19,6 +19,10 @@ interface EditorTopbarProps {
   onSaveDraft: () => void
   onPublish: () => void
   onResetLayout?: () => void
+  onUndo?: () => void
+  onRedo?: () => void
+  canUndo?: boolean
+  canRedo?: boolean
   isSaving?: boolean
 }
 
@@ -32,9 +36,41 @@ export function EditorTopbar({
   onSaveDraft,
   onPublish,
   onResetLayout,
+  onUndo,
+  onRedo,
+  canUndo = false,
+  canRedo = false,
   isSaving = false,
 }: EditorTopbarProps) {
   const [menuOpen, setMenuOpen] = useState(false)
+
+  const historyButtonClass =
+    "flex h-8 w-8 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-40"
+
+  const historyButtons = onUndo && onRedo && (
+    <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 p-0.5">
+      <button
+        type="button"
+        onClick={onUndo}
+        disabled={!canUndo}
+        className={historyButtonClass}
+        aria-label="Undo"
+        title="Undo (Ctrl+Z)"
+      >
+        <Undo2 className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={onRedo}
+        disabled={!canRedo}
+        className={historyButtonClass}
+        aria-label="Redo"
+        title="Redo (Ctrl+Shift+Z)"
+      >
+        <Redo2 className="h-4 w-4" />
+      </button>
+    </div>
+  )
 
   return (
     <header
@@ -80,6 +116,9 @@ export function EditorTopbar({
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5 md:gap-2">
+        {/* Undo/redo — available on all viewports */}
+        {historyButtons}
+
         {/* Device toggle — available on all viewports */}
         <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 p-0.5">
           <button

@@ -6,15 +6,15 @@ import { useTransition } from "react"
 import { Minus, Plus } from "lucide-react"
 import { updateQuantity } from "@/app/(storefront)/cart/actions"
 import { formatIdr } from "@/features/storefront/catalog-types"
-import type { CartItem } from "@/lib/storefront/cart"
+import { normalizeCartItem, type CartItem } from "@/lib/storefront/cart"
 
 export function CheckoutCartLines({ cart }: { cart: CartItem[] }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
 
-  function changeQty(slug: string, quantity: number) {
+  function changeQty(lineKey: string, quantity: number) {
     startTransition(async () => {
-      await updateQuantity(slug, quantity)
+      await updateQuantity(lineKey, quantity)
       router.refresh()
     })
   }
@@ -33,7 +33,7 @@ export function CheckoutCartLines({ cart }: { cart: CartItem[] }) {
   return (
     <ul className={`space-y-4 ${pending ? "opacity-70" : ""}`}>
       {cart.map((item) => (
-        <li key={item.slug} className="flex gap-3">
+        <li key={item.lineKey} className="flex gap-3">
           <div className="h-20 w-16 shrink-0 overflow-hidden rounded-xl bg-gray-100">
             {item.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -56,7 +56,7 @@ export function CheckoutCartLines({ cart }: { cart: CartItem[] }) {
                   type="button"
                   aria-label="Decrease quantity"
                   disabled={pending}
-                  onClick={() => changeQty(item.slug, item.quantity - 1)}
+                  onClick={() => changeQty(item.lineKey, item.quantity - 1)}
                   className="flex h-8 w-8 items-center justify-center text-[#515160] transition-colors hover:text-[var(--theme-primary)] disabled:opacity-50"
                 >
                   <Minus className="h-3.5 w-3.5" strokeWidth={2} />
@@ -68,7 +68,7 @@ export function CheckoutCartLines({ cart }: { cart: CartItem[] }) {
                   type="button"
                   aria-label="Increase quantity"
                   disabled={pending}
-                  onClick={() => changeQty(item.slug, item.quantity + 1)}
+                  onClick={() => changeQty(item.lineKey, item.quantity + 1)}
                   className="flex h-8 w-8 items-center justify-center text-[#515160] transition-colors hover:text-[var(--theme-primary)] disabled:opacity-50"
                 >
                   <Plus className="h-3.5 w-3.5" strokeWidth={2} />

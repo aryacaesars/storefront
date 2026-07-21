@@ -60,7 +60,13 @@ export function ProductGalleryClient({ product, catalogProductId }: ProductGalle
   function handleAddToCart() {
     if (!catalogProductId) return
     startAddTransition(async () => {
-      await addToCart(catalogProductId, product.id, product.name, product.price, product.imageUrl)
+      await addToCart({
+        productId: catalogProductId,
+        slug: product.id,
+        name: product.name,
+        price: product.price,
+        imageUrl: product.imageUrl,
+      })
       router.refresh()
       setJustAdded(true)
       setTimeout(() => setJustAdded(false), 2000)

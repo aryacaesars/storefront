@@ -31,7 +31,7 @@ export function ProductGrid({ products = [] }: ProductGridProps) {
           const displayPrice = p.salePrice ?? p.price
           return (
             <Link key={p.slug} href={`/products/${p.slug}`} className="group">
-              <div className="relative aspect-[3/4] overflow-hidden">
+              <div className="relative aspect-square overflow-hidden">
                 {p.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img

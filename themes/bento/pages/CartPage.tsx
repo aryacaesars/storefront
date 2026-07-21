@@ -34,7 +34,7 @@ export function CartPage({ cart = [] }: ThemePageProps) {
           <>
             <ul className="mt-10 space-y-4">
               {cart.map((item) => (
-                <li key={item.slug} className="flex gap-5 rounded-2xl border border-gray-100 p-4">
+                <li key={item.lineKey} className="flex gap-5 rounded-2xl border border-gray-100 p-4">
                   <div className="h-24 w-20 shrink-0 rounded-xl overflow-hidden bg-gray-100">
                     {item.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -52,7 +52,7 @@ export function CartPage({ cart = [] }: ThemePageProps) {
                       <p className="text-sm font-bold" style={{ color: "var(--theme-primary)" }}>
                         {formatIdr(item.price * item.quantity)}
                       </p>
-                      <form action={removeFromCart.bind(null, item.slug)}>
+                      <form action={removeFromCart.bind(null, item.lineKey)}>
                         <button type="submit" className="text-xs text-[#515160] hover:text-red-500 transition-colors">
                           Hapus
                         </button>

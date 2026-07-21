@@ -89,6 +89,13 @@ export function SectionRenderer({ config, pageType, editor, products }: SectionR
               editor.onSelectSection(sectionId)
             }}
             onKeyDown={(event) => {
+              const target = event.target as HTMLElement | null
+              if (
+                target?.isContentEditable ||
+                target?.closest('[contenteditable="true"], [role="textbox"], input, textarea')
+              ) {
+                return
+              }
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault()
                 editor.onSelectSection(sectionId)

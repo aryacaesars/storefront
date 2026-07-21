@@ -34,18 +34,60 @@ function mapProductToCatalog(
     price: number;
     stock: number;
     images: { url: string }[];
+    variants?: Array<{
+      id: string;
+      label: string;
+      sku: string | null;
+      size: string | null;
+      color: string | null;
+      price: number;
+      stock: number;
+      imageUrl: string | null;
+    }>;
   },
 ): CatalogProduct {
+  const variants = (p.variants ?? []).map((variant) => ({
+    id: variant.id,
+    label: variant.label,
+    sku: variant.sku ?? undefined,
+    size: variant.size ?? undefined,
+    color: variant.color ?? undefined,
+    price: variant.price,
+    stock: variant.stock,
+    imageUrl: variant.imageUrl ?? undefined,
+  }));
+
+  const hasVariants = variants.length > 0;
+  const prices = hasVariants ? variants.map((v) => v.price) : [p.price];
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
+  const inStock = hasVariants
+    ? variants.some((v) => v.stock > 0)
+    : p.stock > 0;
+  const optionSizes = [
+    ...new Set(variants.map((v) => v.size).filter(Boolean) as string[]),
+  ];
+  const optionColors = [
+    ...new Set(variants.map((v) => v.color).filter(Boolean) as string[]),
+  ];
+
   return {
     id: p.id,
     slug: p.slug,
     name: p.name,
     subtitle: p.description?.trim() || p.name,
-    price: p.price,
-    imageUrl: p.images[0]?.url || undefined,
+    price: minPrice,
+    priceMax: maxPrice > minPrice ? maxPrice : undefined,
+    imageUrl:
+      p.images[0]?.url ||
+      variants.find((v) => v.imageUrl)?.imageUrl ||
+      undefined,
     imageClass: gradientForId(p.id),
     description: p.description ?? undefined,
-    inStock: p.stock > 0,
+    inStock,
+    variants: hasVariants ? variants : undefined,
+    optionSizes: optionSizes.length > 0 ? optionSizes : undefined,
+    optionColors: optionColors.length > 0 ? optionColors : undefined,
   };
 }
 
@@ -77,7 +119,10 @@ export const getCatalogProductsForTenant = cache(async function (
 
   const products = await prisma.product.findMany({
     where: { storeId, published: true },
-    include: { images: { orderBy: { order: "asc" } } },
+    include: {
+      images: { orderBy: { order: "asc" } },
+      variants: { orderBy: { sortOrder: "asc" } },
+    },
     orderBy: { name: "asc" },
   });
 
@@ -147,7 +192,10 @@ export const getFilteredCatalogProductsForTenant = cache(async function (
   if (sort === "popular") {
     const products = await prisma.product.findMany({
       where,
-      include: { images: { orderBy: { order: "asc" } } },
+      include: {
+      images: { orderBy: { order: "asc" } },
+      variants: { orderBy: { sortOrder: "asc" } },
+    },
     });
 
     if (products.length === 0) {
@@ -200,7 +248,10 @@ export const getFilteredCatalogProductsForTenant = cache(async function (
 
   const products = await prisma.product.findMany({
     where,
-    include: { images: { orderBy: { order: "asc" } } },
+    include: {
+      images: { orderBy: { order: "asc" } },
+      variants: { orderBy: { sortOrder: "asc" } },
+    },
     orderBy,
   });
 
@@ -242,7 +293,10 @@ export const getTrendingCatalogProductsForTenant = cache(async function (
     rankedIds.length > 0
       ? await prisma.product.findMany({
           where: { id: { in: rankedIds }, storeId, published: true },
-          include: { images: { orderBy: { order: "asc" } } },
+          include: {
+      images: { orderBy: { order: "asc" } },
+      variants: { orderBy: { sortOrder: "asc" } },
+    },
         })
       : [];
 
@@ -261,7 +315,10 @@ export const getTrendingCatalogProductsForTenant = cache(async function (
       published: true,
       ...(rankedIds.length > 0 ? { id: { notIn: rankedIds } } : {}),
     },
-    include: { images: { orderBy: { order: "asc" } } },
+    include: {
+      images: { orderBy: { order: "asc" } },
+      variants: { orderBy: { sortOrder: "asc" } },
+    },
     orderBy: { name: "asc" },
     take: limit - ordered.length,
   });
@@ -312,7 +369,10 @@ export const getCatalogProductsByCategorySlug = cache(async function (
       published: true,
       category: { slug },
     },
-    include: { images: { orderBy: { order: "asc" } } },
+    include: {
+      images: { orderBy: { order: "asc" } },
+      variants: { orderBy: { sortOrder: "asc" } },
+    },
     orderBy: { name: "asc" },
   });
 
@@ -328,7 +388,10 @@ export const getCatalogProductBySlug = cache(async function (
 
   const p = await prisma.product.findFirst({
     where: { storeId, slug, published: true },
-    include: { images: { orderBy: { order: "asc" } } },
+    include: {
+      images: { orderBy: { order: "asc" } },
+      variants: { orderBy: { sortOrder: "asc" } },
+    },
   });
 
   if (!p) return null;

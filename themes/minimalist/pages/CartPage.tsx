@@ -33,7 +33,7 @@ export function CartPage({ cart = [] }: ThemePageProps) {
         <>
           <ul className="mt-10 divide-y divide-black/5 border-y border-black/5">
             {cart.map((item) => (
-              <li key={item.slug} className="flex gap-5 py-6">
+              <li key={item.lineKey} className="flex gap-5 py-6">
                 <div className="h-24 w-20 shrink-0 overflow-hidden rounded-sm bg-gray-100">
                   {item.imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -51,7 +51,7 @@ export function CartPage({ cart = [] }: ThemePageProps) {
                     <p className="text-sm font-semibold text-[var(--theme-text)]">
                       {formatIdr(item.price * item.quantity)}
                     </p>
-                    <form action={removeFromCart.bind(null, item.slug)}>
+                    <form action={removeFromCart.bind(null, item.lineKey)}>
                       <button
                         type="submit"
                         className="text-xs text-[var(--theme-muted)] transition-colors hover:text-red-500"

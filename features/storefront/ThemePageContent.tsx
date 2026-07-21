@@ -18,7 +18,7 @@ import type { CatalogListFilters } from "@/features/storefront/catalog-types"
 import { getStoreBySlug } from "@/server/services/tenant.service"
 import { getCustomerSession } from "@/features/storefront/customer-dal"
 import { getCustomerDefaultAddress } from "@/server/services/customer.service"
-import type { CartItem } from "@/lib/storefront/cart"
+import { normalizeCartItem, type CartItem } from "@/lib/storefront/cart"
 import type { ThemePageProps } from "@/themes/engine/page-props"
 import type { StorefrontCategory } from "@/features/storefront/catalog-types"
 
@@ -91,7 +91,7 @@ export async function ThemePageContent({
     const raw = cookieStore.get("sf_cart")?.value
     if (raw) {
       try {
-        cart = JSON.parse(raw) as CartItem[]
+        cart = (JSON.parse(raw) as CartItem[]).map(normalizeCartItem)
       } catch {
         cart = []
       }

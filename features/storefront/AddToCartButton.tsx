@@ -10,6 +10,8 @@ interface AddToCartButtonProps {
   name: string
   price: number
   imageUrl?: string
+  variantId?: string
+  variantLabel?: string
   label?: string
   /** After add: navigate here (e.g. /checkout for buy now). */
   redirectTo?: string
@@ -24,6 +26,8 @@ export function AddToCartButton({
   name,
   price,
   imageUrl,
+  variantId,
+  variantLabel,
   label = "Add to Cart",
   redirectTo,
   className,
@@ -36,7 +40,15 @@ export function AddToCartButton({
 
   function handleClick() {
     startTransition(async () => {
-      await addToCart(productId, slug, name, price, imageUrl)
+      await addToCart({
+        productId,
+        slug,
+        name,
+        price,
+        imageUrl,
+        variantId,
+        variantLabel,
+      })
       if (redirectTo) {
         router.push(redirectTo)
         return

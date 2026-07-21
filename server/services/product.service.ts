@@ -1,12 +1,18 @@
 import "server-only"
 import { prisma } from "@/lib/db/prisma"
-import type { Category, Product, ProductImage } from "@prisma/client"
+import type { Category, Prisma, Product, ProductImage, ProductVariant } from "@prisma/client"
+import {
+  aggregateVariantTotals,
+  buildVariantLabel,
+  type ProductVariantInput,
+} from "@/server/services/product-variant"
 
-export type { Category, Product, ProductImage }
+export type { Category, Product, ProductImage, ProductVariant }
 export type ProductWithCategory = Product & { category: Category | null }
 export type ProductWithImages = Product & {
   category: Category | null
   images: ProductImage[]
+  variants: ProductVariant[]
 }
 
 // ─── Categories ───────────────────────────────────────────────────────────────
@@ -90,7 +96,33 @@ export async function getProductById(
 ): Promise<ProductWithImages | null> {
   return prisma.product.findFirst({
     where: { id, storeId },
-    include: { category: true, images: { orderBy: { order: "asc" } } },
+    include: {
+      category: true,
+      images: { orderBy: { order: "asc" } },
+      variants: { orderBy: { sortOrder: "asc" } },
+    },
+  })
+}
+
+async function syncProductVariants(
+  productId: string,
+  variants: ProductVariantInput[],
+): Promise<void> {
+  await prisma.productVariant.deleteMany({ where: { productId } })
+  if (variants.length === 0) return
+
+  await prisma.productVariant.createMany({
+    data: variants.map((variant, index) => ({
+      productId,
+      sku: variant.sku?.trim() || null,
+      label: buildVariantLabel(variant),
+      size: variant.size?.trim() || null,
+      color: variant.color?.trim() || null,
+      price: variant.price,
+      stock: variant.stock,
+      imageUrl: variant.imageUrl?.trim() || null,
+      sortOrder: index,
+    })),
   })
 }
 
@@ -104,16 +136,27 @@ export async function createProduct(input: {
   storeId: string
   categoryId: string | null
   imageUrl: string | null
+  variants?: ProductVariantInput[]
 }): Promise<Product> {
-  const { imageUrl, ...data } = input
-  return prisma.product.create({
+  const { imageUrl, variants = [], ...data } = input
+  const totals = variants.length > 0 ? aggregateVariantTotals(variants) : null
+
+  const product = await prisma.product.create({
     data: {
       ...data,
+      price: totals?.price ?? data.price,
+      stock: totals?.stock ?? data.stock,
       images: imageUrl
         ? { create: { url: imageUrl, order: 0 } }
         : undefined,
     },
   })
+
+  if (variants.length > 0) {
+    await syncProductVariants(product.id, variants)
+  }
+
+  return product
 }
 
 export async function updateProduct(
@@ -128,23 +171,52 @@ export async function updateProduct(
     published: boolean
     categoryId: string | null
     imageUrl: string | null
+    variants?: ProductVariantInput[]
   },
 ): Promise<Product> {
-  const { imageUrl, ...data } = input
+  const { imageUrl, variants = [], ...data } = input
+  const totals = variants.length > 0 ? aggregateVariantTotals(variants) : null
+
   await prisma.productImage.deleteMany({ where: { productId: id } })
-  return prisma.product.update({
+  const product = await prisma.product.update({
     where: { id },
     data: {
       ...data,
+      price: totals?.price ?? data.price,
+      stock: totals?.stock ?? data.stock,
       images: imageUrl
         ? { create: { url: imageUrl, order: 0 } }
         : undefined,
     },
   })
+
+  await syncProductVariants(id, variants)
+  return product
+}
+
+/**
+ * Sinkronkan stok agregat produk dari total stok varian. Dipakai setelah
+ * stok varian berubah (checkout, restore order) agar product.stock tidak
+ * drift dari sumber kebenaran (stok per varian).
+ */
+export async function syncProductStockFromVariants(
+  tx: Prisma.TransactionClient,
+  productId: string,
+  storeId: string,
+): Promise<void> {
+  const totals = await tx.productVariant.aggregate({
+    where: { productId },
+    _sum: { stock: true },
+  })
+  await tx.product.updateMany({
+    where: { id: productId, storeId },
+    data: { stock: totals._sum.stock ?? 0 },
+  })
 }
 
 export async function deleteProduct(id: string, storeId: string): Promise<void> {
   await prisma.productImage.deleteMany({ where: { productId: id } })
+  await prisma.productVariant.deleteMany({ where: { productId: id } })
   await prisma.product.deleteMany({ where: { id, storeId } })
 }
 

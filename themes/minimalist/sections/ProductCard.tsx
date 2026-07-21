@@ -16,7 +16,7 @@ export function ProductCard({ product }: ProductCardProps) {
       href={`/products/${product.slug}`}
       className="group flex flex-col gap-3"
     >
-      <div className="relative aspect-[3/4] overflow-hidden rounded-sm bg-gray-100 ring-1 ring-black/[0.04]">
+      <div className="relative aspect-square overflow-hidden rounded-sm bg-gray-100 ring-1 ring-black/[0.04]">
         {product.imageUrl ? (
           <Image
             src={product.imageUrl}

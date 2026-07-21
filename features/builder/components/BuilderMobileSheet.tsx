@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useRef } from "react"
 import { X } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 import { cn } from "@/lib/utils"
@@ -21,6 +22,19 @@ export function BuilderMobileSheet({
   children,
   className,
 }: BuilderMobileSheetProps) {
+  const openedAtRef = useRef(0)
+
+  useEffect(() => {
+    if (open) {
+      openedAtRef.current = performance.now()
+    }
+  }, [open])
+
+  const handleBackdropDismiss = () => {
+    if (performance.now() - openedAtRef.current < 350) return
+    onClose()
+  }
+
   return (
     <AnimatePresence>
       {open && (
@@ -33,7 +47,7 @@ export function BuilderMobileSheet({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
-            onClick={onClose}
+            onClick={handleBackdropDismiss}
           />
           <motion.div
             role="dialog"

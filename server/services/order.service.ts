@@ -1,6 +1,7 @@
 import "server-only"
 import { prisma } from "@/lib/db/prisma"
 import type { Order, OrderItem, Customer, OrderStatus } from "@prisma/client"
+import { syncProductStockFromVariants } from "@/server/services/product.service"
 
 export type { Order, OrderItem, Customer, OrderStatus }
 
@@ -175,7 +176,9 @@ export async function updateOrderStatus(
       id: true,
       status: true,
       stockDeducted: true,
-      items: { select: { productId: true, quantity: true } },
+      items: {
+        select: { productId: true, variantId: true, quantity: true },
+      },
     },
   })
   if (!order) return { ok: false, error: "Order tidak ditemukan." }
@@ -192,6 +195,14 @@ export async function updateOrderStatus(
   await prisma.$transaction(async (tx) => {
     if (shouldRestore) {
       for (const item of order.items) {
+        if (item.variantId) {
+          await tx.productVariant.updateMany({
+            where: { id: item.variantId, productId: item.productId },
+            data: { stock: { increment: item.quantity } },
+          })
+          await syncProductStockFromVariants(tx, item.productId, storeId)
+          continue
+        }
         await tx.product.updateMany({
           where: { id: item.productId, storeId },
           data: { stock: { increment: item.quantity } },

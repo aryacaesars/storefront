@@ -114,6 +114,25 @@ export const pagesId = {
     deleteProduct: "Hapus Produk",
     deleteConfirmTitle: "Hapus produk?",
     deleteConfirmBody: "Produk ini akan dihapus secara permanen.",
+    variantsTitle: "Varian Produk",
+    variantsHint: "Tambahkan varian untuk ukuran, warna, atau SKU berbeda. Harga dan stok per varian.",
+    addVariant: "Tambah Varian",
+    variantRow: "Varian {n}",
+    removeVariant: "Hapus varian",
+    variantLabel: "Label varian",
+    variantLabelPlaceholder: "Merah / L",
+    variantSize: "Ukuran",
+    variantColor: "Warna",
+    variantSku: "SKU",
+    variantPrice: "Harga varian (Rp)",
+    variantStock: "Stok varian",
+    variantImage: "Gambar varian",
+    imageOptionalWithVariants:
+      "Opsional saat pakai varian. Jika dikosongkan, gambar varian pertama dipakai sebagai thumbnail.",
+    variantsEmpty: "Belum ada varian. Produk akan memakai harga & stok utama di atas.",
+    stockFromVariants: "Stok dihitung otomatis dari total stok varian.",
+    priceFromVariants:
+      "Harga mengikuti varian — toko menampilkan rentang harga varian termurah sampai termahal.",
     deletedToast: '"{name}" berhasil dihapus.',
   },
   categories: {
@@ -270,6 +289,13 @@ export const pagesId = {
     creating: "Membuat toko...",
     submit: "Buat Toko",
   },
+  builder: {
+    purchaseToPublishTitle: "Beli Template untuk Publish",
+    purchaseToPublishBody:
+      "Kamu bisa edit template gratis, tapi publish ke storefront butuh lisensi template dulu.",
+    purchaseTemplate: "Beli Template",
+    later: "Nanti",
+  },
 } as const
 
 export const pagesEn = {
@@ -388,6 +414,25 @@ export const pagesEn = {
     deleteProduct: "Delete Product",
     deleteConfirmTitle: "Delete product?",
     deleteConfirmBody: "This product will be permanently deleted.",
+    variantsTitle: "Product Variants",
+    variantsHint: "Add variants for different sizes, colors, or SKUs. Each variant has its own price and stock.",
+    addVariant: "Add Variant",
+    variantRow: "Variant {n}",
+    removeVariant: "Remove variant",
+    variantLabel: "Variant label",
+    variantLabelPlaceholder: "Red / L",
+    variantSize: "Size",
+    variantColor: "Color",
+    variantSku: "SKU",
+    variantPrice: "Variant price (Rp)",
+    variantStock: "Variant stock",
+    variantImage: "Variant image",
+    imageOptionalWithVariants:
+      "Optional when using variants. If left empty, the first variant's image is used as the thumbnail.",
+    variantsEmpty: "No variants yet. The product will use the base price & stock above.",
+    stockFromVariants: "Stock is calculated automatically from variant totals.",
+    priceFromVariants:
+      "Price follows the variants — the store shows the range from the cheapest to the most expensive variant.",
     deletedToast: '"{name}" deleted successfully.',
   },
   categories: {
@@ -543,5 +588,12 @@ export const pagesEn = {
     preview: "Preview:",
     creating: "Creating store...",
     submit: "Create Store",
+  },
+  builder: {
+    purchaseToPublishTitle: "Purchase Template to Publish",
+    purchaseToPublishBody:
+      "You can edit this template for free, but publishing to the storefront requires purchasing a license first.",
+    purchaseTemplate: "Purchase Template",
+    later: "Later",
   },
 } as const

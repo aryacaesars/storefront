@@ -1,6 +1,7 @@
 "use client"
 
-import { useActionState, useState } from "react"
+import { useActionState, useCallback, useState } from "react"
+import Link from "next/link"
 import { ImagePlus, X } from "lucide-react"
 import type { Category } from "@/server/services/product.service"
 import { useMessages } from "@/features/i18n/LocaleProvider"
@@ -8,10 +9,14 @@ import { useDashboardToast } from "@/features/builder/components/DashboardToast"
 import { useDashboardActionNotice } from "@/features/builder/hooks/useDashboardActionNotice"
 import { DashboardSelect } from "@/features/builder/components/DashboardSelect"
 import {
+  DashboardPanel,
+  dashboardBackLink,
   dashboardBtnPrimary,
   dashboardInput,
   dashboardLabel,
 } from "@/features/builder/components/dashboard-ui"
+import { ProductVariantFields } from "@/features/builder/components/ProductVariantFields"
+import type { ProductVariantInput } from "@/server/services/product-variant"
 import { cn } from "@/lib/utils"
 
 export type ProductFormState = { error: string } | { success: true } | undefined
@@ -19,6 +24,15 @@ export type ProductFormState = { error: string } | { success: true } | undefined
 function formatThousands(digits: string): string {
   if (!digits) return ""
   return Number(digits).toLocaleString("id-ID")
+}
+
+function priceRangeOf(variants: ProductVariantInput[]): {
+  min: number
+  max: number
+} {
+  if (variants.length === 0) return { min: 0, max: 0 }
+  const prices = variants.map((v) => Number(v.price) || 0)
+  return { min: Math.min(...prices), max: Math.max(...prices) }
 }
 
 export type ProductFormToast = {
@@ -39,6 +53,7 @@ interface ProductFormProps {
     published?: boolean
     categoryId?: string
     imageUrl?: string
+    variants?: ProductVariantInput[]
   }
   submitLabel?: string
   initialToast?: ProductFormToast
@@ -74,6 +89,7 @@ function PublishToggle({
 }
 
 export function ProductForm({
+  storeId,
   categories,
   action,
   defaultValues = {},
@@ -93,6 +109,22 @@ export function ProductForm({
   const [imageUrl, setImageUrl] = useState(defaultValues.imageUrl ?? "")
   const [published, setPublished] = useState(defaultValues.published ?? false)
   const [uploading, setUploading] = useState(false)
+  const initialVariants = defaultValues.variants ?? []
+  const [hasVariants, setHasVariants] = useState(initialVariants.length > 0)
+  const [variantStockTotal, setVariantStockTotal] = useState(() =>
+    initialVariants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0),
+  )
+  const [variantPriceRange, setVariantPriceRange] = useState(() =>
+    priceRangeOf(initialVariants),
+  )
+
+  const handleVariantsChange = useCallback((variants: ProductVariantInput[]) => {
+    setHasVariants(variants.length > 0)
+    setVariantStockTotal(
+      variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0),
+    )
+    setVariantPriceRange(priceRangeOf(variants))
+  }, [])
 
   useDashboardActionNotice(state, {
     successMessage: t.products.savedToast,
@@ -122,10 +154,27 @@ export function ProductForm({
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-8">
+    <form action={formAction} className="flex flex-col gap-4">
       <input type="hidden" name="published" value={published ? "on" : ""} />
       <input type="hidden" name="imageUrl" value={imageUrl} />
 
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Link href={`/stores/${storeId}/products`} className={dashboardBackLink}>
+          {t.products.backToList}
+        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          {extraActions}
+          <button
+            type="submit"
+            disabled={pending || uploading}
+            className={dashboardBtnPrimary}
+          >
+            {pending ? t.common.saving : (submitLabel ?? t.common.save)}
+          </button>
+        </div>
+      </div>
+
+      <DashboardPanel className="w-full p-6 lg:p-8">
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="flex flex-col gap-5">
           <div>
@@ -156,38 +205,81 @@ export function ProductForm({
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className={dashboardLabel}>
-                {t.products.price} <span className="text-red-500">*</span>
+                {t.products.price}{" "}
+                {!hasVariants && <span className="text-red-500">*</span>}
               </label>
-              <input type="hidden" name="price" value={priceDigits} />
-              <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
-                  Rp
-                </span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  required
-                  value={formatThousands(priceDigits)}
-                  onChange={(e) =>
-                    setPriceDigits(e.target.value.replace(/\D/g, ""))
-                  }
-                  placeholder="0"
-                  className={cn(dashboardInput, "pl-9")}
-                />
-              </div>
+              {hasVariants ? (
+                <>
+                  <input type="hidden" name="price" value={variantPriceRange.min} />
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                      Rp
+                    </span>
+                    <input
+                      type="text"
+                      value={
+                        variantPriceRange.max > variantPriceRange.min
+                          ? `${formatThousands(String(variantPriceRange.min))} – ${formatThousands(String(variantPriceRange.max))}`
+                          : formatThousands(String(variantPriceRange.min))
+                      }
+                      disabled
+                      className={cn(dashboardInput, "pl-9 bg-gray-100 text-gray-500")}
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {t.products.priceFromVariants}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <input type="hidden" name="price" value={priceDigits} />
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                      Rp
+                    </span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      required
+                      value={formatThousands(priceDigits)}
+                      onChange={(e) =>
+                        setPriceDigits(e.target.value.replace(/\D/g, ""))
+                      }
+                      placeholder="0"
+                      className={cn(dashboardInput, "pl-9")}
+                    />
+                  </div>
+                </>
+              )}
             </div>
             <div>
               <label className={dashboardLabel}>
-                {t.products.stock} <span className="text-red-500">*</span>
+                {t.products.stock}{" "}
+                {!hasVariants && <span className="text-red-500">*</span>}
               </label>
-              <input
-                name="stock"
-                type="number"
-                required
-                min={0}
-                defaultValue={defaultValues.stock ?? ""}
-                className={dashboardInput}
-              />
+              {hasVariants ? (
+                <>
+                  <input type="hidden" name="stock" value={variantStockTotal} />
+                  <input
+                    type="number"
+                    value={variantStockTotal}
+                    disabled
+                    className={cn(dashboardInput, "bg-gray-100 text-gray-500")}
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    {t.products.stockFromVariants}
+                  </p>
+                </>
+              ) : (
+                <input
+                  name="stock"
+                  type="number"
+                  required
+                  min={0}
+                  defaultValue={defaultValues.stock ?? ""}
+                  className={dashboardInput}
+                />
+              )}
             </div>
           </div>
 
@@ -200,6 +292,11 @@ export function ProductForm({
               { value: "", label: t.products.noCategory },
               ...categories.map((cat) => ({ value: cat.id, label: cat.name })),
             ]}
+          />
+
+          <ProductVariantFields
+            initialVariants={defaultValues.variants}
+            onVariantsChange={handleVariantsChange}
           />
         </div>
 
@@ -226,6 +323,11 @@ export function ProductForm({
 
           <div>
             <label className={dashboardLabel}>{t.products.image}</label>
+            {hasVariants && (
+              <p className="mb-2 text-xs leading-relaxed text-gray-500">
+                {t.products.imageOptionalWithVariants}
+              </p>
+            )}
             {imageUrl ? (
               <div className="group relative aspect-square w-full overflow-hidden rounded-lg border border-gray-200">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -239,14 +341,14 @@ export function ProductForm({
                 </button>
               </div>
             ) : (
-              <label className="flex aspect-square w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:border-brand/40 hover:bg-brand/5">
+              <label className="relative flex aspect-square w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:border-brand/40 hover:bg-brand/5">
                 <ImagePlus className="mb-2 h-8 w-8 text-gray-400" />
                 <span className="text-sm font-medium text-gray-500">{t.products.uploadPhoto}</span>
                 <span className="mt-1 text-xs text-gray-400">{t.products.imageFormats}</span>
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
-                  className="sr-only"
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                   onChange={handleImageChange}
                   disabled={uploading}
                 />
@@ -256,13 +358,7 @@ export function ProductForm({
           </div>
         </div>
       </div>
-
-      <div className="flex flex-wrap items-center gap-3 border-t border-gray-100 pt-6">
-        <button type="submit" disabled={pending || uploading} className={dashboardBtnPrimary}>
-          {pending ? t.common.saving : (submitLabel ?? t.common.save)}
-        </button>
-        {extraActions}
-      </div>
+      </DashboardPanel>
     </form>
   )
 }

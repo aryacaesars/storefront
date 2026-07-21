@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation"
-import Link from "next/link"
 import { requireSession } from "@/features/auth/dal"
 import { getStoreById } from "@/server/services/tenant.service"
 import { getProductById, getCategories } from "@/server/services/product.service"
@@ -7,10 +6,6 @@ import { getPageMessages } from "@/features/i18n/get-page-messages"
 import { ProductForm } from "@/features/builder/components/ProductForm"
 import { ProductDeleteButton } from "@/features/builder/components/ProductDeleteButton"
 import { DashboardShell } from "@/features/builder/components/DashboardShell"
-import {
-  DashboardPanel,
-  dashboardBackLink,
-} from "@/features/builder/components/dashboard-ui"
 import { updateProductAction, deleteProductAction } from "./actions"
 
 export async function generateMetadata({
@@ -68,42 +63,39 @@ export default async function EditProductPage({
       pageTitle={t.products.editTitle.replace("{name}", product.name)}
       pageSubtitle={t.products.editSubtitle}
     >
-      <div className="flex flex-col gap-4">
-        <Link href={`/stores/${storeId}/products`} className={dashboardBackLink}>
-          {t.products.backToList}
-        </Link>
-
-        <DashboardPanel className="w-full max-w-3xl p-6 lg:p-8">
-          <ProductForm
+      <ProductForm
+        storeId={storeId}
+        categories={categories}
+        action={updateAction}
+        initialToast={initialToast}
+        defaultValues={{
+          name: product.name,
+          description: product.description ?? "",
+          price: product.price,
+          stock: product.stock,
+          published: product.published,
+          categoryId: product.categoryId ?? "",
+          imageUrl: firstImage,
+          variants: product.variants.map((variant) => ({
+            id: variant.id,
+            label: variant.label,
+            sku: variant.sku,
+            size: variant.size,
+            color: variant.color,
+            price: variant.price,
+            stock: variant.stock,
+            imageUrl: variant.imageUrl,
+          })),
+        }}
+        submitLabel={t.products.saveChanges}
+        extraActions={
+          <ProductDeleteButton
             storeId={storeId}
-            categories={categories}
-            action={updateAction}
-            initialToast={initialToast}
-            defaultValues={{
-              name: product.name,
-              description: product.description ?? "",
-              price: product.price,
-              stock: product.stock,
-              published: product.published,
-              categoryId: product.categoryId ?? "",
-              imageUrl: firstImage,
-            }}
-            submitLabel={t.products.saveChanges}
+            productName={product.name}
+            deleteAction={deleteAction}
           />
-        </DashboardPanel>
-
-        <DashboardPanel className="border-red-100 p-6">
-          <p className="text-sm font-semibold text-red-700">{t.products.dangerZone}</p>
-          <p className="mt-1 text-sm text-gray-500">{t.products.dangerBody}</p>
-          <div className="mt-4">
-            <ProductDeleteButton
-              storeId={storeId}
-              productName={product.name}
-              deleteAction={deleteAction}
-            />
-          </div>
-        </DashboardPanel>
-      </div>
+        }
+      />
     </DashboardShell>
   )
 }

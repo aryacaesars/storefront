@@ -1,15 +1,19 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { EditorTopbar } from "./EditorTopbar"
 import { ThemeLivePreview } from "./ThemeLivePreview"
 import { scrollPreviewIntoView } from "./PreviewCanvas"
-import { BuilderToolRail, BUILDER_TOOLS, type BuilderTool } from "./BuilderToolRail"
+import { BuilderToolRail, BUILDER_TOOLS, builderToolForSelectedElement, type BuilderTool } from "./BuilderToolRail"
 import { BuilderToolPanels } from "./BuilderToolPanels"
 import { BuilderMobileNav } from "./BuilderMobileNav"
 import { BuilderMobileSheet } from "./BuilderMobileSheet"
 import { CanvasElementToolbar } from "./CanvasElementToolbar"
+import { DashboardAlertDialog } from "@/features/builder/components/DashboardAlertDialog"
+import { useMessages } from "@/features/i18n/LocaleProvider"
+import { useConfigHistory } from "@/features/builder/hooks/useConfigHistory"
 import { publishTheme, saveThemeDraft } from "@/features/builder/actions/theme-actions"
 import {
   heroConfigSchema,
@@ -84,13 +88,23 @@ export function CustomizeWorkspace({
   onSaveDraft,
   onPublish,
 }: CustomizeWorkspaceProps) {
+  const router = useRouter()
+  const t = useMessages().pages.builder
   const [mode, setMode] = useState<"edit" | "preview">(initialMode)
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop")
-  const [config, setConfig] = useState<ThemeConfig>(initialConfig)
+  const {
+    config,
+    setConfig,
+    page: selectedPage,
+    setPage: setSelectedPage,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useConfigHistory({ config: initialConfig, page: "home" })
   const [isSaving, setIsSaving] = useState(false)
   const [status, setStatus] = useState<string | null>(null)
   const [paymentRequired, setPaymentRequired] = useState(false)
-  const [selectedPage, setSelectedPage] = useState<PageType>("home")
   const [activeTool, setActiveTool] = useState<BuilderTool>("sections")
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false)
   const [isNarrowViewport, setIsNarrowViewport] = useState(false)
@@ -154,7 +168,7 @@ export function CustomizeWorkspace({
       setStatus(null)
       if (addedImage) void persistDraft(next)
     },
-    [config, persistDraft],
+    [config, persistDraft, setConfig],
   )
 
   const availablePages = useMemo<PageType[]>(
@@ -188,7 +202,20 @@ export function CustomizeWorkspace({
     )
   }, [])
 
-  const handleSelectElement = useCallback((element: SelectedElement | null) => {
+  const scheduleMobilePanelOpen = useCallback(() => {
+    // Wait until the current pointer gesture finishes — otherwise the new
+    // backdrop can receive the same tap and immediately dismiss the sheet.
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        setMobilePanelOpen(true)
+      })
+    })
+  }, [])
+
+  const handleSelectElement = useCallback((
+    element: SelectedElement | null,
+    options?: { openTool?: boolean },
+  ) => {
     setSelectedElement(element)
     setCroppingKey((prev) => {
       if (!prev) return prev
@@ -200,7 +227,15 @@ export function CustomizeWorkspace({
         ? prev
         : null
     })
-  }, [])
+
+    if (element && options?.openTool && mode === "edit" && showSectionsTab && !isNarrowViewport) {
+      setActiveTool(builderToolForSelectedElement(element.kind))
+    }
+  }, [mode, showSectionsTab, isNarrowViewport])
+
+  const handleSelectElementFromCanvas = useCallback((
+    element: SelectedElement | null,
+  ) => handleSelectElement(element, { openTool: true }), [handleSelectElement])
 
   const patchSectionSetting = useCallback(
     (sectionId: string, key: string, value: string | undefined) => {
@@ -223,7 +258,7 @@ export function CustomizeWorkspace({
       })
       setStatus(null)
     },
-    [selectedPage],
+    [selectedPage, setConfig],
   )
 
   const patchSectionSettings = useCallback(
@@ -244,7 +279,7 @@ export function CustomizeWorkspace({
       })
       setStatus(null)
     },
-    [selectedPage],
+    [selectedPage, setConfig],
   )
 
   const handleBlockChange = useCallback(
@@ -291,7 +326,7 @@ export function CustomizeWorkspace({
         setStatus(null)
       }
     },
-    [persistDraft],
+    [persistDraft, setConfig],
   )
 
   const patchBlockSetting = useCallback(
@@ -345,7 +380,7 @@ export function CustomizeWorkspace({
       })
       setStatus(null)
     },
-    [selectedPage],
+    [selectedPage, setConfig],
   )
 
   const sectionEditor = useMemo(() => {
@@ -363,7 +398,7 @@ export function CustomizeWorkspace({
       pageType,
       onSelectSection: handleSelectSection,
       onSelectBlock: handleSelectBlock,
-      onSelectElement: handleSelectElement,
+      onSelectElement: handleSelectElementFromCanvas,
       onBlockChange: (sectionId: string, blockId: string, patch: Record<string, unknown>) =>
         handleBlockChange(pageType, sectionId, blockId, patch),
       onHeroChange: updateHero,
@@ -380,7 +415,7 @@ export function CustomizeWorkspace({
     croppingKey,
     handleSelectSection,
     handleSelectBlock,
-    handleSelectElement,
+    handleSelectElementFromCanvas,
     handleBlockChange,
     updateHero,
     patchSectionSettings,
@@ -390,7 +425,7 @@ export function CustomizeWorkspace({
     if (!availablePages.includes(selectedPage)) {
       setSelectedPage("home")
     }
-  }, [availablePages, selectedPage])
+  }, [availablePages, selectedPage, setSelectedPage])
 
   const clearElementSelection = useCallback(() => {
     setSelectedElement(null)
@@ -400,7 +435,51 @@ export function CustomizeWorkspace({
   const handlePageChange = useCallback((page: PageType) => {
     setSelectedPage(page)
     clearElementSelection()
-  }, [clearElementSelection])
+  }, [clearElementSelection, setSelectedPage])
+
+  const handleUndo = useCallback(() => {
+    if (!undo()) return
+    setSelectedSectionId(null)
+    setSelectedBlockId(null)
+    clearElementSelection()
+    setStatus(null)
+  }, [undo, clearElementSelection])
+
+  const handleRedo = useCallback(() => {
+    if (!redo()) return
+    setSelectedSectionId(null)
+    setSelectedBlockId(null)
+    clearElementSelection()
+    setStatus(null)
+  }, [redo, clearElementSelection])
+
+  // Ctrl/Cmd+Z undo, Ctrl/Cmd+Shift+Z or Ctrl+Y redo — but text fields keep
+  // their native undo so inline editing isn't hijacked.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey) || event.altKey) return
+
+      const target = event.target as HTMLElement | null
+      if (
+        target?.closest("input, textarea, select, [contenteditable]:not([contenteditable='false'])")
+      ) {
+        return
+      }
+
+      const key = event.key.toLowerCase()
+      if (key === "z") {
+        event.preventDefault()
+        if (event.shiftKey) handleRedo()
+        else handleUndo()
+      } else if (key === "y") {
+        event.preventDefault()
+        handleRedo()
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [handleUndo, handleRedo])
 
   const handleModeChange = useCallback((next: "edit" | "preview") => {
     setMode(next)
@@ -527,8 +606,8 @@ export function CustomizeWorkspace({
 
   const openMobileTool = useCallback((tool: BuilderTool) => {
     setActiveTool(tool)
-    setMobilePanelOpen(true)
-  }, [])
+    scheduleMobilePanelOpen()
+  }, [scheduleMobilePanelOpen])
 
   const activeToolLabel =
     BUILDER_TOOLS.find((t) => t.id === activeTool)?.label ?? "Tools"
@@ -564,33 +643,18 @@ export function CustomizeWorkspace({
       className="flex h-dvh flex-col overflow-hidden overscroll-none"
       data-builder-workspace
     >
-      {paymentRequired && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-xl">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Purchase Template to Publish</h2>
-            <p className="text-sm text-gray-500 mb-5">
-              You can edit this template for free, but publishing to the storefront requires purchasing a license first.
-            </p>
-            <div className="flex gap-3">
-              {storeId && (
-                <a
-                  href={`/stores/${storeId}/templates`}
-                  className="flex-1 py-2 px-4 bg-black text-white text-sm font-medium rounded-lg text-center hover:bg-gray-800 transition-colors"
-                >
-                  Purchase Template
-                </a>
-              )}
-              <button
-                type="button"
-                onClick={() => setPaymentRequired(false)}
-                className="flex-1 py-2 px-4 border border-gray-200 text-sm font-medium rounded-lg text-center hover:bg-gray-50 transition-colors"
-              >
-                Later
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DashboardAlertDialog
+        open={paymentRequired}
+        title={t.purchaseToPublishTitle}
+        description={t.purchaseToPublishBody}
+        confirmLabel={t.purchaseTemplate}
+        cancelLabel={t.later}
+        onConfirm={() => {
+          setPaymentRequired(false)
+          router.push("/templates")
+        }}
+        onCancel={() => setPaymentRequired(false)}
+      />
       <EditorTopbar
         storeId={storeId}
         templateName={templateName}
@@ -601,6 +665,10 @@ export function CustomizeWorkspace({
         onSaveDraft={handleSaveDraft}
         onPublish={handlePublish}
         onResetLayout={handleResetLayout}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        canUndo={canUndo}
+        canRedo={canRedo}
         isSaving={isSaving}
       />
 

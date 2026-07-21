@@ -10,6 +10,7 @@ import {
   FileText,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import type { SelectedElementKind } from "@/themes/engine/section-editor"
 
 export type BuilderTool =
   | "sections"
@@ -88,4 +89,18 @@ export function BuilderToolRail({
       })}
     </nav>
   )
+}
+
+/** Sidebar / mobile sheet tool that matches a selected canvas element. */
+export function builderToolForSelectedElement(kind: SelectedElementKind): BuilderTool {
+  switch (kind) {
+    case "text":
+      return "text"
+    case "image":
+      return "image"
+    case "button":
+      return "layers"
+    case "frame":
+      return "color"
+  }
 }

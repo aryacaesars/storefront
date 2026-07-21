@@ -41,7 +41,7 @@ export async function createStoreAction(
     return { error: `Slug "${slug}" is already taken. Choose another slug.` }
   }
 
-  const store = await createStore({ name, slug, ownerId: session.userId })
+  await createStore({ name, slug, ownerId: session.userId })
 
-  redirect(`/stores/${store.id}/dashboard`)
+  redirect("/templates")
 }

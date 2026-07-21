@@ -74,7 +74,7 @@ interface DashboardPanelProps {
 
 export function DashboardPanel({ children, className, title, action }: DashboardPanelProps) {
   return (
-    <div className={cn(dashboardCard, "flex flex-col overflow-hidden", className)}>
+    <div className={cn(dashboardCard, "flex flex-col", className)}>
       {(title || action) && (
         <div className="flex items-center justify-between gap-3 border-b border-dash-border/80 px-4 py-3.5 sm:px-5">
           {title && <h2 className="text-sm font-semibold text-dash-ink">{title}</h2>}

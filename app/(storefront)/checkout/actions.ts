@@ -3,9 +3,10 @@
 import { cookies, headers } from "next/headers"
 import { prisma } from "@/lib/db/prisma"
 import { stripe } from "@/lib/stripe"
-import type { CartItem } from "@/lib/storefront/cart"
+import { normalizeCartItem, type CartItem } from "@/lib/storefront/cart"
 import { getCustomerSession } from "@/features/storefront/customer-dal"
 import { getCustomerDefaultAddress } from "@/server/services/customer.service"
+import { syncProductStockFromVariants } from "@/server/services/product.service"
 
 export type CheckoutState =
   | { error: string }
@@ -20,6 +21,12 @@ class InsufficientStockError extends Error {
   }
 }
 
+type ResolvedLine = {
+  item: CartItem
+  unitPrice: number
+  variantLabel?: string
+}
+
 export async function placeOrderAction(
   storeId: string,
   _prev: CheckoutState,
@@ -27,7 +34,9 @@ export async function placeOrderAction(
 ): Promise<CheckoutState> {
   const cookieStore = await cookies()
   const raw = cookieStore.get("sf_cart")?.value
-  const cart: CartItem[] = raw ? (JSON.parse(raw) as CartItem[]) : []
+  const cart: CartItem[] = raw
+    ? (JSON.parse(raw) as CartItem[]).map(normalizeCartItem)
+    : []
 
   if (cart.length === 0) return { error: "Cart is empty." }
 
@@ -53,44 +62,105 @@ export async function placeOrderAction(
     return { error: "Add a shipping address on the Account page." }
   }
 
-  const productIds = cart.map((i) => i.productId)
-  const products = await prisma.product.findMany({
-    where: { id: { in: productIds }, storeId, published: true },
-    select: { id: true, price: true, stock: true },
-  })
+  const productIds = [...new Set(cart.map((i) => i.productId))]
+  const variantIds = [
+    ...new Set(cart.map((i) => i.variantId).filter(Boolean) as string[]),
+  ]
+
+  const [products, variants] = await Promise.all([
+    prisma.product.findMany({
+      where: { id: { in: productIds }, storeId, published: true },
+      select: { id: true, price: true, stock: true },
+    }),
+    variantIds.length > 0
+      ? prisma.productVariant.findMany({
+          where: {
+            id: { in: variantIds },
+            product: { storeId, published: true },
+          },
+          select: {
+            id: true,
+            productId: true,
+            price: true,
+            stock: true,
+            label: true,
+          },
+        })
+      : Promise.resolve([]),
+  ])
+
   const productMap = new Map(products.map((p) => [p.id, p]))
+  const variantMap = new Map(variants.map((v) => [v.id, v]))
+
+  const resolvedLines: ResolvedLine[] = []
 
   for (const item of cart) {
     const product = productMap.get(item.productId)
     if (!product) return { error: `Product "${item.name}" is unavailable.` }
-    if (product.stock < item.quantity) return { error: `Insufficient stock for "${item.name}".` }
+
+    if (item.variantId) {
+      const variant = variantMap.get(item.variantId)
+      if (!variant || variant.productId !== item.productId) {
+        return { error: `Variant for "${item.name}" is unavailable.` }
+      }
+      if (variant.stock < item.quantity) {
+        return { error: `Insufficient stock for "${item.name}".` }
+      }
+      resolvedLines.push({
+        item,
+        unitPrice: variant.price,
+        variantLabel: variant.label,
+      })
+      continue
+    }
+
+    if (product.stock < item.quantity) {
+      return { error: `Insufficient stock for "${item.name}".` }
+    }
+    resolvedLines.push({
+      item,
+      unitPrice: product.price,
+    })
   }
 
-  const total = cart.reduce((sum, item) => {
-    const product = productMap.get(item.productId)
-    return sum + (product?.price ?? item.price) * item.quantity
-  }, 0)
+  const total = resolvedLines.reduce(
+    (sum, line) => sum + line.unitPrice * line.item.quantity,
+    0,
+  )
 
   const customerId = customer.id
 
-  // Buat order + kurangi stok ATOMIK dalam satu transaksi. Decrement pakai
-  // guard `stock >= quantity` lewat updateMany — kalau count !== 1 berarti
-  // stok keburu habis (race antar checkout berbarengan) → rollback semua.
   let order: { id: string }
   try {
     order = await prisma.$transaction(async (tx) => {
-      for (const item of cart) {
+      for (const line of resolvedLines) {
+        if (line.item.variantId) {
+          const updated = await tx.productVariant.updateMany({
+            where: {
+              id: line.item.variantId,
+              productId: line.item.productId,
+              stock: { gte: line.item.quantity },
+            },
+            data: { stock: { decrement: line.item.quantity } },
+          })
+          if (updated.count !== 1) {
+            throw new InsufficientStockError(line.item.name)
+          }
+          await syncProductStockFromVariants(tx, line.item.productId, storeId)
+          continue
+        }
+
         const updated = await tx.product.updateMany({
           where: {
-            id: item.productId,
+            id: line.item.productId,
             storeId,
             published: true,
-            stock: { gte: item.quantity },
+            stock: { gte: line.item.quantity },
           },
-          data: { stock: { decrement: item.quantity } },
+          data: { stock: { decrement: line.item.quantity } },
         })
         if (updated.count !== 1) {
-          throw new InsufficientStockError(item.name)
+          throw new InsufficientStockError(line.item.name)
         }
       }
 
@@ -102,10 +172,12 @@ export async function placeOrderAction(
           total,
           stockDeducted: true,
           items: {
-            create: cart.map((item) => ({
-              productId: item.productId,
-              quantity: item.quantity,
-              price: productMap.get(item.productId)?.price ?? item.price,
+            create: resolvedLines.map((line) => ({
+              productId: line.item.productId,
+              variantId: line.item.variantId ?? null,
+              variantLabel: line.variantLabel ?? line.item.variantLabel ?? null,
+              quantity: line.item.quantity,
+              price: line.unitPrice,
             })),
           },
         },
@@ -119,29 +191,23 @@ export async function placeOrderAction(
     throw err
   }
 
-  // URL absolut dari Host (browser hard-navigate ke Stripe lalu balik ke toko;
-  // proxy inject tenant dengan benar karena navigasi dari browser).
   const hdrs = await headers()
   const host = hdrs.get("host") ?? ""
   const protocol = host.includes("localhost") ? "http" : "https"
   const origin = `${protocol}://${host}`
   const orderCode = order.id.slice(-8).toUpperCase()
 
-  // Buat Stripe Checkout Session (hosted). metadata.orderId dipakai webhook
-  // untuk menandai PAID. NOTE: cart cookie tidak dihapus di sini — dibersihkan
-  // di halaman success setelah bayar (kalau batal, cart tetap utuh).
   let checkoutUrl: string
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      line_items: cart.map((item) => ({
+      line_items: resolvedLines.map((line) => ({
         price_data: {
           currency: "idr",
-          product_data: { name: item.name },
-          // IDR di Stripe → unit_amount dalam sen (×100).
-          unit_amount: (productMap.get(item.productId)?.price ?? item.price) * 100,
+          product_data: { name: line.item.name },
+          unit_amount: line.unitPrice * 100,
         },
-        quantity: item.quantity,
+        quantity: line.item.quantity,
       })),
       customer_email: customer.email,
       metadata: {
@@ -159,12 +225,19 @@ export async function placeOrderAction(
     checkoutUrl = session.url
   } catch (err) {
     console.error("[checkout] stripe session create failed:", err)
-    // Gagal buat sesi bayar → rollback: kembalikan stok + hapus order.
     await prisma.$transaction(async (tx) => {
-      for (const item of cart) {
+      for (const line of resolvedLines) {
+        if (line.item.variantId) {
+          await tx.productVariant.updateMany({
+            where: { id: line.item.variantId, productId: line.item.productId },
+            data: { stock: { increment: line.item.quantity } },
+          })
+          await syncProductStockFromVariants(tx, line.item.productId, storeId)
+          continue
+        }
         await tx.product.updateMany({
-          where: { id: item.productId, storeId },
-          data: { stock: { increment: item.quantity } },
+          where: { id: line.item.productId, storeId },
+          data: { stock: { increment: line.item.quantity } },
         })
       }
       await tx.orderItem.deleteMany({ where: { orderId: order.id } })

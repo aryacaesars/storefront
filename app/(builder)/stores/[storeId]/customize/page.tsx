@@ -10,6 +10,7 @@ import { getStorefrontHost } from "@/lib/tenant/storefront-url"
 import { TEMPLATE_META } from "@/themes/engine/registry"
 import { CustomizeWorkspace } from "@/features/builder/components/CustomizeWorkspace"
 import { saveThemeDraftForStore, publishThemeForStore } from "./actions"
+import { LocaleShell } from "@/features/i18n/LocaleShell"
 
 export const metadata = { title: "Customization" }
 
@@ -56,15 +57,17 @@ export default async function StoreCustomizePage({
   const initialMode = mode === "preview" ? "preview" : "edit"
 
   return (
-    <CustomizeWorkspace
-      storeId={storeId}
-      templateId={templateId}
-      templateName={meta.name}
-      initialConfig={initialConfig}
-      storefrontHost={storefrontHost}
-      initialMode={initialMode}
-      onSaveDraft={saveDraft}
-      onPublish={publish}
-    />
+    <LocaleShell>
+      <CustomizeWorkspace
+        storeId={storeId}
+        templateId={templateId}
+        templateName={meta.name}
+        initialConfig={initialConfig}
+        storefrontHost={storefrontHost}
+        initialMode={initialMode}
+        onSaveDraft={saveDraft}
+        onPublish={publish}
+      />
+    </LocaleShell>
   )
 }

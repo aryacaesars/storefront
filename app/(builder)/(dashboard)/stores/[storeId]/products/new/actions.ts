@@ -5,6 +5,7 @@ import { z } from "zod"
 import { requireSession } from "@/features/auth/dal"
 import { getStoreById, slugify } from "@/server/services/tenant.service"
 import { createProduct, productSlugExists } from "@/server/services/product.service"
+import { parseVariantsJson } from "@/server/services/product-variant"
 import { notFound } from "next/navigation"
 import type { ProductFormState } from "@/features/builder/components/ProductForm"
 
@@ -49,6 +50,11 @@ export async function createProductAction(
     return { error: `A product named "${parsed.data.name}" already exists in this store.` }
   }
 
+  const variants = parseVariantsJson(formData.get("variantsJson"))
+
+  // Main image dibiarkan null saat kosong — thumbnail fallback ke gambar varian
+  // dihitung live saat render katalog, bukan disnapshot di sini (agar ganti
+  // gambar varian ikut mengubah thumbnail).
   const product = await createProduct({
     name: parsed.data.name,
     slug,
@@ -59,6 +65,7 @@ export async function createProductAction(
     storeId,
     categoryId: parsed.data.categoryId || null,
     imageUrl: parsed.data.imageUrl || null,
+    variants,
   })
 
   redirect(`/stores/${storeId}/products/${product.id}?toast=created`)

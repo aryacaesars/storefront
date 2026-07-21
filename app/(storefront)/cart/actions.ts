@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
-import type { CartItem } from "@/lib/storefront/cart"
+import { cartLineKey, normalizeCartItem, type CartItem } from "@/lib/storefront/cart"
 
 const CART_COOKIE = "sf_cart"
 
@@ -11,7 +11,7 @@ async function readCartItems(): Promise<CartItem[]> {
   const raw = store.get(CART_COOKIE)?.value
   if (!raw) return []
   try {
-    return JSON.parse(raw) as CartItem[]
+    return (JSON.parse(raw) as CartItem[]).map(normalizeCartItem)
   } catch {
     return []
   }
@@ -27,38 +27,57 @@ async function writeCartItems(items: CartItem[]): Promise<void> {
   })
 }
 
-export async function addToCart(
-  productId: string,
-  slug: string,
-  name: string,
-  price: number,
-  imageUrl?: string,
-): Promise<void> {
+export async function addToCart(input: {
+  productId: string
+  slug: string
+  name: string
+  price: number
+  imageUrl?: string
+  variantId?: string
+  variantLabel?: string
+  quantity?: number
+}): Promise<void> {
+  const qty = Math.max(1, Math.floor(input.quantity ?? 1))
+  const lineKey = cartLineKey(input.productId, input.variantId)
+  const displayName = input.variantLabel
+    ? `${input.name} (${input.variantLabel})`
+    : input.name
+
   const items = await readCartItems()
-  const existing = items.find((i) => i.slug === slug)
+  const existing = items.find((i) => i.lineKey === lineKey)
   if (existing) {
-    existing.quantity += 1
+    existing.quantity += qty
   } else {
-    items.push({ productId, slug, name, price, quantity: 1, imageUrl })
+    items.push({
+      productId: input.productId,
+      lineKey,
+      slug: input.slug,
+      name: displayName,
+      price: input.price,
+      quantity: qty,
+      imageUrl: input.imageUrl,
+      variantId: input.variantId,
+      variantLabel: input.variantLabel,
+    })
   }
   await writeCartItems(items)
   revalidatePath("/cart")
   revalidatePath("/checkout")
 }
 
-export async function removeFromCart(slug: string): Promise<void> {
+export async function removeFromCart(lineKey: string): Promise<void> {
   const items = await readCartItems()
-  await writeCartItems(items.filter((i) => i.slug !== slug))
+  await writeCartItems(items.filter((i) => i.lineKey !== lineKey))
   revalidatePath("/cart")
   revalidatePath("/checkout")
 }
 
-export async function updateQuantity(slug: string, quantity: number): Promise<void> {
+export async function updateQuantity(lineKey: string, quantity: number): Promise<void> {
   const items = await readCartItems()
   if (quantity <= 0) {
-    await writeCartItems(items.filter((i) => i.slug !== slug))
+    await writeCartItems(items.filter((i) => i.lineKey !== lineKey))
   } else {
-    const item = items.find((i) => i.slug === slug)
+    const item = items.find((i) => i.lineKey === lineKey)
     if (item) item.quantity = quantity
     await writeCartItems(items)
   }
