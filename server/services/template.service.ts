@@ -25,6 +25,14 @@ export function normalizeThemeSlug(slug: string): TemplateId | null {
   return parsed.success ? parsed.data : null
 }
 
+/** theme engine id → semua slug DB yang mungkin (termasuk alias seed lama). */
+function themeSlugCandidates(themeId: string): string[] {
+  const aliases = Object.entries(THEME_SLUG_ALIASES)
+    .filter(([, id]) => id === themeId)
+    .map(([dbSlug]) => dbSlug)
+  return [themeId, ...aliases]
+}
+
 export async function getPublishedTemplates(): Promise<Template[]> {
   return prisma.template.findMany({
     where: { published: true },
@@ -112,8 +120,8 @@ export async function isTemplateAccessible(
   storeId: string,
   templateSlug: string,
 ): Promise<boolean> {
-  const template = await prisma.template.findUnique({
-    where: { slug: templateSlug },
+  const template = await prisma.template.findFirst({
+    where: { slug: { in: themeSlugCandidates(templateSlug) } },
     select: { id: true, price: true },
   })
   if (!template) return false

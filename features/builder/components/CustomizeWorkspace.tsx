@@ -75,8 +75,10 @@ interface CustomizeWorkspaceProps {
   storefrontHost: string
   initialMode?: "edit" | "preview"
   onSaveDraft?: (config: ThemeConfig) => Promise<void>
-  onPublish?: (config: ThemeConfig) => Promise<void>
+  onPublish?: (config: ThemeConfig) => Promise<PublishOutcome>
 }
+
+type PublishOutcome = void | { ok: true } | { ok: false; reason: "PAYMENT_REQUIRED" }
 
 export function CustomizeWorkspace({
   storeId,
@@ -555,7 +557,11 @@ export function CustomizeWorkspace({
     setStatus(null)
     setPaymentRequired(false)
     try {
-      await (onPublish ?? publishTheme)(config)
+      const result = await (onPublish ?? publishTheme)(config)
+      if (result && result.ok === false) {
+        setPaymentRequired(true)
+        return
+      }
       setStatus("Changes published to the Live Store.")
     } catch (err) {
       const msg = err instanceof Error ? err.message : ""

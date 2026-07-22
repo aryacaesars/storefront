@@ -28,17 +28,22 @@ export async function saveThemeDraftForStore(
   revalidatePath(`/stores/${storeId}/customize`)
 }
 
+export type PublishResult = { ok: true } | { ok: false; reason: "PAYMENT_REQUIRED" }
+
 export async function publishThemeForStore(
   storeId: string,
   config: ThemeConfig,
-): Promise<void> {
+): Promise<PublishResult> {
   await requireStoreOwner(storeId)
   const parsed = themeConfigSchema.parse(config)
   const canPublish = await isTemplateAccessible(storeId, parsed.templateId)
   if (!canPublish) {
-    throw new Error("PAYMENT_REQUIRED")
+    // Jangan throw: di prod Next menyamarkan error server action jadi 500 tanpa message,
+    // sehingga paywall di client tidak pernah muncul.
+    return { ok: false, reason: "PAYMENT_REQUIRED" }
   }
   await publishThemeToDb(storeId, parsed)
   revalidatePath(`/stores/${storeId}/customize`)
   revalidatePath("/", "layout")
+  return { ok: true }
 }
