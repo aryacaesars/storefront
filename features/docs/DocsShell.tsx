@@ -3,9 +3,11 @@
 import type { ReactNode } from "react"
 import { useState } from "react"
 import Link from "next/link"
-import { BookOpen, Menu, X } from "lucide-react"
+import { ArrowLeft, Menu, X } from "lucide-react"
 import EtalaseMark from "@/features/builder/landing/EtalaseMark"
 import { DocsSidebar } from "@/features/docs/DocsSidebar"
+import { LocaleToggle } from "@/features/i18n/LocaleToggle"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 import { cn } from "@/lib/utils"
 
 type DocsShellProps = {
@@ -15,6 +17,7 @@ type DocsShellProps = {
 
 export function DocsShell({ children, activeSlug }: DocsShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const t = useMessages()
 
   return (
     <div className="flex h-dvh overflow-hidden bg-dash-bg text-dash-ink">
@@ -22,7 +25,7 @@ export function DocsShell({ children, activeSlug }: DocsShellProps) {
         <button
           type="button"
           className="fixed inset-0 z-40 bg-dash-ink/40 backdrop-blur-[2px] lg:hidden"
-          aria-label="Tutup menu"
+          aria-label={t.dashboard.closeMenu}
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -36,21 +39,14 @@ export function DocsShell({ children, activeSlug }: DocsShellProps) {
           "lg:static lg:h-full lg:translate-x-0 lg:rounded-none lg:border-r lg:border-dash-border/80 lg:shadow-none",
         )}
       >
-        <div className="flex items-center justify-between px-5 pb-2 pt-6">
-          <Link href="/docs" className="transition-opacity hover:opacity-80">
-            <span className="inline-flex items-center gap-2">
-              <EtalaseMark />
-              <span className="hidden h-4 w-px bg-dash-border sm:block" />
-              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-dash-muted">
-                <BookOpen className="h-3.5 w-3.5" />
-                Docs
-              </span>
-            </span>
+        <div className="flex items-center justify-between py-2 pl-16 pr-5 pt-6">
+          <Link href="/" className="cursor-pointer transition-opacity hover:opacity-80">
+            <EtalaseMark />
           </Link>
           <button
             type="button"
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-dash-muted hover:bg-dash-bg hover:text-dash-ink lg:hidden"
-            aria-label="Tutup menu"
+            aria-label={t.dashboard.closeMenu}
             onClick={() => setMobileOpen(false)}
           >
             <X className="h-4 w-4" />
@@ -64,34 +60,43 @@ export function DocsShell({ children, activeSlug }: DocsShellProps) {
         />
       </aside>
 
+      <Link
+        href="/"
+        aria-label={t.docs.back}
+        className="fixed top-4 left-6 z-50 p-2.5 bg-white shadow-md border border-gray-100 hover:scale-105 transition-all text-gray-700 rounded-full"
+      >
+        <ArrowLeft className="h-4 w-4" />
+      </Link>
+
       {/* Main column */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-dash-border/80 bg-dash-surface px-4 sm:px-6">
           <button
             type="button"
             className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-dash-border bg-white text-dash-ink lg:hidden"
-            aria-label="Buka menu"
+            aria-label={t.dashboard.openMenu}
             onClick={() => setMobileOpen(true)}
           >
             <Menu className="h-4 w-4" />
           </button>
 
           <p className="hidden text-sm text-dash-muted lg:block">
-            Panduan merchant Etalase
+            {t.docs.headerSubtitle}
           </p>
 
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <LocaleToggle />
             <Link
               href="/support"
               className="hidden text-sm font-medium text-dash-muted transition-colors hover:text-dash-ink sm:inline"
             >
-              Bantuan
+              {t.dashboard.support}
             </Link>
             <Link
               href="/dashboard"
               className="inline-flex items-center rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-dark"
             >
-              Dashboard
+              {t.nav.dashboard}
             </Link>
           </div>
         </header>

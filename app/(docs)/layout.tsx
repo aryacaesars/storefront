@@ -1,5 +1,6 @@
 import type { ReactNode } from "react"
 import type { Metadata } from "next"
+import { LocaleShell } from "@/features/i18n/LocaleShell"
 
 export const metadata: Metadata = {
   title: {
@@ -11,5 +12,5 @@ export const metadata: Metadata = {
 }
 
 export default function DocsRootLayout({ children }: { children: ReactNode }) {
-  return children
+  return <LocaleShell>{children}</LocaleShell>
 }

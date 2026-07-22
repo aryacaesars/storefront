@@ -1,6 +1,8 @@
 import Link from "next/link"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
+import type { Locale } from "@/features/i18n/config"
+import type { Messages } from "@/features/i18n/messages"
 import {
   getAdjacentArticles,
   getCategoryById,
@@ -10,11 +12,13 @@ import {
 
 type DocsArticleProps = {
   article: DocsArticle
+  locale: Locale
+  t: Messages["docs"]
 }
 
-export function DocsArticleView({ article }: DocsArticleProps) {
-  const category = getCategoryById(article.categoryId)
-  const { prev, next } = getAdjacentArticles(article.slug)
+export function DocsArticleView({ article, locale, t }: DocsArticleProps) {
+  const category = getCategoryById(locale, article.categoryId)
+  const { prev, next } = getAdjacentArticles(locale, article.slug)
 
   return (
     <article className="min-w-0">
@@ -41,7 +45,7 @@ export function DocsArticleView({ article }: DocsArticleProps) {
               </h2>
               <div className="mt-4 space-y-4">
                 {section.blocks.map((block, i) => (
-                  <Block key={`${section.id}-${i}`} block={block} />
+                  <Block key={`${section.id}-${i}`} block={block} tipsLabel={t.tips} />
                 ))}
               </div>
             </section>
@@ -55,7 +59,7 @@ export function DocsArticleView({ article }: DocsArticleProps) {
               >
                 <span className="inline-flex items-center gap-1 text-xs font-medium text-dash-muted">
                   <ArrowLeft className="h-3.5 w-3.5" />
-                  Previous
+                  {t.previous}
                 </span>
                 <span className="mt-1 text-sm font-semibold text-ink group-hover:text-brand">
                   {prev.title}
@@ -70,7 +74,7 @@ export function DocsArticleView({ article }: DocsArticleProps) {
                 className="group flex flex-col items-end rounded-2xl border border-dash-border bg-white p-4 text-right transition-colors hover:border-brand/30 hover:bg-brand/[0.03] sm:col-start-2"
               >
                 <span className="inline-flex items-center gap-1 text-xs font-medium text-dash-muted">
-                  Next
+                  {t.next}
                   <ArrowRight className="h-3.5 w-3.5" />
                 </span>
                 <span className="mt-1 text-sm font-semibold text-ink group-hover:text-brand">
@@ -83,7 +87,7 @@ export function DocsArticleView({ article }: DocsArticleProps) {
 
         <aside className="sticky top-28 mt-10 hidden h-fit lg:mt-0 lg:block">
           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted/80">
-            On this page
+            {t.onThisPage}
           </p>
           <ul className="mt-3 space-y-2 border-l border-dash-border pl-3">
             {article.sections.map((section) => (
@@ -103,7 +107,7 @@ export function DocsArticleView({ article }: DocsArticleProps) {
   )
 }
 
-function Block({ block }: { block: DocsBlock }) {
+function Block({ block, tipsLabel }: { block: DocsBlock; tipsLabel: string }) {
   if (block.type === "paragraph") {
     return (
       <p className="text-[15px] leading-relaxed text-dash-ink/85">{block.text}</p>
@@ -128,7 +132,7 @@ function Block({ block }: { block: DocsBlock }) {
       )}
     >
       <p className="text-xs font-semibold uppercase tracking-[0.06em] text-brand">
-        Tips
+        {tipsLabel}
       </p>
       <p className="mt-1.5">{block.text}</p>
     </div>

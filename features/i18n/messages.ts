@@ -163,6 +163,22 @@ const id = {
     adminOrders: "Transaksi",
     adminStores: "Toko",
   },
+  docs: {
+    back: "Kembali",
+    headerSubtitle: "Panduan merchant Etalase",
+    searchPlaceholder: "Cari artikel…",
+    noResults: "Tidak ada hasil.",
+    onThisPage: "Di halaman ini",
+    previous: "Sebelumnya",
+    next: "Selanjutnya",
+    tips: "Tips",
+    eyebrow: "Dokumentasi",
+    hubTitle: "Panduan merchant Etalase",
+    hubDescription:
+      "Dari membuat toko sampai live di subdomain kamu — semua langkah penting ada di sini. Pilih kategori di bawah atau cari lewat sidebar.",
+    startHere: "Mulai dari sini",
+    articlesWord: "artikel",
+  },
   pages: pagesId,
 } as const
 
@@ -327,6 +343,22 @@ const en = {
     adminTemplates: "Template",
     adminOrders: "Transactions",
     adminStores: "Store",
+  },
+  docs: {
+    back: "Back",
+    headerSubtitle: "Etalase merchant guide",
+    searchPlaceholder: "Search articles…",
+    noResults: "No results.",
+    onThisPage: "On this page",
+    previous: "Previous",
+    next: "Next",
+    tips: "Tips",
+    eyebrow: "Documentation",
+    hubTitle: "Etalase merchant guide",
+    hubDescription:
+      "From creating a store to going live on your subdomain — all the essential steps are here. Pick a category below or search from the sidebar.",
+    startHere: "Start here",
+    articlesWord: "articles",
   },
   pages: pagesEn,
 } as const

@@ -1,37 +1,45 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { DocsShell } from "@/features/docs/DocsShell"
+import { getRequestLocale } from "@/features/i18n/LocaleShell"
+import { getFullMessages } from "@/features/i18n/get-page-messages"
 import {
-  DOCS_ARTICLES,
-  DOCS_CATEGORIES,
+  getDocsArticles,
+  getDocsCategories,
   getArticlesByCategory,
 } from "@/features/docs/content"
 
-export const metadata = {
-  title: "Etalase Documentation",
-  description:
-    "Learn how to set up your store, templates, customization, catalog, and operations in Etalase.",
+export async function generateMetadata() {
+  const t = await getFullMessages()
+  return {
+    title: t.docs.hubTitle,
+    description: t.docs.hubDescription,
+  }
 }
 
-export default function DocsHubPage() {
+export default async function DocsHubPage() {
+  const locale = await getRequestLocale()
+  const t = await getFullMessages()
+  const categories = getDocsCategories(locale)
+  const articles = getDocsArticles(locale)
+
   return (
     <DocsShell>
       <div className="mx-auto max-w-3xl">
         <p className="text-xs font-semibold uppercase tracking-[0.08em] text-brand">
-          Documentation
+          {t.docs.eyebrow}
         </p>
         <h1 className="mt-2 font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl">
-          Etalase merchant guide
+          {t.docs.hubTitle}
         </h1>
         <p className="mt-3 max-w-2xl text-base leading-relaxed text-dash-muted">
-          From creating a store to going live on your subdomain — all the essential steps are here.
-          Pick a category below or search from the sidebar.
+          {t.docs.hubDescription}
         </p>
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2">
-          {DOCS_CATEGORIES.map((category) => {
-            const articles = getArticlesByCategory(category.id)
-            const first = articles[0]
+          {categories.map((category) => {
+            const categoryArticles = getArticlesByCategory(locale, category.id)
+            const first = categoryArticles[0]
             return (
               <Link
                 key={category.id}
@@ -45,7 +53,7 @@ export default function DocsHubPage() {
                   {category.description}
                 </p>
                 <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand">
-                  {articles.length} articles
+                  {categoryArticles.length} {t.docs.articlesWord}
                   <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                 </span>
               </Link>
@@ -54,9 +62,9 @@ export default function DocsHubPage() {
         </div>
 
         <section className="mt-12">
-          <h2 className="text-sm font-semibold text-ink">Start here</h2>
+          <h2 className="text-sm font-semibold text-ink">{t.docs.startHere}</h2>
           <ul className="mt-3 space-y-2">
-            {DOCS_ARTICLES.slice(0, 4).map((article) => (
+            {articles.slice(0, 4).map((article) => (
               <li key={article.slug}>
                 <Link
                   href={`/docs/${article.slug}`}
