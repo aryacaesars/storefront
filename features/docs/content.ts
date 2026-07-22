@@ -81,7 +81,7 @@ const EN: DocsContent = {
             },
             {
               type: "paragraph",
-              text: "The Etalase dashboard is used by merchants (store owners). Shoppers browse the public storefront, for example namatoko.etalase.com.",
+              text: "The Etalase dashboard is used by merchants (store owners). Shoppers browse the public storefront, for example namatoko.storefront-etalase.web.id.",
             },
           ],
         },
@@ -92,7 +92,7 @@ const EN: DocsContent = {
             {
               type: "bullets",
               items: [
-                "Sign up / log in to your merchant account",
+                "Sign up / log in to your merchant account (email & password or Google)",
                 "Create a store (name + subdomain slug)",
                 "Choose & activate a template",
                 "Customize brand and page content",
@@ -120,7 +120,7 @@ const EN: DocsContent = {
           blocks: [
             {
               type: "paragraph",
-              text: "From the dashboard, open create new store. Enter the store name and slug. The slug becomes part of your storefront subdomain (example: slug sepatu-arya → sepatu-arya.etalase.com).",
+              text: "From the dashboard, open create new store. Enter the store name and slug. The slug becomes part of your storefront subdomain (example: slug sepatu-arya → sepatu-arya.storefront-etalase.web.id).",
             },
             {
               type: "bullets",
@@ -139,6 +139,13 @@ const EN: DocsContent = {
             {
               type: "paragraph",
               text: "Open the store submenu for Store Dashboard, Templates, Products, Categories, Orders, Customers, Customization, and Settings.",
+            },
+            {
+              type: "bullets",
+              items: [
+                "Settings lets you change the store name, subdomain, and contact details (phone, email, address)",
+                "The danger zone in Settings deletes the store permanently — type the store name to confirm",
+              ],
             },
             {
               type: "tip",
@@ -166,7 +173,8 @@ const EN: DocsContent = {
               type: "bullets",
               items: [
                 "Preview shows sample pages before activation",
-                "Some templates may require payment through checkout",
+                "Free templates activate instantly; paid templates are purchased through Stripe Checkout (IDR)",
+                "Templates you have purchased before can be re-activated for free",
                 "The active template determines storefront section layout",
               ],
             },
@@ -206,7 +214,8 @@ const EN: DocsContent = {
               type: "bullets",
               items: [
                 "Select a section on the canvas or in the layers panel to edit",
-                "Change text, images, CTAs, and layout to match your theme",
+                "Use the tool rail panels (Text, Image, Color) to change copy, images, and accents",
+                "The Image tool supports cropping on the canvas and AI background removal",
                 "Save a draft then publish so changes appear on the Live Store",
               ],
             },
@@ -285,14 +294,32 @@ const EN: DocsContent = {
           blocks: [
             {
               type: "paragraph",
-              text: "Open Products in the store submenu, then create a new product. Fill in name, slug, price, description, image, and publish status.",
+              text: "Open Products in the store submenu, then create a new product. Fill in name, description, price, stock, category, main image, and publish status.",
             },
             {
               type: "bullets",
               items: [
                 "Only published products appear on the storefront",
-                "Product slug is used in the product detail URL",
                 "Link products to categories so filters/collections stay organized",
+                "Product images are uploaded straight from the form",
+              ],
+            },
+          ],
+        },
+        {
+          id: "varian",
+          heading: "Product variants",
+          blocks: [
+            {
+              type: "paragraph",
+              text: "Products support variants (for example size or color). Each variant has its own label, size, color, SKU, price, stock, and image.",
+            },
+            {
+              type: "bullets",
+              items: [
+                "When variants exist, the product price automatically shows as a min–max range",
+                "Product stock is calculated from the total stock of all variants",
+                "Shoppers pick a variant on the product detail page before adding to cart",
               ],
             },
           ],
@@ -366,9 +393,9 @@ const EN: DocsContent = {
             {
               type: "bullets",
               items: [
-                "Orders are created when shoppers complete checkout",
-                "Payment status follows the checkout flow (for example Stripe)",
-                "Monitor new orders regularly from the store dashboard",
+                "Orders are created when shoppers complete checkout; payment goes through Stripe (IDR)",
+                "Order statuses: PENDING → PAID → SHIPPED → DONE, or CANCELLED",
+                "Update the status from the order detail page as you process each order",
               ],
             },
           ],
@@ -404,6 +431,7 @@ const EN: DocsContent = {
               items: [
                 "Shoppers can sign up / log in on the storefront (not Etalase merchant accounts)",
                 "Customer data is separate per store (tenant)",
+                "Shoppers must complete their profile (name, phone) and a default shipping address before checkout",
                 "Use this data for more personalized after-sales service",
               ],
             },
@@ -433,7 +461,7 @@ const EN: DocsContent = {
           blocks: [
             {
               type: "paragraph",
-              text: "Each store has a subdomain based on its slug. In development, this usually follows the pattern slug.localhost:3000. In production, it uses the slug on the platform root domain.",
+              text: "Each store has a subdomain based on its slug on the platform domain storefront-etalase.web.id (example: namatoko.storefront-etalase.web.id).",
             },
             {
               type: "bullets",
@@ -456,6 +484,55 @@ const EN: DocsContent = {
             {
               type: "tip",
               text: "After publishing, hard-refresh the storefront page. Favicons and assets are often cached by the browser.",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      slug: "live-store/checkout-dan-pembayaran",
+      title: "Checkout and payments",
+      description:
+        "How shoppers buy from your Live Store: accounts, cart, and Stripe payments.",
+      categoryId: "live-store",
+      sections: [
+        {
+          id: "alur-belanja",
+          heading: "Shopper flow",
+          blocks: [
+            {
+              type: "paragraph",
+              text: "Shoppers create an account on your store's storefront, complete their profile and default shipping address on the Account page, add products (including variants) to the cart, then check out.",
+            },
+            {
+              type: "bullets",
+              items: [
+                "Checkout requires a logged-in shopper account for that store",
+                "Profile (name, phone) and a default shipping address must be filled in",
+                "The cart is stored in the shopper's browser and supports product variants",
+              ],
+            },
+          ],
+        },
+        {
+          id: "pembayaran",
+          heading: "Stripe payments",
+          blocks: [
+            {
+              type: "paragraph",
+              text: "Checkout redirects to a hosted Stripe Checkout page in IDR. The order is created with PENDING status; after payment succeeds it becomes PAID automatically via webhook.",
+            },
+            {
+              type: "bullets",
+              items: [
+                "Stock is reduced automatically when the order is created",
+                "If the payment session fails to start, stock is restored",
+                "After a successful payment, the shopper lands on the order confirmation page",
+              ],
+            },
+            {
+              type: "tip",
+              text: "Ship goods only after the order status becomes PAID, then update the status to SHIPPED and DONE as you fulfill it.",
             },
           ],
         },
@@ -514,7 +591,7 @@ const ID: DocsContent = {
             },
             {
               type: "paragraph",
-              text: "Dashboard Etalase digunakan oleh merchant (pemilik toko). Pembeli menjelajahi storefront publik, misalnya namatoko.etalase.com.",
+              text: "Dashboard Etalase digunakan oleh merchant (pemilik toko). Pembeli menjelajahi storefront publik, misalnya namatoko.storefront-etalase.web.id.",
             },
           ],
         },
@@ -525,7 +602,7 @@ const ID: DocsContent = {
             {
               type: "bullets",
               items: [
-                "Daftar / masuk ke akun merchant kamu",
+                "Daftar / masuk ke akun merchant kamu (email & password atau Google)",
                 "Buat toko (nama + slug subdomain)",
                 "Pilih & aktifkan template",
                 "Kustomisasi brand dan konten halaman",
@@ -553,7 +630,7 @@ const ID: DocsContent = {
           blocks: [
             {
               type: "paragraph",
-              text: "Dari dashboard, buka buat toko baru. Isi nama toko dan slug. Slug ini akan menjadi bagian dari subdomain storefront kamu (contoh: slug sepatu-arya → sepatu-arya.etalase.com).",
+              text: "Dari dashboard, buka buat toko baru. Isi nama toko dan slug. Slug ini akan menjadi bagian dari subdomain storefront kamu (contoh: slug sepatu-arya → sepatu-arya.storefront-etalase.web.id).",
             },
             {
               type: "bullets",
@@ -572,6 +649,13 @@ const ID: DocsContent = {
             {
               type: "paragraph",
               text: "Buka submenu toko untuk Dashboard Toko, Template, Produk, Kategori, Pesanan, Pelanggan, Kustomisasi, dan Pengaturan.",
+            },
+            {
+              type: "bullets",
+              items: [
+                "Pengaturan dipakai untuk mengubah nama toko, subdomain, dan kontak (telepon, email, alamat)",
+                "Zona berbahaya di Pengaturan menghapus toko secara permanen — ketik nama toko untuk konfirmasi",
+              ],
             },
             {
               type: "tip",
@@ -599,7 +683,8 @@ const ID: DocsContent = {
               type: "bullets",
               items: [
                 "Pratinjau menampilkan contoh halaman sebelum diaktifkan",
-                "Beberapa template mungkin memerlukan pembayaran lewat checkout",
+                "Template gratis langsung aktif; template berbayar dibeli lewat Stripe Checkout (IDR)",
+                "Template yang pernah dibeli bisa diaktifkan ulang secara gratis",
                 "Template aktif menentukan tata letak section storefront",
               ],
             },
@@ -639,7 +724,8 @@ const ID: DocsContent = {
               type: "bullets",
               items: [
                 "Pilih section di canvas atau di panel layer untuk diedit",
-                "Ubah teks, gambar, CTA, dan layout sesuai tema kamu",
+                "Gunakan panel tool (Teks, Gambar, Warna) untuk mengubah teks, gambar, dan aksen",
+                "Tool Gambar mendukung crop di canvas dan hapus background dengan AI",
                 "Simpan draft lalu publish agar perubahan muncul di Live Store",
               ],
             },
@@ -718,14 +804,32 @@ const ID: DocsContent = {
           blocks: [
             {
               type: "paragraph",
-              text: "Buka Produk di submenu toko, lalu buat produk baru. Isi nama, slug, harga, deskripsi, gambar, dan status publish.",
+              text: "Buka Produk di submenu toko, lalu buat produk baru. Isi nama, deskripsi, harga, stok, kategori, gambar utama, dan status publish.",
             },
             {
               type: "bullets",
               items: [
                 "Hanya produk yang di-publish yang muncul di storefront",
-                "Slug produk digunakan di URL detail produk",
                 "Hubungkan produk ke kategori agar filter/koleksi tetap teratur",
+                "Gambar produk diunggah langsung dari form",
+              ],
+            },
+          ],
+        },
+        {
+          id: "varian",
+          heading: "Varian produk",
+          blocks: [
+            {
+              type: "paragraph",
+              text: "Produk mendukung varian (misalnya ukuran atau warna). Setiap varian punya label, ukuran, warna, SKU, harga, stok, dan gambar sendiri.",
+            },
+            {
+              type: "bullets",
+              items: [
+                "Saat ada varian, harga produk otomatis tampil sebagai rentang min–maks",
+                "Stok produk dihitung dari total stok semua varian",
+                "Pembeli memilih varian di halaman detail produk sebelum menambah ke keranjang",
               ],
             },
           ],
@@ -799,9 +903,9 @@ const ID: DocsContent = {
             {
               type: "bullets",
               items: [
-                "Pesanan dibuat saat pembeli menyelesaikan checkout",
-                "Status pembayaran mengikuti alur checkout (misalnya Stripe)",
-                "Pantau pesanan baru secara rutin dari dashboard toko",
+                "Pesanan dibuat saat pembeli menyelesaikan checkout; pembayaran lewat Stripe (IDR)",
+                "Status pesanan: PENDING → PAID → SHIPPED → DONE, atau CANCELLED",
+                "Ubah status dari halaman detail pesanan saat kamu memprosesnya",
               ],
             },
           ],
@@ -837,6 +941,7 @@ const ID: DocsContent = {
               items: [
                 "Pembeli bisa daftar / masuk di storefront (bukan akun merchant Etalase)",
                 "Data pelanggan terpisah per toko (tenant)",
+                "Pembeli wajib melengkapi profil (nama, telepon) dan alamat pengiriman default sebelum checkout",
                 "Gunakan data ini untuk layanan purna jual yang lebih personal",
               ],
             },
@@ -866,7 +971,7 @@ const ID: DocsContent = {
           blocks: [
             {
               type: "paragraph",
-              text: "Setiap toko memiliki subdomain berdasarkan slug-nya. Saat development, biasanya mengikuti pola slug.localhost:3000. Di production, menggunakan slug pada root domain platform.",
+              text: "Setiap toko memiliki subdomain berdasarkan slug-nya pada domain platform storefront-etalase.web.id (contoh: namatoko.storefront-etalase.web.id).",
             },
             {
               type: "bullets",
@@ -889,6 +994,55 @@ const ID: DocsContent = {
             {
               type: "tip",
               text: "Setelah publish, hard-refresh halaman storefront. Favicon dan aset seringkali di-cache oleh browser.",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      slug: "live-store/checkout-dan-pembayaran",
+      title: "Checkout dan pembayaran",
+      description:
+        "Cara pembeli berbelanja di Toko Live kamu: akun, keranjang, dan pembayaran Stripe.",
+      categoryId: "live-store",
+      sections: [
+        {
+          id: "alur-belanja",
+          heading: "Alur belanja pembeli",
+          blocks: [
+            {
+              type: "paragraph",
+              text: "Pembeli membuat akun di storefront toko kamu, melengkapi profil dan alamat pengiriman default di halaman Akun, menambahkan produk (termasuk varian) ke keranjang, lalu checkout.",
+            },
+            {
+              type: "bullets",
+              items: [
+                "Checkout memerlukan akun pembeli yang login di toko tersebut",
+                "Profil (nama, telepon) dan alamat pengiriman default wajib terisi",
+                "Keranjang tersimpan di browser pembeli dan mendukung varian produk",
+              ],
+            },
+          ],
+        },
+        {
+          id: "pembayaran",
+          heading: "Pembayaran Stripe",
+          blocks: [
+            {
+              type: "paragraph",
+              text: "Checkout mengarahkan pembeli ke halaman Stripe Checkout dalam mata uang IDR. Pesanan dibuat dengan status PENDING; setelah pembayaran sukses, status otomatis menjadi PAID lewat webhook.",
+            },
+            {
+              type: "bullets",
+              items: [
+                "Stok berkurang otomatis saat pesanan dibuat",
+                "Jika sesi pembayaran gagal dibuat, stok dikembalikan",
+                "Setelah pembayaran sukses, pembeli diarahkan ke halaman konfirmasi pesanan",
+              ],
+            },
+            {
+              type: "tip",
+              text: "Kirim barang hanya setelah status pesanan menjadi PAID, lalu perbarui status ke SHIPPED dan DONE saat kamu memprosesnya.",
             },
           ],
         },

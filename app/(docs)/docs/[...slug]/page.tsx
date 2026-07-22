@@ -41,7 +41,7 @@ export default async function DocsArticlePage({ params }: Props) {
 
   return (
     <DocsShell activeSlug={article.slug}>
-      <div className="mx-auto max-w-4xl">
+      <div className="max-w-4xl">
         <DocsArticleView article={article} locale={locale} t={t.docs} />
       </div>
     </DocsShell>

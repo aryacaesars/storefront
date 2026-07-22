@@ -3,6 +3,11 @@
 import Link from "next/link"
 import { useMemo, useState } from "react"
 import { cn } from "@/lib/utils"
+import {
+  dashboardInput,
+  sidebarNavItemClass,
+  sidebarSectionLabel,
+} from "@/features/builder/components/dashboard-ui"
 import { useLocale } from "@/features/i18n/LocaleProvider"
 import {
   getArticlesByCategory,
@@ -48,13 +53,13 @@ export function DocsSidebar({ activeSlug, className, onNavigate }: DocsSidebarPr
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t.docs.searchPlaceholder}
-          className="w-full rounded-xl border border-dash-border bg-white px-3.5 py-2 text-sm text-dash-ink placeholder:text-dash-muted/70 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
+          className={dashboardInput}
         />
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 pb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <nav className="flex flex-1 flex-col gap-6 overflow-y-auto px-3 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {categories.length === 0 ? (
-          <p className="px-2 py-4 text-sm text-dash-muted">{t.docs.noResults}</p>
+          <p className="px-3 py-4 text-sm text-dash-muted">{t.docs.noResults}</p>
         ) : (
           categories.map((category) => (
             <CategoryGroup
@@ -87,11 +92,9 @@ function CategoryGroup({
   if (articles.length === 0) return null
 
   return (
-    <div className="mb-5">
-      <p className="mb-1.5 px-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted/80">
-        {category.title}
-      </p>
-      <ul className="space-y-0.5">
+    <div>
+      <p className={sidebarSectionLabel}>{category.title}</p>
+      <ul className="flex flex-col gap-1">
         {articles.map((article) => {
           const active = article.slug === activeSlug
           return (
@@ -99,12 +102,7 @@ function CategoryGroup({
               <Link
                 href={`/docs/${article.slug}`}
                 onClick={onNavigate}
-                className={cn(
-                  "block rounded-lg px-2.5 py-1.5 text-sm transition-colors",
-                  active
-                    ? "bg-brand/10 font-semibold text-brand"
-                    : "text-dash-ink/80 hover:bg-dash-bg hover:text-dash-ink",
-                )}
+                className={cn(sidebarNavItemClass(active, true), "block truncate")}
               >
                 {article.title}
               </Link>

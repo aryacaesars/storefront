@@ -5,6 +5,7 @@ const id = {
   nav: {
     home: "Beranda",
     template: "Template",
+    docs: "Docs",
     faq: "FAQ",
     login: "Masuk",
     dashboard: "Dashboard",
@@ -186,6 +187,7 @@ const en = {
   nav: {
     home: "Home",
     template: "Template",
+    docs: "Docs",
     faq: "FAQ",
     login: "Login",
     dashboard: "Dashboard",

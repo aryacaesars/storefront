@@ -42,6 +42,7 @@ export function LandingNavClient({
   const links = [
     { label: t.nav.home, href: "/#home" },
     { label: t.nav.template, href: "/templates" },
+    { label: t.nav.docs, href: "/docs" },
     { label: t.nav.faq, href: "/#faq" },
   ]
 

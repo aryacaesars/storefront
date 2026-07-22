@@ -25,7 +25,7 @@ export default async function DocsHubPage() {
 
   return (
     <DocsShell>
-      <div className="mx-auto max-w-3xl">
+      <div className="max-w-3xl">
         <p className="text-xs font-semibold uppercase tracking-[0.08em] text-brand">
           {t.docs.eyebrow}
         </p>
