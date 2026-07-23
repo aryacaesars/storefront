@@ -34,6 +34,7 @@ const CATALOG_LIST_PAGES: PageType[] = [
   "allProducts",
   "shop",
   "newArrivals",
+  "collections",
 ]
 
 export async function ThemePageContent({

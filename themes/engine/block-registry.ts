@@ -58,6 +58,17 @@ const CTA_CONTENT_BLOCK: BlockDefinition = {
   fields: [],
 }
 
+/**
+ * Teks section generik (judul/eyebrow/paragraf) — diedit via canvas toolbar,
+ * style pakai keys label* (sama dengan label category).
+ */
+const SECTION_TEXT_BLOCK: BlockDefinition = {
+  type: "section-text",
+  label: "Teks Section",
+  defaultSettings: { label: "", labelBasePx: 20 },
+  fields: [{ key: "label", label: "Teks", type: "text" }],
+}
+
 const CTA_IMAGE_BLOCK: BlockDefinition = {
   type: "cta-image",
   label: "Gambar CTA",
@@ -178,6 +189,9 @@ const MINIMALIST_BLOCK_DEFS: Record<string, Record<string, BlockDefinition>> = {
   "call-to-action": {
     "cta-image": CTA_IMAGE_BLOCK,
   },
+  "product-grid": {
+    "section-text": SECTION_TEXT_BLOCK,
+  },
 }
 
 const BENTO_HERO_CTA_BLOCK: BlockDefinition = {
@@ -231,6 +245,9 @@ const BENTO_BLOCK_DEFS: Record<string, Record<string, BlockDefinition>> = {
   },
   "call-to-action": {
     "cta-image": CTA_IMAGE_BLOCK,
+  },
+  "product-grid": {
+    "section-text": SECTION_TEXT_BLOCK,
   },
 }
 
@@ -299,6 +316,15 @@ const FASHION_BLOCK_DEFS: Record<string, Record<string, BlockDefinition>> = {
         },
       ],
     },
+  },
+  "signature-series": {
+    "section-text": SECTION_TEXT_BLOCK,
+  },
+  "brand-story": {
+    "section-text": SECTION_TEXT_BLOCK,
+  },
+  "community-gallery": {
+    "section-text": SECTION_TEXT_BLOCK,
   },
 }
 

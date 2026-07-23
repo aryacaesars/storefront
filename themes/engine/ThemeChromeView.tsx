@@ -13,6 +13,8 @@ interface ThemeChromeViewProps {
   children: ReactNode
   cartCount?: number
   mode?: ChromeMode
+  /** Nama customer yang sedang login — tampil di navbar dekat ikon profile. */
+  customerName?: string | null
 }
 
 /**
@@ -25,6 +27,7 @@ export function ThemeChromeView({
   children,
   cartCount = 0,
   mode = "default",
+  customerName,
 }: ThemeChromeViewProps) {
   if (mode === "checkout") {
     const variant =
@@ -48,21 +51,21 @@ export function ThemeChromeView({
     case "bold":
       return (
         <div className="flex min-h-full flex-1 flex-col">
-          <BoldNavbar config={config} cartCount={cartCount} />
+          <BoldNavbar config={config} cartCount={cartCount} customerName={customerName} />
           <main className="flex-1">{children}</main>
         </div>
       )
     case "fashion":
       return (
         <div className="flex min-h-full flex-1 flex-col">
-          <FashionNavbar config={config} />
+          <FashionNavbar config={config} customerName={customerName} />
           <main className="flex-1">{children}</main>
         </div>
       )
     case "bento":
       return (
         <div className="flex min-h-full flex-1 flex-col">
-          <BentoHeader config={config} cartCount={cartCount} />
+          <BentoHeader config={config} cartCount={cartCount} customerName={customerName} />
           <main className="flex-1">{children}</main>
           <BentoFooter config={config} />
         </div>
@@ -70,7 +73,7 @@ export function ThemeChromeView({
     default:
       return (
         <div className="flex min-h-full flex-1 flex-col">
-          <Header config={config} cartCount={cartCount} />
+          <Header config={config} cartCount={cartCount} customerName={customerName} />
           <main className="flex-1">{children}</main>
           <MinimalistFooter config={config} />
         </div>

@@ -20,6 +20,7 @@ import type {
   ThemeConfig,
 } from "@/themes/engine/schema"
 import type { PreviewDevice } from "@/features/builder/components/EditorTopbar"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 import { cn } from "@/lib/utils"
 
 interface BuilderTextToolPanelProps {
@@ -73,6 +74,7 @@ export function BuilderTextToolPanel({
   onSelectElement,
   onPatchBlock,
 }: BuilderTextToolPanelProps) {
+  const t = useMessages().pages.builder.textPanel
   const instance = selectedSectionId
     ? resolvePageTemplate(config, selectedPage).sections[selectedSectionId]
     : undefined
@@ -128,8 +130,8 @@ export function BuilderTextToolPanel({
           blockId: mediaBlock.id,
           itemId: "title1",
         },
-        label: config.hero?.title || "Title 1",
-        sublabel: "Hero title",
+        label: config.hero?.title || t.fallbackTitle1,
+        sublabel: t.heroTitle,
         onDelete: () => setTitleHidden("title1", true),
       })
     }
@@ -141,8 +143,8 @@ export function BuilderTextToolPanel({
           blockId: mediaBlock.id,
           itemId: "title2",
         },
-        label: config.hero?.subtitle || "Title 2",
-        sublabel: "Hero subtitle",
+        label: config.hero?.subtitle || t.fallbackTitle2,
+        sublabel: t.heroSubtitle,
         onDelete: () => setTitleHidden("title2", true),
       })
     }
@@ -156,8 +158,8 @@ export function BuilderTextToolPanel({
           blockId: mediaBlock.id,
           itemId: item.id,
         },
-        label: item.value || "Empty text",
-        sublabel: "Free text",
+        label: item.value || t.emptyText,
+        sublabel: t.freeText,
         onDelete: () =>
           onPatchBlock(selectedSectionId, mediaBlock.id, {
             texts: deleteTextFromArray(canvasTexts, item.id),
@@ -180,8 +182,8 @@ export function BuilderTextToolPanel({
           blockId: card.id,
           itemId: "label",
         },
-        label: label || "Empty label",
-        sublabel: "Card label",
+        label: label || t.emptyLabel,
+        sublabel: t.cardLabel,
       })
     }
   }
@@ -203,24 +205,18 @@ export function BuilderTextToolPanel({
   return (
     <div className="flex flex-col gap-4 p-4">
       <div>
-        <h2 className="text-sm font-semibold text-gray-900">Text</h2>
+        <h2 className="text-sm font-semibold text-gray-900">{t.title}</h2>
         <p className="mt-1 text-xs text-gray-400">
           {selectedSectionId && sectionLabel
-            ? `Add text to the “${sectionLabel}” section.`
-            : "Select a section in the preview to add text."}
+            ? t.addTo.replace("{section}", sectionLabel)
+            : t.selectSection}
         </p>
       </div>
 
       {!selectedSectionId ? (
-        <EmptyState
-          title="No section selected"
-          hint="Click a section in the preview, then add text from here."
-        />
+        <EmptyState title={t.noSection} hint={t.noSectionHint} />
       ) : !mediaBlock && rows.length === 0 ? (
-        <EmptyState
-          title="This section does not support free text"
-          hint="Select a Hero or Call to Action section."
-        />
+        <EmptyState title={t.notSupported} hint={t.notSupportedHint} />
       ) : (
         <>
           {mediaBlock && (
@@ -231,7 +227,7 @@ export function BuilderTextToolPanel({
               className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
             >
               <Plus className="h-4 w-4" />
-              Add text
+              {t.addText}
             </button>
             {isHeroSection && title1Hidden && (
               <button
@@ -240,7 +236,7 @@ export function BuilderTextToolPanel({
                 className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
               >
                 <Heading1 className="h-4 w-4 text-gray-400" />
-                Restore Title 1
+                {t.restoreTitle1}
               </button>
             )}
             {isHeroSection && title2Hidden && (
@@ -250,7 +246,7 @@ export function BuilderTextToolPanel({
                 className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
               >
                 <Heading2 className="h-4 w-4 text-gray-400" />
-                Restore Subtitle
+                {t.restoreSubtitle}
               </button>
             )}
           </div>
@@ -259,7 +255,7 @@ export function BuilderTextToolPanel({
           {rows.length > 0 && (
             <div>
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                Text in this section
+                {t.textsInSection}
               </p>
               <ul className="space-y-1.5">
                 {rows.map((row) => {
@@ -295,7 +291,7 @@ export function BuilderTextToolPanel({
                       {row.onDelete && (
                         <button
                           type="button"
-                          aria-label={`Remove ${row.label}`}
+                          aria-label={t.removeAria.replace("{label}", row.label)}
                           onClick={() => {
                             row.onDelete?.()
                             if (isSelected) onSelectElement?.(null)
@@ -310,7 +306,7 @@ export function BuilderTextToolPanel({
                 })}
               </ul>
               <p className="mt-2 text-[10px] text-gray-400">
-                Click text to select — style it via the toolbar above the canvas.
+                {t.clickToSelect}
               </p>
             </div>
           )}

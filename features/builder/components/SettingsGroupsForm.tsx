@@ -1,5 +1,6 @@
 "use client"
 
+import { useMessages } from "@/features/i18n/LocaleProvider"
 import { ImageUploadField } from "@/features/builder/components/ImageUploadField"
 import {
   SegmentedControl,
@@ -22,6 +23,30 @@ import {
 
 const DEFAULT_HERO: HeroConfig = heroConfigSchema.parse({})
 
+interface FieldTextOverride {
+  label: string
+  hint?: string
+  placeholder?: string
+}
+
+/** Dictionary lookups keyed by schema id/title — schema itself stays untouched. */
+interface ThemeSettingsDict {
+  groups: Record<string, string>
+  groupDescriptions: Record<string, string>
+  fields: Record<string, FieldTextOverride | undefined>
+  options: Record<string, string>
+}
+
+function useThemeSettingsDict(): ThemeSettingsDict {
+  const dict = useMessages().pages.builder.themeSettings
+  return {
+    groups: dict.groups as Record<string, string>,
+    groupDescriptions: dict.groupDescriptions as Record<string, string>,
+    fields: dict.fields as Record<string, FieldTextOverride | undefined>,
+    options: dict.options as Record<string, string>,
+  }
+}
+
 interface SettingsGroupsFormProps {
   groups: SettingsGroupDef[]
   config: ThemeConfig
@@ -37,6 +62,7 @@ export function SettingsGroupsForm({
   onHeroChange,
   className,
 }: SettingsGroupsFormProps) {
+  const dict = useThemeSettingsDict()
   const hero = { ...DEFAULT_HERO, ...config.hero }
 
   return (
@@ -46,9 +72,13 @@ export function SettingsGroupsForm({
           key={group.title}
           className={index > 0 ? "border-t border-gray-100 pt-5" : undefined}
         >
-          <h3 className="text-sm font-semibold text-gray-900">{group.title}</h3>
+          <h3 className="text-sm font-semibold text-gray-900">
+            {dict.groups[group.title] ?? group.title}
+          </h3>
           {group.description && (
-            <p className="mt-1 text-xs text-gray-400">{group.description}</p>
+            <p className="mt-1 text-xs text-gray-400">
+              {dict.groupDescriptions[group.description] ?? group.description}
+            </p>
           )}
           <div className="mt-3 flex flex-col gap-4">
             {group.fields.map((field) => (
@@ -83,17 +113,23 @@ function SettingFieldRenderer({
   onConfigChange,
   onHeroChange,
 }: SettingFieldRendererProps) {
+  const dict = useThemeSettingsDict()
   const value =
     field.scope === "hero"
       ? (hero[field.id as keyof HeroConfig] as string | number | undefined)
       : (config[field.id as keyof ThemeConfig] as string | number | undefined)
 
+  const override = dict.fields[field.id]
+  const label = override?.label ?? field.label
+  const hint = override?.hint ?? field.hint
+  const placeholder = override?.placeholder ?? field.placeholder
+
   return (
-    <SettingsField label={field.label} hint={field.hint}>
+    <SettingsField label={label} hint={hint}>
       {field.type === "text" && (
         <SettingsInput
           value={value ?? ""}
-          placeholder={field.placeholder}
+          placeholder={placeholder}
           onChange={(e) =>
             field.scope === "hero"
               ? onHeroChange(field.id as keyof HeroConfig, e.target.value)
@@ -106,7 +142,7 @@ function SettingFieldRenderer({
         <SettingsTextarea
           rows={field.rows ?? 2}
           value={value ?? ""}
-          placeholder={field.placeholder}
+          placeholder={placeholder}
           onChange={(e) =>
             field.scope === "hero"
               ? onHeroChange(field.id as keyof HeroConfig, e.target.value)
@@ -140,7 +176,7 @@ function SettingFieldRenderer({
       {field.type === "image" && (
         <ImageUploadField
           value={typeof value === "string" ? value : undefined}
-          placeholder={field.placeholder ?? "Upload"}
+          placeholder={placeholder ?? "Upload"}
           onChange={(url) =>
             field.scope === "hero"
               ? onHeroChange(field.id as keyof HeroConfig, url)
@@ -152,7 +188,10 @@ function SettingFieldRenderer({
       {field.type === "segmented" && field.options && (
         <SegmentedControl
           value={(value as string) ?? field.options[0].value}
-          options={field.options}
+          options={field.options.map((option) => ({
+            ...option,
+            label: dict.options[option.value] ?? option.label,
+          }))}
           onChange={(v) =>
             field.scope === "hero"
               ? onHeroChange(field.id as keyof HeroConfig, v as HeroConfig[keyof HeroConfig])

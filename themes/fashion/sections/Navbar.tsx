@@ -18,9 +18,11 @@ const NAV_LINKS = [
 interface NavbarProps {
   config: ThemeConfig
   basePath?: string
+  /** Nama customer yang sedang login — tampil di sebelah ikon profile. */
+  customerName?: string | null
 }
 
-export function Navbar({ config, basePath }: NavbarProps) {
+export function Navbar({ config, basePath, customerName }: NavbarProps) {
   const isMobile = useDeviceIsMobile()
   const visibleLinks = NAV_LINKS.filter((link) =>
     isNavHrefAvailable(config.templateId, link.href),
@@ -63,9 +65,14 @@ export function Navbar({ config, basePath }: NavbarProps) {
             <Link
               href="/account"
               aria-label="Account"
-              className="text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
+              className="flex items-center gap-1.5 text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
             >
               <User className="h-4 w-4" strokeWidth={1.5} />
+              {customerName && (
+                <span className="hidden max-w-[120px] truncate text-xs tracking-[0.05em] text-[var(--theme-text)] sm:inline">
+                  {customerName.trim().split(/\s+/)[0]}
+                </span>
+              )}
             </Link>
           )}
           {isMobile && <MobileNav links={visibleLinks} basePath={basePath} />}

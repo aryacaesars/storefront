@@ -12,7 +12,7 @@ export function ProductDetailPage({
   config = DEFAULT_BOLD_CONFIG,
   slug,
   product,
-  products = [],
+  products,
 }: ThemePageProps) {
   const { product: resolved, related, isLiveCatalog } = resolveProductDetail(
     slug,

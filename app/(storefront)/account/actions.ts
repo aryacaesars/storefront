@@ -5,7 +5,11 @@ import { revalidatePath } from "next/cache"
 import { clearCustomerSession } from "@/lib/storefront/customer-session"
 import { requireCustomer } from "@/features/storefront/customer-dal"
 import {
+  changeCustomerPassword,
+  CustomerAuthError,
+  deleteCustomerAddress,
   saveCustomerAddress,
+  setDefaultCustomerAddress,
   updateCustomerProfile,
 } from "@/server/services/customer.service"
 
@@ -102,4 +106,86 @@ export async function saveAddressAction(
     ok: true,
     message: parsed.data.addressId ? "Address updated." : "Address added.",
   }
+}
+
+export async function setDefaultAddressAction(
+  _prev: AccountFormState,
+  formData: FormData,
+): Promise<AccountFormState> {
+  const session = await requireCustomer()
+  const addressId = String(formData.get("addressId") ?? "").trim()
+  if (!addressId) return { error: "Invalid address." }
+
+  try {
+    await setDefaultCustomerAddress(session.customerId, addressId)
+  } catch {
+    return { error: "Failed to activate address." }
+  }
+
+  revalidatePath("/account")
+  revalidatePath("/checkout")
+  return { ok: true, message: "Active address updated." }
+}
+
+export async function deleteAddressAction(
+  _prev: AccountFormState,
+  formData: FormData,
+): Promise<AccountFormState> {
+  const session = await requireCustomer()
+  const addressId = String(formData.get("addressId") ?? "").trim()
+  if (!addressId) return { error: "Invalid address." }
+
+  try {
+    await deleteCustomerAddress(session.customerId, addressId)
+  } catch (err) {
+    if (err instanceof Error && err.message === "ADDRESS_IS_DEFAULT") {
+      return { error: "Active address cannot be deleted." }
+    }
+    return { error: "Failed to delete address." }
+  }
+
+  revalidatePath("/account")
+  revalidatePath("/checkout")
+  return { ok: true, message: "Address deleted." }
+}
+
+const PasswordInput = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required."),
+    newPassword: z.string().min(6, "New password must be at least 6 characters."),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Password confirmation does not match.",
+    path: ["confirmPassword"],
+  })
+
+export async function changePasswordAction(
+  _prev: AccountFormState,
+  formData: FormData,
+): Promise<AccountFormState> {
+  const session = await requireCustomer()
+  const parsed = PasswordInput.safeParse({
+    currentPassword: formData.get("currentPassword"),
+    newPassword: formData.get("newPassword"),
+    confirmPassword: formData.get("confirmPassword"),
+  })
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input." }
+  }
+
+  try {
+    await changeCustomerPassword({
+      customerId: session.customerId,
+      currentPassword: parsed.data.currentPassword,
+      newPassword: parsed.data.newPassword,
+    })
+  } catch (err) {
+    if (err instanceof CustomerAuthError) {
+      return { error: "Current password is incorrect." }
+    }
+    return { error: "Failed to change password." }
+  }
+
+  return { ok: true, message: "Password changed." }
 }

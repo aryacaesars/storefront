@@ -2,14 +2,14 @@ import Link from "next/link"
 import { PerformanceFooter } from "@/themes/bold/sections/performance/PerformanceFooter"
 import type { ThemePageProps } from "@/themes/engine/page-props"
 import { formatIdr } from "@/features/storefront/catalog-types"
-import { removeFromCart } from "@/app/(storefront)/cart/actions"
+import { removeFromCart, updateQuantity } from "@/app/(storefront)/cart/actions"
 
 export function CartPage({ config, cart = [] }: ThemePageProps) {
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
   return (
     <div className="bg-white min-h-screen">
-      <section className="mx-auto max-w-4xl px-6 py-12">
+      <section className="mx-auto max-w-7xl px-6 py-12">
         <h1
           className="text-4xl font-black uppercase text-zinc-900"
           style={{ fontFamily: "var(--theme-heading-font)" }}
@@ -34,18 +34,48 @@ export function CartPage({ config, cart = [] }: ThemePageProps) {
             <ul className="mt-10 divide-y divide-gray-100 border-y border-gray-100">
               {cart.map((item) => (
                 <li key={item.lineKey} className="flex gap-5 py-6">
-                  <div className="h-24 w-24 shrink-0 rounded-sm bg-gray-100 overflow-hidden">
+                  <Link
+                    href={`/products/${item.slug}`}
+                    className="h-24 w-24 shrink-0 rounded-sm bg-gray-100 overflow-hidden"
+                  >
                     {item.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
                     ) : (
                       <div className="h-full w-full bg-zinc-200" />
                     )}
-                  </div>
+                  </Link>
                   <div className="flex flex-1 flex-col justify-between">
                     <div>
-                      <p className="text-lg font-black text-zinc-900">{item.name}</p>
-                      <p className="text-sm text-zinc-400">Qty: {item.quantity}</p>
+                      <Link
+                        href={`/products/${item.slug}`}
+                        className="text-lg font-black text-zinc-900 hover:underline"
+                      >
+                        {item.name}
+                      </Link>
+                      <div className="mt-2 flex items-center gap-2">
+                        <form action={updateQuantity.bind(null, item.lineKey, item.quantity - 1)}>
+                          <button
+                            type="submit"
+                            aria-label="Kurangi jumlah"
+                            className="flex h-7 w-7 items-center justify-center border border-zinc-200 text-sm text-zinc-500 transition-colors hover:border-zinc-400"
+                          >
+                            −
+                          </button>
+                        </form>
+                        <span className="w-6 text-center text-sm font-bold text-zinc-900">
+                          {item.quantity}
+                        </span>
+                        <form action={updateQuantity.bind(null, item.lineKey, item.quantity + 1)}>
+                          <button
+                            type="submit"
+                            aria-label="Tambah jumlah"
+                            className="flex h-7 w-7 items-center justify-center border border-zinc-200 text-sm text-zinc-500 transition-colors hover:border-zinc-400"
+                          >
+                            +
+                          </button>
+                        </form>
+                      </div>
                     </div>
                     <div className="flex items-center justify-between">
                       <p className="text-base font-bold" style={{ color: "var(--theme-primary)" }}>

@@ -10,6 +10,7 @@ import {
   SquareStack,
   X,
 } from "lucide-react"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 import { cn } from "@/lib/utils"
 import {
   hexToHsv,
@@ -97,13 +98,16 @@ interface CanvaColorChromeProps {
 }
 
 export function CanvaColorChrome({
-  title = "Color",
+  title,
   targets,
   designColors = [],
   onChangeTarget,
   onClose,
-  emptyMessage = "Select an element on the canvas to adjust its color.",
+  emptyMessage,
 }: CanvaColorChromeProps) {
+  const t = useMessages().pages.builder.colorPanel
+  const heading = title ?? t.title
+  const emptyText = emptyMessage ?? t.selectElement
   const [query, setQuery] = useState("")
   const [popover, setPopover] = useState<PickerPopover>(null)
   const [activeTargetId, setActiveTargetId] = useState(targets[0]?.id ?? "")
@@ -174,8 +178,8 @@ export function CanvaColorChrome({
   if (targets.length === 0) {
     return (
       <div className="flex flex-col">
-        <PanelHeader title={title} onClose={onClose} />
-        <div className="px-4 py-10 text-center text-sm text-gray-500">{emptyMessage}</div>
+        <PanelHeader title={heading} onClose={onClose} />
+        <div className="px-4 py-10 text-center text-sm text-gray-500">{emptyText}</div>
       </div>
     )
   }
@@ -190,7 +194,7 @@ export function CanvaColorChrome({
 
   return (
     <div className="relative flex flex-col">
-      <PanelHeader title={title} onClose={onClose} />
+      <PanelHeader title={heading} onClose={onClose} />
       <div className="px-4 pb-8">
         <div className="relative mb-5">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -198,7 +202,7 @@ export function CanvaColorChrome({
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder='Try "blue" or "#00c4cc"'
+            placeholder={t.searchPlaceholder}
             className="h-10 w-full rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-3 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-violet-400 focus:bg-white focus:ring-2 focus:ring-violet-100"
           />
         </div>
@@ -207,7 +211,7 @@ export function CanvaColorChrome({
         <section className="mb-6">
           <SectionTitle
             icon={<SquareStack className="h-3.5 w-3.5" />}
-            label={targets.length === 1 ? targets[0].label : "Document colors"}
+            label={targets.length === 1 ? targets[0].label : t.documentColors}
           />
           {targets.length > 1 && (
             <div className="mb-3 flex flex-wrap gap-1.5">
@@ -337,7 +341,7 @@ export function CanvaColorChrome({
           </AnimatePresence>
           {uniqueDesign.length > 0 && (
             <>
-              <p className="mb-2 text-xs text-gray-500">Colors in this design</p>
+              <p className="mb-2 text-xs text-gray-500">{t.colorsInDesign}</p>
               <div className="flex flex-wrap gap-2">
                 {uniqueDesign.map((c) => (
                   <Swatch
@@ -358,10 +362,10 @@ export function CanvaColorChrome({
         <section className="mb-6">
           <SectionTitle
             icon={<Droplet className="h-3.5 w-3.5" />}
-            label="Brand Kit"
+            label={t.brandKit}
           />
           <p className="py-3 text-center text-xs text-gray-400">
-            No brand colors set for this Brand Kit
+            {t.noBrandColors}
           </p>
         </section>
 
@@ -370,7 +374,7 @@ export function CanvaColorChrome({
           <div className="mb-2.5 flex items-center justify-between">
             <SectionTitle
               icon={<Droplet className="h-3.5 w-3.5" />}
-              label="Default solid colors"
+              label={t.defaultSolids}
               className="mb-0"
             />
             {solids.length > 21 && (
@@ -379,7 +383,7 @@ export function CanvaColorChrome({
                 onClick={() => setShowAllSolids((v) => !v)}
                 className="text-xs text-gray-500 hover:text-gray-800"
               >
-                {showAllSolids ? "See less" : "See all"}
+                {showAllSolids ? t.seeLess : t.seeAll}
               </button>
             )}
           </div>
@@ -414,7 +418,7 @@ export function CanvaColorChrome({
                     }}
                   />
                 }
-                label="Default gradient colors"
+                label={t.defaultGradients}
                 className="mb-0"
               />
               {gradients.length > 21 && (
@@ -423,7 +427,7 @@ export function CanvaColorChrome({
                   onClick={() => setShowAllGradients((v) => !v)}
                   className="text-xs text-gray-500 hover:text-gray-800"
                 >
-                  {showAllGradients ? "See less" : "See all"}
+                  {showAllGradients ? t.seeLess : t.seeAll}
                 </button>
               )}
             </div>
@@ -464,6 +468,7 @@ function PanelHeader({
   onClose?: () => void
   onBack?: () => void
 }) {
+  const t = useMessages().pages.builder.colorPanel
   return (
     <div className="flex shrink-0 items-center justify-between px-4 pb-3 pt-4">
       <div className="flex items-center gap-2">
@@ -473,7 +478,7 @@ function PanelHeader({
             onClick={onBack}
             className="mr-1 text-xs font-medium text-violet-600 hover:text-violet-800"
           >
-            ← Back
+            ← {t.backAria}
           </button>
         )}
         <h2 className="text-base font-bold text-gray-900">{title}</h2>
@@ -482,7 +487,7 @@ function PanelHeader({
         {onClose && (
           <button
             type="button"
-            aria-label="Close"
+            aria-label={t.close}
             onClick={onClose}
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
           >
@@ -524,6 +529,7 @@ function Swatch({
   onClick?: () => void
   size?: "md" | "lg"
 }) {
+  const t = useMessages().pages.builder.colorPanel
   const dim = size === "lg" ? "h-9 w-9" : "h-8 w-8"
   const isLight =
     color &&
@@ -538,7 +544,7 @@ function Swatch({
   return (
     <button
       type="button"
-      aria-label={color ? `Color ${color}` : "Gradient"}
+      aria-label={color ? t.colorAria.replace("{color}", color) : t.gradientAria}
       onClick={onClick}
       className={cn(
         dim,
@@ -579,10 +585,11 @@ function AddColorButton({
   onClick: () => void
   active?: boolean
 }) {
+  const t = useMessages().pages.builder.colorPanel
   return (
     <button
       type="button"
-      aria-label="Add custom color"
+      aria-label={t.addCustomColor}
       aria-expanded={active}
       onClick={onClick}
       className={cn(
@@ -648,6 +655,7 @@ const ColorPickerPopover = forwardRef<
   },
   ref,
 ) {
+  const t = useMessages().pages.builder.colorPanel
   // Reposition on scroll/resize tanpa flash — sync sebelum paint.
   useLayoutEffect(() => {
     const update = () => {
@@ -668,7 +676,7 @@ const ColorPickerPopover = forwardRef<
     <motion.div
       ref={ref}
       role="dialog"
-      aria-label="Color picker"
+      aria-label={t.colorPickerAria}
       className="fixed z-300 w-72 origin-top overflow-hidden rounded-2xl border border-gray-100 bg-white p-3 shadow-xl"
       style={{ top, left, originY: placement === "bottom" ? 0 : 1 }}
       initial={{ opacity: 0, y: yFrom, scale: 0.96 }}
@@ -678,10 +686,10 @@ const ColorPickerPopover = forwardRef<
       onPointerDown={(e) => e.stopPropagation()}
     >
       <div className="mb-1 flex items-center justify-between">
-        <span className="text-xs font-semibold text-gray-500">Custom color</span>
+        <span className="text-xs font-semibold text-gray-500">{t.customColor}</span>
         <button
           type="button"
-          aria-label="Close picker"
+          aria-label={t.closePicker}
           onClick={onClose}
           className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
         >
@@ -727,15 +735,16 @@ const ColorPickerPopover = forwardRef<
 })
 
 function EyedropperButton({ onPick }: { onPick: (hex: string) => void }) {
+  const t = useMessages().pages.builder.colorPanel
   const supported =
     typeof window !== "undefined" && "EyeDropper" in window
 
   return (
     <button
       type="button"
-      aria-label="Eyedropper"
+      aria-label={t.eyedropper}
       disabled={!supported}
-      title={supported ? "Pick a color from the screen" : "Eyedropper is not supported in this browser"}
+      title={supported ? t.eyedropperPick : t.eyedropperUnsupported}
       onClick={async () => {
         try {
           // EyeDropper is Chromium-only
@@ -764,6 +773,7 @@ function PickerTabs({
   allowGradient: boolean
   onModeChange: (mode: ColorMode) => void
 }) {
+  const t = useMessages().pages.builder.colorPanel
   return (
     <div className="relative mb-4 flex gap-5 border-b border-gray-200">
       <button
@@ -774,7 +784,7 @@ function PickerTabs({
           mode === "solid" ? "text-gray-900" : "text-gray-400 hover:text-gray-600",
         )}
       >
-        Solid color
+        {t.solidTab}
         {mode === "solid" && (
           <motion.span
             layoutId="color-picker-tab"
@@ -794,7 +804,7 @@ function PickerTabs({
               : "text-gray-400 hover:text-gray-600",
           )}
         >
-          Gradient
+          {t.gradientTab}
           {mode === "gradient" && (
             <motion.span
               layoutId="color-picker-tab"
@@ -916,11 +926,12 @@ function GradientOverview({
   onSelectStop: (stop: "start" | "end") => void
   onChangeAngle: (angle: number) => void
 }) {
+  const t = useMessages().pages.builder.colorPanel
   return (
     <div className="space-y-5">
       <div>
         <p className="mb-2.5 text-sm font-semibold text-gray-900">
-          Gradient colors
+          {t.gradientColors}
         </p>
         <div className="flex items-center gap-2">
           <Swatch color={from} size="lg" onClick={() => onSelectStop("start")} />
@@ -930,7 +941,7 @@ function GradientOverview({
       </div>
 
       <div>
-        <p className="mb-2.5 text-sm font-semibold text-gray-900">Style</p>
+        <p className="mb-2.5 text-sm font-semibold text-gray-900">{t.style}</p>
         <div className="flex gap-2">
           {GRADIENT_STYLES.map((style) => (
             <button
@@ -966,6 +977,7 @@ function SvPad({
   onDragChange: (s: number, v: number) => void
   onDragEnd?: () => void
 }) {
+  const t = useMessages().pages.builder.colorPanel
   const ref = useRef<HTMLDivElement>(null)
   const dragging = useRef(false)
 
@@ -1003,7 +1015,7 @@ function SvPad({
     <div
       ref={ref}
       role="slider"
-      aria-label="Saturation and brightness"
+      aria-label={t.satBrightnessAria}
       tabIndex={0}
       onPointerDown={(e) => {
         dragging.current = true
@@ -1038,6 +1050,7 @@ function HueSlider({
   onDragChange: (h: number) => void
   onDragEnd?: () => void
 }) {
+  const t = useMessages().pages.builder.colorPanel
   const ref = useRef<HTMLDivElement>(null)
   const dragging = useRef(false)
 
@@ -1074,7 +1087,7 @@ function HueSlider({
     <div
       ref={ref}
       role="slider"
-      aria-label="Hue"
+      aria-label={t.hueAria}
       tabIndex={0}
       onPointerDown={(e) => {
         dragging.current = true

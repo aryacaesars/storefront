@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Eye, EyeOff, GripVertical, Plus, Trash2 } from "lucide-react"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 import {
   materializePageTemplate,
   resolvePageTemplate,
@@ -50,6 +51,7 @@ export function ThemeSectionsPanel({
   selectedSectionId,
   onSelectSection,
 }: ThemeSectionsPanelProps) {
+  const t = useMessages().pages.builder.sectionsPanel
   const resolved = resolvePageTemplate(config, selectedPage)
   const registry = getSectionRegistry(config.templateId)
   const [sectionTypeToAdd, setSectionTypeToAdd] = useState(
@@ -120,9 +122,7 @@ export function ThemeSectionsPanel({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="p-4">
-        <p className="mb-3 text-xs text-gray-500">
-          Klik section di preview atau daftar di bawah. Drag grip untuk urutkan.
-        </p>
+        <p className="mb-3 text-xs text-gray-500">{t.hint}</p>
 
         <ul className="space-y-2">
           {resolved.order.map((sectionId, index) => {
@@ -151,7 +151,7 @@ export function ThemeSectionsPanel({
                     onDragStart={() => setDragIndex(index)}
                     onDragEnd={() => setDragIndex(null)}
                     className="cursor-grab rounded p-1 text-gray-400 hover:bg-gray-200 active:cursor-grabbing"
-                    aria-label={`Drag ${label}`}
+                    aria-label={t.dragAria.replace("{label}", label)}
                   >
                     <GripVertical className="h-4 w-4" />
                   </div>
@@ -170,7 +170,11 @@ export function ThemeSectionsPanel({
                     type="button"
                     onClick={() => toggleDisabled(sectionId)}
                     className="rounded p-1 text-gray-500 hover:bg-gray-200"
-                    aria-label={disabled ? `Show ${label}` : `Hide ${label}`}
+                    aria-label={
+                      disabled
+                        ? t.showAria.replace("{label}", label)
+                        : t.hideAria.replace("{label}", label)
+                    }
                   >
                     {disabled ? (
                       <EyeOff className="h-4 w-4" />
@@ -182,7 +186,7 @@ export function ThemeSectionsPanel({
                     type="button"
                     onClick={() => removeSection(sectionId)}
                     className="rounded p-1 text-gray-500 hover:bg-red-100 hover:text-red-600"
-                    aria-label={`Remove ${label}`}
+                    aria-label={t.removeAria.replace("{label}", label)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -210,7 +214,7 @@ export function ThemeSectionsPanel({
             className="inline-flex h-9 items-center gap-1 rounded-lg bg-indigo-600 px-3 text-xs font-medium text-white hover:bg-indigo-700"
           >
             <Plus className="h-3.5 w-3.5" />
-            Add
+            {t.add}
           </button>
         </div>
       </div>

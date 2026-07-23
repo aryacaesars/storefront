@@ -12,9 +12,16 @@ interface ThemeHomeViewProps {
   sectionEditor?: SectionEditorState
   /** Live catalog — omit in builder/preview so sections keep mock data. */
   products?: CatalogProduct[]
+  /** Nama customer yang sedang login — tampil di navbar dekat ikon profile. */
+  customerName?: string | null
 }
 
-export function ThemeHomeView({ config, sectionEditor, products }: ThemeHomeViewProps) {
+export function ThemeHomeView({
+  config,
+  sectionEditor,
+  products,
+  customerName,
+}: ThemeHomeViewProps) {
   const pages = templatePages[config.templateId]
   if (!pages) return null
 
@@ -24,7 +31,7 @@ export function ThemeHomeView({ config, sectionEditor, products }: ThemeHomeView
     case "bold":
       return (
         <div className="relative flex min-h-full flex-1 flex-col">
-          <BoldNavbar config={config} transparent />
+          <BoldNavbar config={config} transparent customerName={customerName} />
           <main className="flex-1">
             <HomePage config={config} sectionEditor={sectionEditor} products={products} />
           </main>
@@ -34,7 +41,7 @@ export function ThemeHomeView({ config, sectionEditor, products }: ThemeHomeView
     case "fashion":
       return (
         <div className="flex min-h-full flex-1 flex-col">
-          <FashionNavbar config={config} />
+          <FashionNavbar config={config} customerName={customerName} />
           <main className="flex-1">
             <HomePage config={config} sectionEditor={sectionEditor} products={products} />
           </main>
@@ -43,7 +50,7 @@ export function ThemeHomeView({ config, sectionEditor, products }: ThemeHomeView
     case "bento":
       return (
         <div className="flex min-h-full flex-1 flex-col">
-          <BentoHeader config={config} />
+          <BentoHeader config={config} customerName={customerName} />
           <main className="flex-1">
             <HomePage config={config} sectionEditor={sectionEditor} products={products} />
           </main>
@@ -53,7 +60,7 @@ export function ThemeHomeView({ config, sectionEditor, products }: ThemeHomeView
     default:
       return (
         <div className="flex min-h-full flex-1 flex-col">
-          <Header config={config} />
+          <Header config={config} customerName={customerName} />
           <main className="flex-1">
             <HomePage config={config} sectionEditor={sectionEditor} products={products} />
           </main>

@@ -1,18 +1,30 @@
 import { COMMUNITY_IMAGES } from "@/themes/fashion/data/mock"
+import type { SectionProps } from "@/themes/engine/section-registry"
+import {
+  CanvasSectionText,
+  findSectionTextBlock,
+} from "@/features/builder/components/canvas/CanvasSectionText"
 
-export function CommunityGallery() {
+export function CommunityGallery({ blocks, canvas }: SectionProps) {
   return (
     <section className="bg-[var(--theme-bg)] py-12">
       <div className="mb-8 text-center">
-        <p className="text-[10px] tracking-[0.2em] uppercase text-[var(--theme-muted)]">
-          COMMUNITY
-        </p>
-        <h2
-          className="mt-2 text-3xl font-normal italic text-[var(--theme-text)]"
-          style={{ fontFamily: "var(--theme-heading-font)" }}
-        >
-          #LunaInMotion
-        </h2>
+        <CanvasSectionText
+          canvas={canvas}
+          block={findSectionTextBlock(blocks, "fashion-community-eyebrow")}
+          fallback="COMMUNITY"
+          basePx={10}
+          className="tracking-[0.2em] uppercase text-[var(--theme-muted)]"
+        />
+        <CanvasSectionText
+          canvas={canvas}
+          block={findSectionTextBlock(blocks, "fashion-community-title")}
+          fallback="#LunaInMotion"
+          basePx={30}
+          as="h2"
+          className="mt-2 font-normal italic text-[var(--theme-text)]"
+          baseStyle={{ fontFamily: "var(--theme-heading-font)" }}
+        />
       </div>
 
       <div className="flex overflow-hidden">

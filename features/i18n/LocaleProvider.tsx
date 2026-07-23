@@ -77,3 +77,8 @@ export function useLocale() {
 export function useMessages(): Messages {
   return useLocale().messages
 }
+
+/** Versi optional — null di luar provider (storefront live). */
+export function useOptionalMessages(): Messages | null {
+  return useContext(LocaleContext)?.messages ?? null
+}

@@ -68,9 +68,61 @@ export const DEFAULT_FASHION_HOME: PageTemplate = {
         },
       })),
     },
-    "signature-series":  { type: "signature-series" },
-    "brand-story":       { type: "brand-story" },
-    "community-gallery": { type: "community-gallery" },
+    "signature-series": {
+      type: "signature-series",
+      blocks: [
+        {
+          id: "fashion-signature-eyebrow",
+          type: "section-text",
+          settings: { label: "", labelBasePx: 10 },
+        },
+        {
+          id: "fashion-signature-title",
+          type: "section-text",
+          settings: { label: "", labelBasePx: 30 },
+        },
+      ],
+    },
+    "brand-story": {
+      type: "brand-story",
+      blocks: [
+        {
+          id: "fashion-story-eyebrow",
+          type: "section-text",
+          settings: { label: "", labelBasePx: 10 },
+        },
+        {
+          id: "fashion-story-title",
+          type: "section-text",
+          settings: { label: "", labelBasePx: 30 },
+        },
+        {
+          id: "fashion-story-body",
+          type: "section-text",
+          settings: { label: "", labelBasePx: 14 },
+        },
+        {
+          id: "fashion-story-quote",
+          type: "section-text",
+          settings: { label: "", labelBasePx: 14 },
+        },
+      ],
+    },
+    "community-gallery": {
+      type: "community-gallery",
+      blocks: [
+        {
+          id: "fashion-community-eyebrow",
+          type: "section-text",
+          settings: { label: "", labelBasePx: 10 },
+        },
+        {
+          id: "fashion-community-title",
+          type: "section-text",
+          settings: { label: "", labelBasePx: 30 },
+        },
+      ],
+    },
     "newsletter-cta": {
       type: "newsletter-cta",
       blocks: [{ id: "fashion-cta-content", type: "cta-content", settings: {} }],

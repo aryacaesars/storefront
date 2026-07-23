@@ -20,6 +20,10 @@ import {
 } from "@/themes/engine/cta-canvas"
 import type { SectionPageType, ThemeConfig } from "@/themes/engine/schema"
 import type { PreviewDevice } from "@/features/builder/components/EditorTopbar"
+import { useMessages } from "@/features/i18n/LocaleProvider"
+import type { Messages } from "@/features/i18n/messages"
+
+type ColorPanelMessages = Messages["pages"]["builder"]["colorPanel"]
 
 const TITLE_LINES = new Set(["title1", "title2"])
 
@@ -52,13 +56,15 @@ export function BuilderElementColorPanel({
   onPatchBlock,
   onClose,
 }: BuilderElementColorPanelProps) {
+  const t = useMessages().pages.builder.colorPanel
+
   if (!element) {
     return (
       <CanvaColorChrome
         targets={[]}
         onChangeTarget={() => {}}
         onClose={onClose}
-        emptyMessage="Select an element on the canvas to adjust its color."
+        emptyMessage={t.selectElement}
       />
     )
   }
@@ -72,7 +78,7 @@ export function BuilderElementColorPanel({
         targets={[]}
         onChangeTarget={() => {}}
         onClose={onClose}
-        emptyMessage="Element not found."
+        emptyMessage={t.elementNotFound}
       />
     )
   }
@@ -95,6 +101,7 @@ export function BuilderElementColorPanel({
     settings,
     blockType: block.type,
     patch,
+    t,
   })
 
   return (
@@ -102,7 +109,7 @@ export function BuilderElementColorPanel({
       targets={targets}
       designColors={designColors}
       onClose={onClose}
-      emptyMessage="This element has no color settings yet."
+      emptyMessage={t.noColorSettings}
       onChangeTarget={(targetId: string, next) => applyChange(targetId, next)}
     />
   )
@@ -130,6 +137,7 @@ function resolveColorBinding({
   settings,
   blockType,
   patch,
+  t,
 }: {
   element: SelectedElement
   config: ThemeConfig
@@ -138,6 +146,7 @@ function resolveColorBinding({
   settings: Record<string, unknown> | undefined
   blockType: string
   patch: (partial: Record<string, unknown>) => void
+  t: ColorPanelMessages
 }): Binding {
   const designColors: string[] = []
 
@@ -165,7 +174,7 @@ function resolveColorBinding({
     const targets: ColorTarget[] = [
       {
         id: "frame",
-        label: hasCardWrapper ? "Background colors" : "Background colors",
+        label: t.backgroundColors,
         color: frameBg,
         color2: frameBg2,
         mode: frameMode,
@@ -176,7 +185,7 @@ function resolveColorBinding({
     if (hasCardWrapper) {
       targets.push({
         id: "section",
-        label: "Section background",
+        label: t.sectionBackground,
         color: sectionBg,
         mode: "solid",
         allowGradient: false,
@@ -217,7 +226,7 @@ function resolveColorBinding({
       targets: [
         {
           id: "text",
-          label: "Text color",
+          label: t.textColor,
           color,
           mode: "solid",
           allowGradient: false,
@@ -230,7 +239,60 @@ function resolveColorBinding({
     }
   }
 
-  if (element.kind === "text" && element.itemId && blockType !== "category-card") {
+  if (
+    element.kind === "text" &&
+    element.itemId === "label" &&
+    (blockType === "category-card" || blockType === "section-text")
+  ) {
+    const isSectionText = blockType === "section-text"
+    const labelColor =
+      typeof settings?.labelColor === "string" && settings.labelColor
+        ? settings.labelColor
+        : isSectionText
+          ? "#111111"
+          : "#ffffff"
+    const cardBg =
+      typeof settings?.cardBgColor === "string" && settings.cardBgColor
+        ? settings.cardBgColor
+        : "#9ca3af"
+    designColors.push(labelColor)
+    if (!isSectionText) designColors.push(cardBg)
+
+    const targets: ColorTarget[] = [
+      {
+        id: "text",
+        label: t.textColor,
+        color: labelColor,
+        mode: "solid",
+        allowGradient: false,
+      },
+    ]
+    if (!isSectionText) {
+      targets.push({
+        id: "card-bg",
+        label: t.cardBackground,
+        color: cardBg,
+        mode: "solid",
+        allowGradient: false,
+      })
+    }
+    return {
+      targets,
+      designColors,
+      applyChange: (targetId, next) => {
+        if (!next.color) return
+        if (targetId === "card-bg") patch({ cardBgColor: next.color })
+        else patch({ labelColor: next.color })
+      },
+    }
+  }
+
+  if (
+    element.kind === "text" &&
+    element.itemId &&
+    blockType !== "category-card" &&
+    blockType !== "section-text"
+  ) {
     const texts = resolveSectionCanvasTexts(
       config.templateId,
       instanceType,
@@ -245,7 +307,7 @@ function resolveColorBinding({
         targets: [
           {
             id: "text",
-            label: "Text color",
+            label: t.textColor,
             color,
             mode: "solid",
             allowGradient: false,
@@ -279,14 +341,14 @@ function resolveColorBinding({
         targets: [
           {
             id: "button-bg",
-            label: "Background colors",
+            label: t.backgroundColors,
             color: bg,
             mode: "solid",
             allowGradient: false,
           },
           {
             id: "button-text",
-            label: "Text color",
+            label: t.textColor,
             color: text,
             mode: "solid",
             allowGradient: false,
@@ -322,14 +384,14 @@ function resolveColorBinding({
       targets: [
         {
           id: "button-bg",
-          label: "Background colors",
+          label: t.backgroundColors,
           color: bgColor,
           mode: "solid",
           allowGradient: false,
         },
         {
           id: "button-text",
-          label: "Text color",
+          label: t.textColor,
           color: textColor,
           mode: "solid",
           allowGradient: false,

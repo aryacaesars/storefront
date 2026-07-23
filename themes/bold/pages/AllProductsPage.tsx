@@ -14,13 +14,14 @@ interface AllProductsPageProps {
 }
 
 export function AllProductsPage({
-  products = [],
+  products,
   categories = [],
   priceBounds = null,
   catalogFilters = {},
 }: AllProductsPageProps) {
-  const isLive = products.length > 0 || categories.length > 0 || priceBounds != null
-  const items = isLive ? products : PRODUCTS.map(mockProductToCatalog)
+  // products undefined = builder/preview (mock); array (walau kosong) = live.
+  const isLive = products !== undefined
+  const items = products ?? PRODUCTS.map(mockProductToCatalog)
 
   return (
     <div className="min-h-screen bg-white">
@@ -39,7 +40,7 @@ export function AllProductsPage({
               categories={categories}
               priceBounds={priceBounds}
               active={catalogFilters}
-              resultCount={products.length}
+              resultCount={items.length}
               variant="bold"
             />
           </div>

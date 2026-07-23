@@ -7,12 +7,13 @@ import type { ThemePageProps } from "@/themes/engine/page-props"
 
 export function ShopAllPage({
   config = DEFAULT_FASHION_CONFIG,
-  products = [],
+  products,
   categories = [],
   priceBounds = null,
   catalogFilters = {},
 }: ThemePageProps) {
-  const isLive = products.length > 0 || categories.length > 0 || priceBounds != null
+  // products undefined = builder/preview (mock); array (walau kosong) = live.
+  const isLive = products !== undefined
 
   return (
     <div style={{ backgroundColor: "var(--theme-bg)" }}>
@@ -24,7 +25,7 @@ export function ShopAllPage({
               categories={categories}
               priceBounds={priceBounds}
               active={catalogFilters}
-              resultCount={products.length}
+              resultCount={products?.length ?? 0}
               variant="fashion"
             />
           </div>

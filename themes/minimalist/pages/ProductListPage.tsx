@@ -5,16 +5,14 @@ import type { ThemePageProps } from "@/themes/engine/page-props"
 
 export function ProductListPage({
   config: _config,
-  products = [],
+  products,
   categories = [],
   priceBounds = null,
   catalogFilters = {},
 }: ThemePageProps) {
-  const isLive = products.length > 0 || Boolean(categories.length) || priceBounds != null
-  const items =
-    isLive || products.length > 0
-      ? products
-      : TRENDING_PRODUCTS.map(mockProductToCatalog)
+  // products undefined = builder/preview (mock); array (walau kosong) = live.
+  const isLive = products !== undefined
+  const items = products ?? TRENDING_PRODUCTS.map(mockProductToCatalog)
 
   return (
     <section className="mx-auto max-w-7xl px-6 py-8">
@@ -34,7 +32,7 @@ export function ProductListPage({
             categories={categories}
             priceBounds={priceBounds}
             active={catalogFilters}
-            resultCount={products.length}
+            resultCount={items.length}
             variant="minimalist"
           />
         </div>

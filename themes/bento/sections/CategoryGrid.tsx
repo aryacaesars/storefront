@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useOptionalMessages } from "@/features/i18n/LocaleProvider"
 import { cn } from "@/lib/utils"
 import {
   CanvasGridOverlay,
@@ -9,6 +10,8 @@ import {
 } from "@/features/builder/components/canvas/CanvasGridOverlay"
 import { CanvasImageFrame } from "@/features/builder/components/canvas/CanvasImageFrame"
 import { CanvasInlineText } from "@/features/builder/components/canvas/CanvasInlineText"
+import { CanvasMultiImageItem } from "@/features/builder/components/canvas/CanvasMultiImageItem"
+import { updateImageInArray } from "@/themes/engine/canvas-image"
 import { CanvasLabelResizeHandles } from "@/features/builder/components/canvas/CanvasLabelResizeHandles"
 import { CanvasResizeHandles } from "@/features/builder/components/canvas/CanvasResizeHandles"
 import { createDragSession } from "@/features/builder/components/canvas/visual-frame"
@@ -21,6 +24,7 @@ import {
   DESIGN_WIDTH,
   labelLayoutToPatch,
   labelMoveFromDelta,
+  labelStyleOverrides,
   MAX_CATEGORY_CARDS,
   MOBILE_DESIGN_WIDTH,
   mobileStackLayouts,
@@ -63,6 +67,10 @@ interface CategoryCardProps {
   editable: boolean
   selected: boolean
   labelSelected: boolean
+  imageSelected: boolean
+  activeImageId: string | null
+  croppingElementKey?: string | null
+  imageItemDomKey?: (itemId: string) => string | undefined
   labelDomKey?: string
   useFreeForm: boolean
   scale: number
@@ -70,6 +78,8 @@ interface CategoryCardProps {
   gridRef: React.RefObject<HTMLDivElement | null>
   onSelect: () => void
   onSelectLabel: () => void
+  onSelectImage: () => void
+  onSelectImageItem: (itemId: string) => void
   onChange: (patch: Record<string, unknown>) => void
 }
 
@@ -78,6 +88,10 @@ function CategoryCard({
   editable,
   selected,
   labelSelected,
+  imageSelected,
+  activeImageId,
+  croppingElementKey,
+  imageItemDomKey,
   labelDomKey,
   useFreeForm,
   scale,
@@ -85,6 +99,8 @@ function CategoryCard({
   gridRef,
   onSelect,
   onSelectLabel,
+  onSelectImage,
+  onSelectImageItem,
   onChange,
 }: CategoryCardProps) {
   const cardBoundsRef = useRef<HTMLDivElement>(null)
@@ -115,8 +131,9 @@ function CategoryCard({
   const labelStyle: React.CSSProperties = {
     textShadow: "0px 0px 24px rgba(0,0,0,0.25)",
     fontFamily: "var(--theme-heading-font)",
-    fontSize: `${Math.max(10, labelBoxHeightPx * 0.72)}px`,
+    fontSize: `${Math.max(10, labelBoxHeightPx * 0.72 * card.labelStyle.sizeScale)}px`,
     lineHeight: 1.05,
+    ...labelStyleOverrides(card.labelStyle),
   }
 
   const labelLayer = card.labelLayer
@@ -160,6 +177,22 @@ function CategoryCard({
     height: `${card.labelLayout.hPct}%`,
   }
 
+  // Box front auto-height (fit teks, ala box CTA) — hPct tetap sumber ukuran font.
+  const labelBoxStyleFit: React.CSSProperties = {
+    position: "absolute",
+    left: `${card.labelLayout.xPct}%`,
+    top: `${card.labelLayout.yPct}%`,
+    width: `${labelBoxWidthPct}%`,
+  }
+
+  const resizeHandles = labelSelected && labelResizable && (
+    <CanvasLabelResizeHandles
+      layout={card.labelLayout}
+      containerRef={cardBoundsRef}
+      onResize={(patch) => onChange(labelLayoutToPatch(patch))}
+    />
+  )
+
   const labelContent = labelEditable ? (
     <CanvasInlineText
       value={card.label}
@@ -188,7 +221,6 @@ function CategoryCard({
             className={cn(
               "absolute flex items-start p-0",
               labelMovable && "cursor-move",
-              labelSelected && "ring-2 ring-indigo-400",
             )}
             style={{ ...labelBoxStyle, zIndex: Z_LABEL_BEHIND }}
             onPointerDown={labelMovable ? startLabelMove : undefined}
@@ -201,14 +233,45 @@ function CategoryCard({
           className={cn(
             "absolute inset-0",
             !selected && "pointer-events-none",
+            imageSelected && card.canvasImages.length === 0 && "ring-2 ring-indigo-400",
           )}
           style={{ zIndex: Z_IMAGE }}
+          onClick={
+            selected && card.canvasImages.length === 0 && card.image.url
+              ? (event) => {
+                  event.stopPropagation()
+                  onSelectImage()
+                }
+              : undefined
+          }
         >
-          <CanvasImageFrame
-            image={card.image}
-            interactive={selected}
-            onChange={onChange}
-          />
+          {card.canvasImages.length > 0 ? (
+            card.canvasImages.map((img) => (
+              <CanvasMultiImageItem
+                key={img.id}
+                item={img}
+                selected={selected && activeImageId === img.id}
+                editable={selected}
+                domKey={imageItemDomKey?.(img.id)}
+                cropping={
+                  croppingElementKey != null &&
+                  croppingElementKey === imageItemDomKey?.(img.id)
+                }
+                onSelect={() => onSelectImageItem(img.id)}
+                onChange={(patch) =>
+                  onChange({
+                    images: updateImageInArray(card.canvasImages, img.id, patch),
+                  })
+                }
+              />
+            ))
+          ) : (
+            <CanvasImageFrame
+              image={card.image}
+              interactive={selected}
+              onChange={onChange}
+            />
+          )}
         </div>
 
         {labelLayer === "front" && (
@@ -217,9 +280,8 @@ function CategoryCard({
             className={cn(
               "absolute flex items-start overflow-visible",
               labelMovable && "cursor-move",
-              labelSelected && "ring-2 ring-indigo-400",
             )}
-            style={{ ...labelBoxStyle, zIndex: Z_LABEL_FRONT }}
+            style={{ ...labelBoxStyleFit, zIndex: Z_LABEL_FRONT }}
             onPointerDown={labelMovable ? startLabelMove : undefined}
             onClick={
               editable
@@ -231,6 +293,7 @@ function CategoryCard({
             }
           >
             {labelContent}
+            {resizeHandles}
           </div>
         )}
       </div>
@@ -238,22 +301,13 @@ function CategoryCard({
       {labelMovable && labelLayer === "behind" && (
         <div
           aria-hidden
-          className="absolute z-[15] cursor-move rounded-sm ring-2 ring-violet-500/40 ring-offset-1 ring-offset-transparent"
-          style={labelBoxStyle}
+          className="absolute z-[15] cursor-move rounded-sm"
+          style={labelBoxStyleFit}
           onPointerDown={startLabelMove}
-        />
-      )}
-
-      {labelResizable && (
-        <div
-          className="pointer-events-none absolute z-[30] overflow-visible"
-          style={labelBoxStyle}
         >
-          <CanvasLabelResizeHandles
-            layout={card.labelLayout}
-            containerRef={cardBoundsRef}
-            onResize={(patch) => onChange(labelLayoutToPatch(patch))}
-          />
+          {/* Duplikat teks invisible = pengukur tinggi supaya proxy fit teks (ala CTA). */}
+          <div className="invisible">{labelContent}</div>
+          {resizeHandles}
         </div>
       )}
     </div>
@@ -307,6 +361,7 @@ function CategoryCard({
 }
 
 export function CategoryGrid({ blocks, canvas, isMobile = false }: SectionProps) {
+  const hints = useOptionalMessages()?.pages.builder.canvasHints
   const gridRef = useRef<HTMLDivElement>(null)
   const [isWideGrid, setIsWideGrid] = useState(true)
   const [measuredWidth, setMeasuredWidth] = useState(
@@ -386,6 +441,14 @@ export function CategoryGrid({ blocks, canvas, isMobile = false }: SectionProps)
                     itemId: "label",
                   }),
               )}
+              imageSelected={Boolean(
+                canvas &&
+                  isSameSelectedElement(editor?.selectedElement, {
+                    kind: "image",
+                    sectionId: canvas.sectionId,
+                    blockId: card.id,
+                  }),
+              )}
               labelDomKey={
                 canvas
                   ? canvasElementDomKey({
@@ -409,6 +472,44 @@ export function CategoryGrid({ blocks, canvas, isMobile = false }: SectionProps)
                   sectionId: canvas.sectionId,
                   blockId: card.id,
                   itemId: "label",
+                })
+              }}
+              activeImageId={
+                editor?.selectedElement?.kind === "image" &&
+                canvas &&
+                editor.selectedElement.sectionId === canvas.sectionId &&
+                editor.selectedElement.blockId === card.id
+                  ? editor.selectedElement.itemId ?? null
+                  : null
+              }
+              croppingElementKey={editor?.croppingElementKey}
+              imageItemDomKey={(itemId) =>
+                canvas
+                  ? canvasElementDomKey({
+                      kind: "image",
+                      sectionId: canvas.sectionId,
+                      blockId: card.id,
+                      itemId,
+                    })
+                  : undefined
+              }
+              onSelectImage={() => {
+                if (!editor || !canvas) return
+                editor.onSelectBlock?.(canvas.sectionId, card.id)
+                editor.onSelectElement?.({
+                  kind: "image",
+                  sectionId: canvas.sectionId,
+                  blockId: card.id,
+                })
+              }}
+              onSelectImageItem={(itemId) => {
+                if (!editor || !canvas) return
+                editor.onSelectBlock?.(canvas.sectionId, card.id)
+                editor.onSelectElement?.({
+                  kind: "image",
+                  sectionId: canvas.sectionId,
+                  blockId: card.id,
+                  itemId,
                 })
               }}
               onChange={(patch) => {
@@ -435,8 +536,8 @@ export function CategoryGrid({ blocks, canvas, isMobile = false }: SectionProps)
       </div>
       {editable && !editor?.selectedBlockId && (
         <p className="mt-3 text-center text-[11px] text-gray-400">
-          Maks. {MAX_CATEGORY_CARDS} kartu · klik kartu untuk edit · tarik tepi/sudut kartu · drag
-          box judul untuk pindah · tarik ⊙ ungu gambar untuk zoom · drag gambar untuk geser.
+          {hints?.categoryGridTitle.replace("{max}", String(MAX_CATEGORY_CARDS)) ??
+            `Maks. ${MAX_CATEGORY_CARDS} kartu · klik kartu untuk edit · tarik tepi/sudut kartu · drag box judul untuk pindah · tarik ⊙ ungu gambar untuk zoom · drag gambar untuk geser.`}
         </p>
       )}
     </section>

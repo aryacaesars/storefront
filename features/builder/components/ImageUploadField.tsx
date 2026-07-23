@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react"
 import { Upload, X } from "lucide-react"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 
 interface ImageUploadFieldProps {
   value: string | undefined
@@ -17,6 +18,7 @@ export function ImageUploadField({
   onChange,
   storeId,
 }: ImageUploadFieldProps) {
+  const t = useMessages().pages.builder.themeSettings.upload
   const inputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -30,10 +32,10 @@ export function ImageUploadField({
       if (storeId) form.append("storeId", storeId)
       const res = await fetch("/api/upload", { method: "POST", body: form })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? "Upload failed")
+      if (!res.ok) throw new Error(data.error ?? t.failed)
       onChange(data.url as string)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Upload failed")
+      setError(e instanceof Error ? e.message : t.failed)
     } finally {
       setIsUploading(false)
     }
@@ -61,7 +63,7 @@ export function ImageUploadField({
             type="button"
             onClick={() => onChange(undefined)}
             className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/55 text-white transition-colors hover:bg-black/75"
-            aria-label="Remove image"
+            aria-label={t.removeImage}
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -75,7 +77,7 @@ export function ImageUploadField({
         className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-4 text-xs font-medium text-gray-500 transition-colors hover:border-gray-300 hover:bg-gray-100 disabled:opacity-60"
       >
         <Upload className="h-4 w-4 text-gray-400" />
-        {isUploading ? "Uploading..." : value ? "Replace Image" : placeholder}
+        {isUploading ? t.uploading : value ? t.replaceImage : placeholder}
       </button>
 
       {error && <p className="text-[11px] text-red-600">{error}</p>}

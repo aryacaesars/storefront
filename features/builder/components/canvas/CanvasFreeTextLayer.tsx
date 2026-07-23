@@ -39,6 +39,12 @@ interface CanvasFreeTextLayerProps {
   editor?: SectionEditorState
   /** Lebar design untuk skala fontSize (default 1200). */
   designWidth?: number
+  /**
+   * Layer mana yang dirender instance ini (default "front"). Section merender
+   * dua instance: "behind" sebelum layer gambar, "front" sesudahnya — paritas
+   * judul hero yang bisa ditaruh di belakang gambar.
+   */
+  renderLayer?: "front" | "behind"
   onItemsChange: (items: CanvasTextItem[]) => void
 }
 
@@ -54,6 +60,7 @@ export function CanvasFreeTextLayer({
   blockId,
   editor,
   designWidth = 1200,
+  renderLayer = "front",
   onItemsChange,
 }: CanvasFreeTextLayerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -70,17 +77,25 @@ export function CanvasFreeTextLayer({
     return () => observer.disconnect()
   }, [designWidth])
 
-  if (items.length === 0) return null
+  // Filter hanya untuk render — update selalu pakai array `items` penuh.
+  const visibleItems = items.filter(
+    (item) => (item.layer ?? "front") === renderLayer,
+  )
+  if (visibleItems.length === 0) return null
 
   const selectedElement = editor?.selectedElement
 
   return (
     <div
       ref={containerRef}
-      className={cn("absolute inset-0 z-30", !editable && "pointer-events-none")}
+      className={cn(
+        "absolute inset-0",
+        renderLayer === "front" ? "z-30" : "z-0",
+        !editable && "pointer-events-none",
+      )}
       style={{ pointerEvents: "none" }}
     >
-      {items.map((item) => (
+      {visibleItems.map((item) => (
         <CanvasFreeTextBox
           key={item.id}
           item={item}
@@ -211,23 +226,55 @@ function CanvasFreeTextBox({
     }
   }
 
-  /** flipX/flipY: tarik menjauh dari tengah = perbesar; 0 = abaikan sumbu itu. */
-  function startFontScale(flipX: 0 | 1 | -1, flipY: 0 | 1 | -1) {
+  /** flipY: tarik menjauh dari tengah = perbesar (edge atas/bawah). */
+  function startFontScale(flipY: 1 | -1) {
     return function (event: React.PointerEvent<HTMLElement>) {
       event.preventDefault()
       event.stopPropagation()
-      const startX = event.clientX
       const startY = event.clientY
       const startFont = stateRef.current.item.fontSize
       const session = createDragSession(event, stateRef.current.onChange)
       session.arm()
 
       session.listen((e) => {
-        const delta =
-          ((e.clientX - startX) * flipX + (e.clientY - startY) * flipY) / 2
+        const delta = ((e.clientY - startY) * flipY) / 2
         const next = startFont + delta / Math.max(scale, 0.05)
         session.push({
           fontSize: Math.round(Math.max(MIN_FONT_PX, Math.min(MAX_FONT_PX, next))),
+        })
+      })
+    }
+  }
+
+  /**
+   * Drag sudut = scale proporsional ala hero/Canva: lebar box DAN ukuran font
+   * membesar/mengecil bersama, sudut berlawanan jadi anchor.
+   */
+  function startCornerScale(corner: BoxCorner) {
+    return function (event: React.PointerEvent<HTMLElement>) {
+      event.preventDefault()
+      event.stopPropagation()
+      const startX = event.clientX
+      const { x: ox, width: ow, fontSize: ofont } = stateRef.current.item
+      const { w } = frameSize()
+      const anchorRight = ox + ow
+      const isEast = corner === "ne" || corner === "se"
+      const session = createDragSession(event, stateRef.current.onChange)
+      session.arm()
+
+      session.listen((e) => {
+        const dxPct = ((e.clientX - startX) / w) * 100
+        const rawW = isEast ? ow + dxPct : ow - dxPct
+        const newW = Math.max(MIN_TEXT_WIDTH_PCT, Math.min(100, rawW))
+        const factor = newW / ow
+        session.push({
+          width: Math.round(newW * 10) / 10,
+          ...(isEast
+            ? {}
+            : { x: Math.round(Math.max(-10, anchorRight - newW) * 10) / 10 }),
+          fontSize: Math.round(
+            Math.max(MIN_FONT_PX, Math.min(MAX_FONT_PX, ofont * factor)),
+          ),
         })
       })
     }
@@ -288,14 +335,9 @@ function CanvasFreeTextBox({
           onEdgeDrag={(edge: BoxEdge) =>
             edge === "left" || edge === "right"
               ? startWidthResize(edge)
-              : startFontScale(0, edge === "top" ? -1 : 1)
+              : startFontScale(edge === "top" ? -1 : 1)
           }
-          onCornerDrag={(corner: BoxCorner) =>
-            startFontScale(
-              corner === "nw" || corner === "sw" ? -1 : 1,
-              corner === "nw" || corner === "ne" ? -1 : 1,
-            )
-          }
+          onCornerDrag={(corner: BoxCorner) => startCornerScale(corner)}
         />
       )}
     </div>

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ArrowLeft, MoreHorizontal, Monitor, Redo2, Smartphone, Undo2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 
 export type EditorMode = "edit" | "preview"
 export type PreviewDevice = "desktop" | "mobile"
@@ -43,6 +44,7 @@ export function EditorTopbar({
   isSaving = false,
 }: EditorTopbarProps) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const t = useMessages().pages.builder.topbar
 
   const historyButtonClass =
     "flex h-8 w-8 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-40"
@@ -54,8 +56,8 @@ export function EditorTopbar({
         onClick={onUndo}
         disabled={!canUndo}
         className={historyButtonClass}
-        aria-label="Undo"
-        title="Undo (Ctrl+Z)"
+        aria-label={t.undo}
+        title={`${t.undo} (Ctrl+Z)`}
       >
         <Undo2 className="h-4 w-4" />
       </button>
@@ -64,8 +66,8 @@ export function EditorTopbar({
         onClick={onRedo}
         disabled={!canRedo}
         className={historyButtonClass}
-        aria-label="Redo"
-        title="Redo (Ctrl+Shift+Z)"
+        aria-label={t.redo}
+        title={`${t.redo} (Ctrl+Shift+Z)`}
       >
         <Redo2 className="h-4 w-4" />
       </button>
@@ -84,10 +86,10 @@ export function EditorTopbar({
             "inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-indigo-600 px-2.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 md:px-3",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1",
           )}
-          aria-label="Back to dashboard"
+          aria-label={t.backToDashboard}
         >
           <ArrowLeft className="h-4 w-4" />
-          <span className="hidden sm:inline">Dashboard</span>
+          <span className="hidden sm:inline">{t.dashboard}</span>
         </Link>
         <div className="hidden h-5 w-px bg-gray-200 sm:block" />
         <p className="hidden max-w-[9rem] truncate text-sm font-semibold text-gray-900 sm:block md:max-w-xs">
@@ -109,7 +111,7 @@ export function EditorTopbar({
                   : "text-gray-500 hover:text-gray-900",
               )}
             >
-              {tab === "edit" ? "Edit" : "Preview"}
+              {tab === "edit" ? t.edit : t.preview}
             </button>
           ))}
         </div>
@@ -130,7 +132,7 @@ export function EditorTopbar({
                 ? "bg-indigo-50 text-indigo-600"
                 : "text-gray-400 hover:text-gray-700",
             )}
-            aria-label="Desktop preview"
+            aria-label={t.desktopPreview}
           >
             <Monitor className="h-4 w-4" />
           </button>
@@ -143,7 +145,7 @@ export function EditorTopbar({
                 ? "bg-indigo-50 text-indigo-600"
                 : "text-gray-400 hover:text-gray-700",
             )}
-            aria-label="Mobile preview"
+            aria-label={t.mobilePreview}
           >
             <Smartphone className="h-4 w-4" />
           </button>
@@ -151,7 +153,7 @@ export function EditorTopbar({
 
         {mode === "edit" && device === "mobile" && (
           <span className="hidden items-center rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-700 sm:inline-flex">
-            Mobile Layers
+            {t.mobileLayers}
           </span>
         )}
 
@@ -166,7 +168,7 @@ export function EditorTopbar({
               onClick={onResetLayout}
               disabled={isSaving}
             >
-              Reset Layout
+              {t.resetLayout}
             </Button>
           )}
           <Button
@@ -175,21 +177,21 @@ export function EditorTopbar({
             onClick={onSaveDraft}
             disabled={isSaving}
           >
-            Save Draft
+            {t.saveDraft}
           </Button>
           <Button size="sm" onClick={onPublish} disabled={isSaving}>
-            Publish
+            {t.publish}
           </Button>
         </div>
 
         {/* Mobile: Publish + overflow for Save/Reset */}
         <div className="relative flex items-center gap-1 md:hidden">
           <Button size="sm" onClick={onPublish} disabled={isSaving} className="h-8 px-3 text-xs">
-            Publish
+            {t.publish}
           </Button>
           <button
             type="button"
-            aria-label="More menu"
+            aria-label={t.moreMenu}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((v) => !v)}
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
@@ -200,7 +202,7 @@ export function EditorTopbar({
             <>
               <button
                 type="button"
-                aria-label="Close menu"
+                aria-label={t.closeMenu}
                 className="fixed inset-0 z-40"
                 onClick={() => setMenuOpen(false)}
               />
@@ -214,7 +216,7 @@ export function EditorTopbar({
                   }}
                   className="flex w-full px-3.5 py-2.5 text-left text-sm text-gray-800 hover:bg-gray-50 disabled:opacity-50"
                 >
-                  Save Draft
+                  {t.saveDraft}
                 </button>
                 {onResetLayout && (
                   <button
@@ -226,7 +228,7 @@ export function EditorTopbar({
                     }}
                     className="flex w-full px-3.5 py-2.5 text-left text-sm text-gray-800 hover:bg-gray-50 disabled:opacity-50"
                   >
-                    Reset Layout
+                    {t.resetLayout}
                   </button>
                 )}
               </div>

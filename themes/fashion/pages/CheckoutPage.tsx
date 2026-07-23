@@ -53,7 +53,7 @@ export function CheckoutPage({
               </h2>
               {checkoutCustomer && (
                 <Link
-                  href="/account"
+                  href="/account?tab=address"
                   className="text-xs tracking-[0.1em] text-[var(--theme-muted)] hover:text-[var(--theme-text)]"
                 >
                   {checkoutAddress ? "Ubah alamat" : "Tambah alamat"}
@@ -71,7 +71,7 @@ export function CheckoutPage({
             ) : !checkoutAddress ? (
               <div className="mt-5 text-center">
                 <p className="text-sm text-[var(--theme-muted)]">Belum ada alamat.</p>
-                <Link href="/account" className="mt-2 inline-block text-sm text-[var(--theme-text)]">
+                <Link href="/account?tab=address" className="mt-2 inline-block text-sm text-[var(--theme-text)]">
                   Tambah alamat
                 </Link>
               </div>

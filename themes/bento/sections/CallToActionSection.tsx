@@ -90,6 +90,21 @@ export function CallToActionSection({ settings, blocks, canvas }: SectionProps) 
           aspectRatio: `${SPEC.frame.width} / ${SPEC.frame.height}`,
         }}
       >
+        <CanvasFreeTextLayer
+          items={canvasTexts}
+          editable={editable}
+          interactive={interactive}
+          sectionId={sectionId}
+          blockId={imageBlock?.id}
+          editor={editor}
+          designWidth={SPEC.frame.width}
+          renderLayer="behind"
+          onItemsChange={(texts) =>
+            imageBlock &&
+            editor?.onBlockChange?.(canvas!.sectionId, imageBlock.id, { texts })
+          }
+        />
+
         {canvasImages.length > 0 && imageBlock && (
           <div
             className={cn("absolute inset-0", !editable && "pointer-events-none")}

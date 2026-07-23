@@ -47,7 +47,11 @@ import {
 } from "@/themes/bento/sections/hero-cta-layout"
 import type { BlockInstance, SectionPageType, ThemeConfig } from "@/themes/engine/schema"
 import type { PreviewDevice } from "@/features/builder/components/EditorTopbar"
+import { useMessages } from "@/features/i18n/LocaleProvider"
+import type { Messages } from "@/features/i18n/messages"
 import { cn } from "@/lib/utils"
+
+type LayersMessages = Messages["pages"]["builder"]["layersPanel"]
 
 interface BuilderLayersPanelProps {
   config: ThemeConfig
@@ -112,6 +116,7 @@ function collectLayerRows(
   selectedPage: SectionPageType,
   sectionId: string,
   isMobile: boolean,
+  t: LayersMessages,
 ): { sectionLabel: string; rows: LayerRow[]; blockCount: number } | null {
   const resolved = resolvePageTemplate(config, selectedPage)
   const instance = resolved.sections[sectionId]
@@ -134,8 +139,8 @@ function collectLayerRows(
     items.forEach((item, itemIndex) => {
       rows.push({
         element: { kind: "image", sectionId, blockId: block.id, itemId: item.id },
-        label: `Image ${itemIndex + 1}`,
-        sublabel: `Z ${itemIndex + 1}`,
+        label: t.imageN.replace("{n}", String(itemIndex + 1)),
+        sublabel: t.zN.replace("{n}", String(itemIndex + 1)),
         imageUrl: item.src,
         block,
         blockIndex,
@@ -159,8 +164,8 @@ function collectLayerRows(
     for (const text of texts) {
       rows.push({
         element: { kind: "text", sectionId, blockId: block.id, itemId: text.id },
-        label: text.value || "Empty text",
-        sublabel: "Free text",
+        label: text.value || t.emptyText,
+        sublabel: t.freeText,
         block,
         blockIndex,
       })
@@ -179,8 +184,8 @@ function collectLayerRows(
     for (const button of buttons) {
       rows.push({
         element: { kind: "button", sectionId, blockId: block.id, itemId: button.id },
-        label: button.label || "Button",
-        sublabel: "Button",
+        label: button.label || t.button,
+        sublabel: t.button,
         block,
         blockIndex,
       })
@@ -191,8 +196,8 @@ function collectLayerRows(
       const label = typeof settings?.label === "string" ? settings.label : ""
       rows.push({
         element: { kind: "text", sectionId, blockId: block.id, itemId: "label" },
-        label: label || "Empty label",
-        sublabel: "Card label",
+        label: label || t.emptyLabel,
+        sublabel: t.cardLabel,
         block,
         blockIndex,
       })
@@ -202,8 +207,8 @@ function collectLayerRows(
     if (block.type === "hero-media") {
       rows.push({
         element: { kind: "frame", sectionId, blockId: block.id },
-        label: "Hero card & background",
-        sublabel: "Background",
+        label: t.heroCardBg,
+        sublabel: t.background,
         block,
         blockIndex,
       })
@@ -212,16 +217,17 @@ function collectLayerRows(
     // Hero title lines live on the media block.
     if (block.type === "hero-media") {
       const lines: Array<{ id: "title1" | "title2"; value: string }> = [
-        { id: "title1", value: config.hero?.title ?? "Title 1" },
-        { id: "title2", value: config.hero?.subtitle ?? "Title 2" },
+        { id: "title1", value: config.hero?.title ?? t.fallbackTitle1 },
+        { id: "title2", value: config.hero?.subtitle ?? t.fallbackTitle2 },
       ]
       for (const line of lines) {
         if (settings?.[`${line.id}Hidden`] === true) continue
         rows.push({
           element: { kind: "text", sectionId, blockId: block.id, itemId: line.id },
-          label: line.value || (line.id === "title1" ? "Title 1" : "Title 2"),
+          label:
+            line.value || (line.id === "title1" ? t.fallbackTitle1 : t.fallbackTitle2),
           sublabel:
-            settings?.[`${line.id}Layer`] === "behind" ? "Text behind" : "Text in front",
+            settings?.[`${line.id}Layer`] === "behind" ? t.textBehind : t.textInFront,
           block,
           blockIndex,
         })
@@ -233,8 +239,8 @@ function collectLayerRows(
       const label = typeof settings?.label === "string" ? settings.label : undefined
       rows.push({
         element: { kind: "button", sectionId, blockId: block.id },
-        label: label || config.hero?.ctaLabel || "CTA button",
-        sublabel: "Button",
+        label: label || config.hero?.ctaLabel || t.ctaButton,
+        sublabel: t.button,
         block,
         blockIndex,
       })
@@ -245,8 +251,8 @@ function collectLayerRows(
       const rawUrl = settings?.imageUrl
       rows.push({
         element: { kind: "image", sectionId, blockId: block.id },
-        label: def?.label ?? `Image ${blockIndex + 1}`,
-        sublabel: `Layer ${blockIndex + 1} · Z ${blockIndex + 1}`,
+        label: def?.label ?? t.imageN.replace("{n}", String(blockIndex + 1)),
+        sublabel: t.layerZ.replace(/\{n\}/g, String(blockIndex + 1)),
         imageUrl: typeof rawUrl === "string" ? rawUrl : undefined,
         block,
         blockIndex,
@@ -273,8 +279,9 @@ export function BuilderLayersPanel({
   onPatchBlock,
   onReorderBlocks,
 }: BuilderLayersPanelProps) {
+  const t = useMessages().pages.builder.layersPanel
   const layerData = selectedSectionId
-    ? collectLayerRows(config, selectedPage, selectedSectionId, device === "mobile")
+    ? collectLayerRows(config, selectedPage, selectedSectionId, device === "mobile", t)
     : null
 
   const selectRow = (row: LayerRow) => {
@@ -300,31 +307,25 @@ export function BuilderLayersPanel({
   return (
     <div className="flex flex-col gap-4 p-4">
       <div>
-        <h2 className="text-sm font-semibold text-gray-900">Layer</h2>
+        <h2 className="text-sm font-semibold text-gray-900">{t.title}</h2>
         <p className="mt-1 text-xs text-gray-400">
           {layerData
-            ? `Elements in “${layerData.sectionLabel}” — position, Z order, and alignment.`
-            : "Select a section in the preview to manage layers."}
+            ? t.elementsIn.replace("{section}", layerData.sectionLabel)
+            : t.selectSection}
         </p>
       </div>
 
       {!selectedSectionId || !layerData ? (
         <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center">
           <Layers className="mx-auto h-6 w-6 text-gray-300" />
-          <p className="mt-2 text-xs font-medium text-gray-500">
-            No section selected
-          </p>
-          <p className="mt-1 text-[11px] text-gray-400">
-            Click a section in the preview, then adjust position and element order here.
-          </p>
+          <p className="mt-2 text-xs font-medium text-gray-500">{t.noSection}</p>
+          <p className="mt-1 text-[11px] text-gray-400">{t.noSectionHint}</p>
         </div>
       ) : layerData.rows.length === 0 ? (
         <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center">
           <ImageIcon className="mx-auto h-6 w-6 text-gray-300" />
-          <p className="mt-2 text-xs font-medium text-gray-500">No layers</p>
-          <p className="mt-1 text-[11px] text-gray-400">
-            This section has no adjustable elements yet.
-          </p>
+          <p className="mt-2 text-xs font-medium text-gray-500">{t.noLayers}</p>
+          <p className="mt-1 text-[11px] text-gray-400">{t.noLayersHint}</p>
         </div>
       ) : (
         <ul className="space-y-2">
@@ -383,7 +384,7 @@ export function BuilderLayersPanel({
                 {isSelected && row.item && row.items && (
                   <div className="space-y-3 border-t border-gray-100 px-3 py-3">
                     <div className="grid grid-cols-2 gap-2">
-                      <SettingsField label="X (%)">
+                      <SettingsField label={t.x}>
                         <SettingsInput
                           type="number"
                           value={row.item.x}
@@ -392,7 +393,7 @@ export function BuilderLayersPanel({
                           }
                         />
                       </SettingsField>
-                      <SettingsField label="Y (%)">
+                      <SettingsField label={t.y}>
                         <SettingsInput
                           type="number"
                           value={row.item.y}
@@ -403,31 +404,31 @@ export function BuilderLayersPanel({
                       </SettingsField>
                     </div>
 
-                    <SettingsField label="Z order">
+                    <SettingsField label={t.zOrder}>
                       <div className="grid grid-cols-4 gap-1.5">
                         <ArrangeButton
-                          label="Send to back"
+                          label={t.sendToBack}
                           disabled={row.itemIndex === 0}
                           onClick={() => moveItem(row, "back")}
                         >
                           <ArrowDownToLine className="h-3.5 w-3.5" />
                         </ArrangeButton>
                         <ArrangeButton
-                          label="Send backward"
+                          label={t.sendBackward}
                           disabled={row.itemIndex === 0}
                           onClick={() => moveItem(row, "backward")}
                         >
                           <ArrowDown className="h-3.5 w-3.5" />
                         </ArrangeButton>
                         <ArrangeButton
-                          label="Bring forward"
+                          label={t.bringForward}
                           disabled={row.itemIndex === row.items.length - 1}
                           onClick={() => moveItem(row, "forward")}
                         >
                           <ArrowUp className="h-3.5 w-3.5" />
                         </ArrangeButton>
                         <ArrangeButton
-                          label="Bring to front"
+                          label={t.bringToFront}
                           disabled={row.itemIndex === row.items.length - 1}
                           onClick={() => moveItem(row, "front")}
                         >
@@ -436,16 +437,16 @@ export function BuilderLayersPanel({
                       </div>
                     </SettingsField>
 
-                    <SettingsField label="Align on canvas">
+                    <SettingsField label={t.alignOnCanvas}>
                       <div className="grid grid-cols-6 gap-1.5">
                         <ArrangeButton
-                          label="Left"
+                          label={t.alignLeft}
                           onClick={() => patchItem(row, { x: 0 })}
                         >
                           <AlignStartVertical className="h-3.5 w-3.5" />
                         </ArrangeButton>
                         <ArrangeButton
-                          label="Center horizontally"
+                          label={t.alignCenterH}
                           onClick={() =>
                             patchItem(row, {
                               x: Math.round((100 - row.item!.width) / 2),
@@ -455,7 +456,7 @@ export function BuilderLayersPanel({
                           <AlignCenterVertical className="h-3.5 w-3.5" />
                         </ArrangeButton>
                         <ArrangeButton
-                          label="Right"
+                          label={t.alignRight}
                           onClick={() =>
                             patchItem(row, { x: Math.max(0, 100 - row.item!.width) })
                           }
@@ -463,13 +464,13 @@ export function BuilderLayersPanel({
                           <AlignEndVertical className="h-3.5 w-3.5" />
                         </ArrangeButton>
                         <ArrangeButton
-                          label="Top"
+                          label={t.alignTop}
                           onClick={() => patchItem(row, { y: 0 })}
                         >
                           <AlignStartHorizontal className="h-3.5 w-3.5" />
                         </ArrangeButton>
                         <ArrangeButton
-                          label="Center vertically"
+                          label={t.alignCenterV}
                           onClick={() =>
                             patchItem(row, {
                               y: Math.round((100 - row.item!.height) / 2),
@@ -479,7 +480,7 @@ export function BuilderLayersPanel({
                           <AlignCenterHorizontal className="h-3.5 w-3.5" />
                         </ArrangeButton>
                         <ArrangeButton
-                          label="Bottom"
+                          label={t.alignBottom}
                           onClick={() =>
                             patchItem(row, { y: Math.max(0, 100 - row.item!.height) })
                           }
@@ -495,7 +496,7 @@ export function BuilderLayersPanel({
                   <div className="space-y-3 border-t border-gray-100 px-3 py-3">
                     <div className="grid grid-cols-2 gap-2">
                       <SettingsField
-                        label={"xPct" in (row.block.settings ?? {}) ? "Offset X (%)" : "Offset X"}
+                        label={"xPct" in (row.block.settings ?? {}) ? t.offsetXPct : t.offsetX}
                       >
                         <SettingsInput
                           type="number"
@@ -512,7 +513,7 @@ export function BuilderLayersPanel({
                         />
                       </SettingsField>
                       <SettingsField
-                        label={"xPct" in (row.block.settings ?? {}) ? "Offset Y (px)" : "Offset Y"}
+                        label={"xPct" in (row.block.settings ?? {}) ? t.offsetYPx : t.offsetY}
                       >
                         <SettingsInput
                           type="number"
@@ -530,7 +531,7 @@ export function BuilderLayersPanel({
                       </SettingsField>
                     </div>
 
-                    <SettingsField label="Z order (front / back)">
+                    <SettingsField label={t.zOrderFrontBack}>
                       <div className="flex gap-2">
                         <button
                           type="button"
@@ -545,7 +546,7 @@ export function BuilderLayersPanel({
                           className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-lg border border-gray-200 text-[11px] font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           <ArrowDown className="h-3.5 w-3.5" />
-                          Back
+                          {t.back}
                         </button>
                         <button
                           type="button"
@@ -560,18 +561,18 @@ export function BuilderLayersPanel({
                           className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-lg border border-gray-200 text-[11px] font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           <ArrowUp className="h-3.5 w-3.5" />
-                          Front
+                          {t.front}
                         </button>
                       </div>
                     </SettingsField>
 
                     {row.hasLabelLayer && (
-                      <SettingsField label="Text vs image">
+                      <SettingsField label={t.textVsImage}>
                         <SegmentedControl
                           value={resolved?.labelLayer === "behind" ? "behind" : "front"}
                           options={[
-                            { value: "front", label: "Text in front" },
-                            { value: "behind", label: "Text behind" },
+                            { value: "front", label: t.textInFront },
+                            { value: "behind", label: t.textBehind },
                           ]}
                           onChange={(value) =>
                             onPatchBlock(selectedSectionId, row.block.id, {
@@ -594,16 +595,16 @@ export function BuilderLayersPanel({
                     onPatchBlock(selectedSectionId, row.block.id, patch)
                   return (
                     <div className="border-t border-gray-100 px-3 py-3">
-                      <SettingsField label="Align on canvas">
+                      <SettingsField label={t.alignOnCanvas}>
                         <div className="grid grid-cols-6 gap-1.5">
                           <ArrangeButton
-                            label="Left"
+                            label={t.alignLeft}
                             onClick={() => alignCta({ xPct: 0 })}
                           >
                             <AlignStartVertical className="h-3.5 w-3.5" />
                           </ArrangeButton>
                           <ArrangeButton
-                            label="Center horizontally"
+                            label={t.alignCenterH}
                             onClick={() =>
                               alignCta({
                                 xPct: Math.round((100 - ctaLayout.wPct) / 2),
@@ -613,7 +614,7 @@ export function BuilderLayersPanel({
                             <AlignCenterVertical className="h-3.5 w-3.5" />
                           </ArrangeButton>
                           <ArrangeButton
-                            label="Right"
+                            label={t.alignRight}
                             onClick={() =>
                               alignCta({ xPct: Math.max(0, 100 - ctaLayout.wPct) })
                             }
@@ -621,13 +622,13 @@ export function BuilderLayersPanel({
                             <AlignEndVertical className="h-3.5 w-3.5" />
                           </ArrangeButton>
                           <ArrangeButton
-                            label="Top"
+                            label={t.alignTop}
                             onClick={() => alignCta({ yPx: 0 })}
                           >
                             <AlignStartHorizontal className="h-3.5 w-3.5" />
                           </ArrangeButton>
                           <ArrangeButton
-                            label="Center vertically"
+                            label={t.alignCenterV}
                             onClick={() =>
                               alignCta({
                                 yPx: Math.round(
@@ -639,7 +640,7 @@ export function BuilderLayersPanel({
                             <AlignCenterHorizontal className="h-3.5 w-3.5" />
                           </ArrangeButton>
                           <ArrangeButton
-                            label="Bottom"
+                            label={t.alignBottom}
                             onClick={() =>
                               alignCta({
                                 yPx: Math.max(0, HERO_DESIGN_HEIGHT - ctaLayout.hPx),
@@ -656,7 +657,7 @@ export function BuilderLayersPanel({
 
                 {isSelected && row.element.kind === "text" && (
                   <div className="border-t border-gray-100 px-3 py-3">
-                    <SettingsField label="Text layer">
+                    <SettingsField label={t.textLayer}>
                       <SegmentedControl
                         value={
                           resolved?.[`${row.element.itemId}Layer`] === "behind"
@@ -664,8 +665,8 @@ export function BuilderLayersPanel({
                             : "front"
                         }
                         options={[
-                          { value: "front", label: "In front of image" },
-                          { value: "behind", label: "Behind image" },
+                          { value: "front", label: t.inFrontOfImage },
+                          { value: "behind", label: t.behindImage },
                         ]}
                         onChange={(value) =>
                           onPatchBlock(selectedSectionId, row.block.id, {

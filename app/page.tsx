@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { getAppContext, getTenantSubdomain } from "@/features/tenant/resolve-tenant"
 import BuilderLandingPage from "@/features/builder/landing/BuilderLandingPage"
 import { getTrendingCatalogProductsForTenant } from "@/features/storefront/catalog"
+import { getCustomerSession } from "@/features/storefront/customer-dal"
 import { StorefrontShell } from "@/features/storefront/StorefrontShell"
 import { getStorefrontThemeConfig } from "@/features/storefront/theme-config"
 import { storefrontIconMetadata } from "@/features/storefront/store-favicon"
@@ -25,14 +26,19 @@ export default async function Home() {
 
   if (context === "storefront") {
     const tenantSlug = await getTenantSubdomain()
-    const [config, products] = await Promise.all([
+    const [config, products, session] = await Promise.all([
       getStorefrontThemeConfig(tenantSlug),
       getTrendingCatalogProductsForTenant(tenantSlug, 8),
+      getCustomerSession(),
     ])
 
     return (
       <StorefrontShell fullPage>
-        <ThemeHomeView config={config} products={products} />
+        <ThemeHomeView
+          config={config}
+          products={products}
+          customerName={session ? (session.name ?? session.email) : null}
+        />
       </StorefrontShell>
     )
   }

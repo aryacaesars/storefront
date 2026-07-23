@@ -16,16 +16,18 @@ export type ResolvedProductDetail = {
 export function resolveProductDetail(
   slug: string | undefined,
   product: CatalogProduct | null | undefined,
-  products: CatalogProduct[],
+  products: CatalogProduct[] | undefined,
   mockProducts: CatalogProduct[],
 ): ResolvedProductDetail {
-  const hasLiveFeed = products.length > 0 || product != null
+  // products undefined = builder/preview (mock allowed); array = live tenant.
+  const hasLiveFeed = products !== undefined || product != null
+  const list = products ?? []
 
   const resolved =
-    product ?? (slug ? products.find((p) => p.slug === slug) : undefined) ?? null
+    product ?? (slug ? list.find((p) => p.slug === slug) : undefined) ?? null
 
   if (resolved) {
-    const pool = products.length > 0 ? products : mockProducts
+    const pool = hasLiveFeed ? list : mockProducts
     return {
       product: resolved,
       related: pool.filter((p) => p.slug !== resolved.slug),
@@ -34,7 +36,7 @@ export function resolveProductDetail(
   }
 
   if (hasLiveFeed) {
-    return { product: null, related: products, isLiveCatalog: true }
+    return { product: null, related: list, isLiveCatalog: true }
   }
 
   const mock =

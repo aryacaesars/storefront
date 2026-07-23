@@ -9,7 +9,13 @@ interface RelatedProductsProps {
 }
 
 export function RelatedProducts({ products }: RelatedProductsProps) {
-  const useLive = products != null && products.length > 0
+  // products undefined = builder/preview (mock); array (walau kosong) = live.
+  const useLive = products != null
+
+  // Live tanpa produk terkait — sembunyikan section, jangan tampilkan mock.
+  if (useLive && products.length === 0) {
+    return null
+  }
 
   return (
     <div>

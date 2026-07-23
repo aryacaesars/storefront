@@ -20,6 +20,7 @@ import {
   type SelectedElement,
 } from "@/themes/engine/section-editor"
 import {
+  addImageToArray,
   deleteImageFromArray,
   isImageHeroBackground,
   parseCanvasImages,
@@ -31,6 +32,7 @@ import {
 import {
   deleteTextFromArray,
   stylePayloadToTextPatch,
+  TEXT_STYLE_RESET_PATCH,
   textItemToStylePayload,
   updateTextInArray,
   type CanvasTextItem,
@@ -52,11 +54,19 @@ import {
   HERO_TITLE_STYLE_KEYS,
 } from "@/themes/bento/sections/hero-title-style"
 import {
+  blockToCategoryCard,
+  FASHION_LABEL_BASE_PX,
+  LABEL_STYLE_KEYS,
+  labelFontBoxRatio,
+  parseLabelStyle,
+} from "@/themes/bento/sections/category-grid-layout"
+import {
   heroTitleLayoutToPatch,
   parseHeroTitleLayout,
 } from "@/themes/bento/sections/hero-title-layout"
 import { HERO_DESIGN_HEIGHT } from "@/themes/bento/sections/hero-cta-layout"
 import { HEADING_FONT_OPTIONS } from "@/lib/themes/fonts"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 import type { SectionPageType, ThemeConfig } from "@/themes/engine/schema"
 
 interface CanvasElementToolbarProps {
@@ -124,6 +134,12 @@ export function CanvasElementToolbar({
   onDeselect,
   mobile = false,
 }: CanvasElementToolbarProps) {
+  const tb = useMessages().pages.builder.toolbar
+  const weightLabels: Record<WeightOption, string> = {
+    light: tb.weightLight,
+    normal: tb.weightNormal,
+    bold: tb.weightBold,
+  }
   const [removingBg, setRemovingBg] = useState(false)
   const [removeBgError, setRemoveBgError] = useState<string | null>(null)
   /** null = belum dicek; false = API key belum dikonfigurasi. */
@@ -293,9 +309,7 @@ export function CanvasElementToolbar({
     editPanel = (
       <div className="space-y-3">
         <p className="text-[11px] leading-snug text-gray-500">
-          {hasCardWrapper
-            ? "Adjust hero card and section background colors in the Color panel in the sidebar."
-            : "Adjust hero background color in the Color panel in the sidebar."}
+          {hasCardWrapper ? tb.frameColorHintCard : tb.frameColorHint}
         </p>
         <button
           type="button"
@@ -310,7 +324,7 @@ export function CanvasElementToolbar({
           }
           className="inline-flex h-7 w-full items-center justify-center rounded-lg border border-gray-200 text-[11px] font-medium text-gray-500 hover:bg-gray-50"
         >
-          Reset colors to theme default
+          {tb.resetColors}
         </button>
       </div>
     )
@@ -398,7 +412,7 @@ export function CanvasElementToolbar({
           )}
         >
           <ImageIcon className="h-3.5 w-3.5" />
-          {isBackground ? "Restore normal size" : "Set as hero background"}
+          {isBackground ? tb.restoreNormalSize : tb.setHeroBackground}
         </button>
         <button
           type="button"
@@ -411,7 +425,7 @@ export function CanvasElementToolbar({
           ) : (
             <Upload className="h-3.5 w-3.5" />
           )}
-          {device === "mobile" ? "Replace photo (mobile only)" : "Replace photo"}
+          {device === "mobile" ? tb.replacePhotoMobile : tb.replacePhoto}
         </button>
         {device === "mobile" && (
           <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-gray-100 bg-gray-50 px-2.5 py-2">
@@ -428,15 +442,15 @@ export function CanvasElementToolbar({
               className="mt-0.5 h-3.5 w-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
             />
             <span className="text-[11px] leading-snug text-gray-600">
-              Photo separate from desktop
+              {tb.photoSeparateMobile}
               <span className="mt-0.5 block text-[10px] text-gray-400">
-                Turn off to follow the desktop photo again
+                {tb.photoFollowDesktop}
               </span>
             </span>
           </label>
         )}
         <PanelSlider
-          label="Opacity"
+          label={tb.opacity}
           value={item.opacity}
           min={0}
           max={100}
@@ -444,16 +458,16 @@ export function CanvasElementToolbar({
           suffix="%"
           onChange={(v) => patchItem({ opacity: v })}
         />
-        <PanelRow label="Flip">
+        <PanelRow label={tb.flip}>
           <PanelIconToggle
-            label="Flip horizontal"
+            label={tb.flipH}
             active={item.flipH}
             onClick={() => patchItem({ flipH: !item.flipH })}
           >
             <FlipHorizontal2 className="h-3.5 w-3.5" />
           </PanelIconToggle>
           <PanelIconToggle
-            label="Flip vertical"
+            label={tb.flipV}
             active={item.flipV}
             onClick={() => patchItem({ flipV: !item.flipV })}
           >
@@ -461,7 +475,7 @@ export function CanvasElementToolbar({
           </PanelIconToggle>
         </PanelRow>
         <PanelSlider
-          label="Rotation"
+          label={tb.rotation}
           value={item.rotation}
           min={-180}
           max={180}
@@ -469,7 +483,7 @@ export function CanvasElementToolbar({
           suffix="°"
           onChange={(v) => patchItem({ rotation: v })}
         />
-        <PanelRow label="Crop">
+        <PanelRow label={tb.crop}>
           <button
             type="button"
             onClick={() => onCroppingKeyChange(isCropping ? null : domKey)}
@@ -481,7 +495,7 @@ export function CanvasElementToolbar({
             )}
           >
             <Crop className="h-3.5 w-3.5" />
-            {isCropping ? "Done" : "Crop"}
+            {isCropping ? tb.done : tb.crop}
           </button>
           {item.crop && (
             <button
@@ -489,7 +503,7 @@ export function CanvasElementToolbar({
               onClick={resetCrop}
               className="inline-flex h-7 items-center rounded-lg border border-gray-200 px-2.5 text-[11px] font-medium text-gray-700 hover:bg-gray-50"
             >
-              Reset
+              {tb.reset}
             </button>
           )}
         </PanelRow>
@@ -523,7 +537,7 @@ export function CanvasElementToolbar({
           className="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 text-[11px] font-semibold text-red-700 hover:bg-red-100"
         >
           <Trash2 className="h-3.5 w-3.5" />
-          Remove image
+          {tb.removeImage}
         </button>
       </div>
     )
@@ -535,10 +549,55 @@ export function CanvasElementToolbar({
     const flipV = settings?.imgFlipV === true
     const imageUrl = typeof settings?.imageUrl === "string" ? settings.imageUrl : ""
 
+    const replaceLegacyImage = () => {
+      const input = document.createElement("input")
+      input.type = "file"
+      input.accept = "image/png,image/jpeg,image/webp,image/svg+xml"
+      input.onchange = () => {
+        const file = input.files?.[0]
+        if (!file) return
+        void (async () => {
+          setReplacingImage(true)
+          setRemoveBgError(null)
+          try {
+            const form = new FormData()
+            form.append("file", file)
+            if (storeId) form.append("storeId", storeId)
+            const res = await fetch("/api/upload", { method: "POST", body: form })
+            const data = (await res.json()) as { url?: string; error?: string }
+            if (!res.ok || !data.url) {
+              throw new Error(data.error ?? "Upload failed")
+            }
+            patch({ imageUrl: data.url })
+          } catch (err) {
+            setRemoveBgError(
+              err instanceof Error ? err.message : "Failed to replace photo.",
+            )
+          } finally {
+            setReplacingImage(false)
+          }
+        })()
+      }
+      input.click()
+    }
+
     editPanel = (
       <div className="space-y-3">
+        <button
+          type="button"
+          disabled={replacingImage}
+          onClick={replaceLegacyImage}
+          className="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 text-[11px] font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-60"
+        >
+          {replacingImage ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Upload className="h-3.5 w-3.5" />
+          )}
+          {imageUrl ? tb.replacePhoto : tb.uploadPhoto}
+        </button>
         <PanelSlider
-          label="Opacity"
+          label={tb.opacity}
           value={opacity}
           min={0}
           max={100}
@@ -546,16 +605,16 @@ export function CanvasElementToolbar({
           suffix="%"
           onChange={(v) => patch({ imgOpacity: v })}
         />
-        <PanelRow label="Flip">
+        <PanelRow label={tb.flip}>
           <PanelIconToggle
-            label="Flip horizontal"
+            label={tb.flipH}
             active={flipH}
             onClick={() => patch({ imgFlipH: !flipH })}
           >
             <FlipHorizontal2 className="h-3.5 w-3.5" />
           </PanelIconToggle>
           <PanelIconToggle
-            label="Flip vertical"
+            label={tb.flipV}
             active={flipV}
             onClick={() => patch({ imgFlipV: !flipV })}
           >
@@ -563,7 +622,7 @@ export function CanvasElementToolbar({
           </PanelIconToggle>
         </PanelRow>
         <PanelSlider
-          label="Rotation"
+          label={tb.rotation}
           value={rotation}
           min={-180}
           max={180}
@@ -571,6 +630,21 @@ export function CanvasElementToolbar({
           suffix="°"
           onChange={(v) => patch({ imgRotation: v })}
         />
+        {imageUrl && (
+          <button
+            type="button"
+            onClick={() => {
+              // Konversi ke box canvas bebas (model hero) — bisa digeser,
+              // di-resize, dan di-crop lepas dari bounding block.
+              patch({ images: addImageToArray([], imageUrl), imageUrl: "" })
+              onDeselect()
+            }}
+            className="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 text-[11px] font-semibold text-indigo-700 hover:bg-indigo-100"
+          >
+            <Crop className="h-3.5 w-3.5" />
+            {tb.convertToCanvas}
+          </button>
+        )}
         {imageUrl && (
           <div className="border-t border-gray-100 pt-3">
             <RemoveBgAction
@@ -629,13 +703,13 @@ export function CanvasElementToolbar({
 
     editPanel = (
       <div className="space-y-3">
-        <PanelRow label="Font">
+        <PanelRow label={tb.font}>
           <select
             value={fontFamily}
             onChange={(e) => patch({ [key("FontFamily")]: e.target.value })}
             className="h-7 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-[11px] text-gray-800 outline-none focus:border-indigo-300"
           >
-            <option value="">Theme default</option>
+            <option value="">{tb.themeDefault}</option>
             {HEADING_FONT_OPTIONS.map((f) => (
               <option key={f} value={f}>
                 {f}
@@ -643,7 +717,7 @@ export function CanvasElementToolbar({
             ))}
           </select>
         </PanelRow>
-        <PanelRow label="Weight">
+        <PanelRow label={tb.weight}>
           <div className="flex flex-1 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
             {(["light", "normal", "bold"] as const).map((option) => (
               <button
@@ -660,12 +734,12 @@ export function CanvasElementToolbar({
                     : "text-gray-500 hover:text-gray-800",
                 )}
               >
-                {option}
+                {weightLabels[option]}
               </button>
             ))}
           </div>
         </PanelRow>
-        <PanelRow label="Size">
+        <PanelRow label={tb.size}>
           <input
             type="number"
             value={fontPx}
@@ -676,16 +750,16 @@ export function CanvasElementToolbar({
           />
           <span className="text-[10px] font-medium text-gray-400">px</span>
         </PanelRow>
-        <PanelRow label="Style">
+        <PanelRow label={tb.styleRow}>
           <PanelIconToggle
-            label="Italic"
+            label={tb.italic}
             active={italic}
             onClick={() => patch({ [key("FontStyle")]: italic ? "normal" : "italic" })}
           >
             <span className="text-[11px] italic">I</span>
           </PanelIconToggle>
           <PanelIconToggle
-            label="Underline"
+            label={tb.underline}
             active={underline}
             onClick={() =>
               patch({ [key("TextDecoration")]: underline ? "none" : "underline" })
@@ -694,7 +768,7 @@ export function CanvasElementToolbar({
             <span className="text-[11px] underline">U</span>
           </PanelIconToggle>
           <PanelIconToggle
-            label="Uppercase"
+            label={tb.uppercase}
             active={uppercase}
             onClick={() =>
               patch({ [key("TextTransform")]: uppercase ? "none" : "uppercase" })
@@ -704,7 +778,7 @@ export function CanvasElementToolbar({
           </PanelIconToggle>
         </PanelRow>
         <PanelSlider
-          label="Letter spacing"
+          label={tb.letterSpacing}
           value={letterSpacing}
           min={-0.1}
           max={0.5}
@@ -713,7 +787,7 @@ export function CanvasElementToolbar({
           onChange={(v) => patch({ [key("LetterSpacing")]: v })}
         />
         <PanelSlider
-          label="Line spacing"
+          label={tb.lineSpacing}
           value={lineHeight}
           min={0.8}
           max={2}
@@ -721,7 +795,7 @@ export function CanvasElementToolbar({
           onChange={(v) => patch({ [key("LineHeight")]: v })}
         />
         <PanelSlider
-          label="Opacity"
+          label={tb.opacity}
           value={opacity}
           min={0}
           max={100}
@@ -736,7 +810,7 @@ export function CanvasElementToolbar({
             onClick={() => onCopiedTextStyleChange(copyableStyle)}
             className="inline-flex h-7 w-full items-center justify-center rounded-lg border border-gray-200 text-[11px] font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {copyableStyle ? "Copy this text style" : "No custom style yet"}
+            {copyableStyle ? tb.copyThisStyle : tb.noCustomStyle}
           </button>
           <button
             type="button"
@@ -747,7 +821,7 @@ export function CanvasElementToolbar({
             }}
             className="inline-flex h-7 w-full items-center justify-center rounded-lg border border-gray-200 text-[11px] font-medium text-gray-500 hover:bg-gray-50"
           >
-            Reset style to theme default
+            {tb.resetStyle}
           </button>
           <button
             type="button"
@@ -758,10 +832,10 @@ export function CanvasElementToolbar({
             className="inline-flex h-7 w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 text-[11px] font-medium text-red-600 hover:bg-red-50"
           >
             <Trash2 className="h-3.5 w-3.5" />
-            Remove text
+            {tb.removeText}
           </button>
           <p className="text-center text-[10px] text-gray-400">
-            Copy: Ctrl+Shift+C · Paste: Ctrl+Shift+V
+            {tb.copyPasteHint}
           </p>
         </div>
       </div>
@@ -775,47 +849,207 @@ export function CanvasElementToolbar({
   } else if (
     element.kind === "text" &&
     element.itemId === "label" &&
-    block.type === "category-card"
+    (block.type === "category-card" || block.type === "section-text")
   ) {
-    // ── Label kartu kategori ───────────────────────────────────────────────────
+    // ── Label kartu kategori / teks section ────────────────────────────────────
+    const isSectionText = block.type === "section-text"
     const label = typeof settings?.label === "string" ? settings.label : ""
     const labelLayer = settings?.labelLayer === "behind" ? "behind" : "front"
+    const isFashionCard = !isSectionText && config.templateId === "fashion"
+    const ls = parseLabelStyle(settings)
+    const defaultWeight = config.templateId === "bento" || config.templateId === "bold" ? 700 : 500
+    const weightOption = weightToOption(ls.fontWeight ?? defaultWeight)
+
+    // Ukuran font (design px) ↔ sizeScale — box label sumber ukuran auto,
+    // input px di-back-calc ke multiplier supaya resize box tetap sinkron.
+    // section-text: basis fix labelBasePx (teks in-flow, tanpa box).
+    const card = isSectionText
+      ? null
+      : blockToCategoryCard(
+          { ...block, settings: (settings ?? {}) as typeof block.settings },
+          0,
+        )
+    const baseFontPx = isSectionText
+      ? Math.max(1, num(settings?.labelBasePx, 20))
+      : isFashionCard
+        ? FASHION_LABEL_BASE_PX
+        : Math.max(
+            1,
+            card!.layout.hPx *
+              (card!.labelLayout.hPct / 100) *
+              labelFontBoxRatio(config.templateId),
+          )
+    const fontPx = Math.round(Math.max(MIN_FONT_PX, baseFontPx * ls.sizeScale))
+    const setFontPx = (px: number) => {
+      if (!Number.isFinite(px)) return
+      const clamped = Math.min(MAX_FONT_PX, Math.max(MIN_FONT_PX, px))
+      patch({ labelSizeScale: Math.round((clamped / baseFontPx) * 100) / 100 })
+    }
 
     editPanel = (
       <div className="space-y-3">
-        <PanelRow label="Label">
+        <PanelRow label={tb.label}>
           <input
             type="text"
             value={label}
-            placeholder="Category title"
+            placeholder={tb.categoryTitlePlaceholder}
             onChange={(e) => patch({ label: e.target.value })}
             className="h-7 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-[11px] text-gray-800 outline-none focus:border-indigo-300"
           />
         </PanelRow>
-        <PanelRow label="Layer">
+        {!isFashionCard && !isSectionText && (
+          <PanelRow label="Layer">
+            <div className="flex flex-1 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+              {(["front", "behind"] as const).map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => patch({ labelLayer: option })}
+                  className={cn(
+                    "h-6 flex-1 rounded-md text-[11px] transition-colors",
+                    labelLayer === option
+                      ? "bg-white text-indigo-700 shadow-sm"
+                      : "text-gray-500 hover:text-gray-800",
+                  )}
+                >
+                  {option === "front" ? tb.inFrontOfImage : tb.behindImage}
+                </button>
+              ))}
+            </div>
+          </PanelRow>
+        )}
+        <PanelRow label={tb.font}>
+          <select
+            value={ls.fontFamily ?? ""}
+            onChange={(e) => patch({ labelFontFamily: e.target.value })}
+            className="h-7 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-[11px] text-gray-800 outline-none focus:border-indigo-300"
+          >
+            <option value="">{tb.themeDefault}</option>
+            {HEADING_FONT_OPTIONS.map((f) => (
+              <option key={f} value={f}>
+                {f}
+              </option>
+            ))}
+          </select>
+        </PanelRow>
+        <PanelRow label={tb.weight}>
           <div className="flex flex-1 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
-            {(["front", "behind"] as const).map((option) => (
+            {(["light", "normal", "bold"] as const).map((option) => (
               <button
                 key={option}
                 type="button"
-                onClick={() => patch({ labelLayer: option })}
+                onClick={() => patch({ labelFontWeight: WEIGHT_VALUES[option] })}
                 className={cn(
-                  "h-6 flex-1 rounded-md text-[11px] transition-colors",
-                  labelLayer === option
+                  "h-6 flex-1 rounded-md text-[11px] capitalize transition-colors",
+                  option === "light" && "font-light",
+                  option === "normal" && "font-normal",
+                  option === "bold" && "font-bold",
+                  weightOption === option
                     ? "bg-white text-indigo-700 shadow-sm"
                     : "text-gray-500 hover:text-gray-800",
                 )}
               >
-                {option === "front" ? "In front of image" : "Behind image"}
+                {weightLabels[option]}
               </button>
             ))}
           </div>
         </PanelRow>
-        <p className="text-[10px] text-gray-400">
-          Label size & position: drag the label box / purple handle on the card.
-        </p>
+        <PanelRow label={tb.size}>
+          <input
+            type="number"
+            value={fontPx}
+            min={MIN_FONT_PX}
+            max={MAX_FONT_PX}
+            onChange={(e) => setFontPx(Number(e.target.value))}
+            className="h-7 w-20 rounded-lg border border-gray-200 bg-white px-2 text-[11px] tabular-nums text-gray-800 outline-none focus:border-indigo-300"
+          />
+          <span className="text-[10px] font-medium text-gray-400">px</span>
+        </PanelRow>
+        <PanelRow label={tb.styleRow}>
+          <PanelIconToggle
+            label={tb.italic}
+            active={ls.fontStyle === "italic"}
+            onClick={() =>
+              patch({
+                labelFontStyle: ls.fontStyle === "italic" ? "normal" : "italic",
+              })
+            }
+          >
+            <span className="text-[11px] italic">I</span>
+          </PanelIconToggle>
+          <PanelIconToggle
+            label={tb.underline}
+            active={ls.textDecoration === "underline"}
+            onClick={() =>
+              patch({
+                labelTextDecoration:
+                  ls.textDecoration === "underline" ? "none" : "underline",
+              })
+            }
+          >
+            <span className="text-[11px] underline">U</span>
+          </PanelIconToggle>
+          <PanelIconToggle
+            label={tb.uppercase}
+            active={ls.textTransform === "uppercase"}
+            onClick={() =>
+              patch({
+                labelTextTransform:
+                  ls.textTransform === "uppercase" ? "none" : "uppercase",
+              })
+            }
+          >
+            <span className="text-[10px] font-semibold">AA</span>
+          </PanelIconToggle>
+        </PanelRow>
+        <PanelSlider
+          label={tb.letterSpacing}
+          value={ls.letterSpacing ?? 0}
+          min={-0.1}
+          max={0.5}
+          step={0.01}
+          suffix="em"
+          onChange={(v) => patch({ labelLetterSpacing: v })}
+        />
+        <PanelSlider
+          label={tb.lineSpacing}
+          value={ls.lineHeight ?? (config.templateId === "minimalist" ? 1.2 : 1.05)}
+          min={0.8}
+          max={2}
+          step={0.05}
+          onChange={(v) => patch({ labelLineHeight: v })}
+        />
+        <PanelSlider
+          label={tb.opacity}
+          value={ls.opacity}
+          min={0}
+          max={100}
+          step={1}
+          suffix="%"
+          onChange={(v) => patch({ labelOpacity: v })}
+        />
+        <div className="space-y-1.5 border-t border-gray-100 pt-3">
+          <button
+            type="button"
+            onClick={() => {
+              const reset: Record<string, unknown> = {}
+              for (const k of LABEL_STYLE_KEYS) reset[k] = ""
+              patch(reset)
+            }}
+            className="inline-flex h-7 w-full items-center justify-center rounded-lg border border-gray-200 text-[11px] font-medium text-gray-500 hover:bg-gray-50"
+          >
+            {tb.resetStyle}
+          </button>
+          {!isFashionCard && !isSectionText && (
+            <p className="text-center text-[10px] text-gray-400">
+              {tb.labelPositionHint}
+            </p>
+          )}
+        </div>
       </div>
     )
+
+    hasColor = true
   } else if (element.kind === "text" && element.itemId) {
     // ── Teks bebas (canvas text item) ──────────────────────────────────────────
     const texts = resolveSectionCanvasTexts(
@@ -831,10 +1065,32 @@ export function CanvasElementToolbar({
       patch({ texts: updateTextInArray(texts, item.id, p) })
 
     const weightOption = weightToOption(item.fontWeight ?? 700)
+    const textLayer = item.layer === "behind" ? "behind" : "front"
 
     editPanel = (
       <div className="space-y-3">
-        <PanelRow label="Font">
+        <PanelRow label="Layer">
+          <div className="flex flex-1 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+            {(["front", "behind"] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                onClick={() =>
+                  patchText({ layer: option === "behind" ? "behind" : undefined })
+                }
+                className={cn(
+                  "h-6 flex-1 rounded-md text-[11px] transition-colors",
+                  textLayer === option
+                    ? "bg-white text-indigo-700 shadow-sm"
+                    : "text-gray-500 hover:text-gray-800",
+                )}
+              >
+                {option === "front" ? tb.inFrontOfImage : tb.behindImage}
+              </button>
+            ))}
+          </div>
+        </PanelRow>
+        <PanelRow label={tb.font}>
           <select
             value={item.fontFamily ?? ""}
             onChange={(e) =>
@@ -842,7 +1098,7 @@ export function CanvasElementToolbar({
             }
             className="h-7 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-[11px] text-gray-800 outline-none focus:border-indigo-300"
           >
-            <option value="">Theme default</option>
+            <option value="">{tb.themeDefault}</option>
             {HEADING_FONT_OPTIONS.map((f) => (
               <option key={f} value={f}>
                 {f}
@@ -850,7 +1106,7 @@ export function CanvasElementToolbar({
             ))}
           </select>
         </PanelRow>
-        <PanelRow label="Weight">
+        <PanelRow label={tb.weight}>
           <div className="flex flex-1 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
             {(["light", "normal", "bold"] as const).map((option) => (
               <button
@@ -867,12 +1123,12 @@ export function CanvasElementToolbar({
                     : "text-gray-500 hover:text-gray-800",
                 )}
               >
-                {option}
+                {weightLabels[option]}
               </button>
             ))}
           </div>
         </PanelRow>
-        <PanelRow label="Size">
+        <PanelRow label={tb.size}>
           <input
             type="number"
             value={item.fontSize}
@@ -889,9 +1145,9 @@ export function CanvasElementToolbar({
           />
           <span className="text-[10px] font-medium text-gray-400">px</span>
         </PanelRow>
-        <PanelRow label="Style">
+        <PanelRow label={tb.styleRow}>
           <PanelIconToggle
-            label="Italic"
+            label={tb.italic}
             active={item.fontStyle === "italic"}
             onClick={() =>
               patchText({
@@ -902,7 +1158,7 @@ export function CanvasElementToolbar({
             <span className="text-[11px] italic">I</span>
           </PanelIconToggle>
           <PanelIconToggle
-            label="Underline"
+            label={tb.underline}
             active={item.textDecoration === "underline"}
             onClick={() =>
               patchText({
@@ -914,7 +1170,7 @@ export function CanvasElementToolbar({
             <span className="text-[11px] underline">U</span>
           </PanelIconToggle>
           <PanelIconToggle
-            label="Uppercase"
+            label={tb.uppercase}
             active={item.textTransform === "uppercase"}
             onClick={() =>
               patchText({
@@ -927,7 +1183,7 @@ export function CanvasElementToolbar({
           </PanelIconToggle>
         </PanelRow>
         <PanelSlider
-          label="Letter spacing"
+          label={tb.letterSpacing}
           value={item.letterSpacing ?? 0}
           min={-0.1}
           max={0.5}
@@ -936,7 +1192,7 @@ export function CanvasElementToolbar({
           onChange={(v) => patchText({ letterSpacing: v })}
         />
         <PanelSlider
-          label="Line spacing"
+          label={tb.lineSpacing}
           value={item.lineHeight ?? 1.1}
           min={0.8}
           max={2}
@@ -944,7 +1200,7 @@ export function CanvasElementToolbar({
           onChange={(v) => patchText({ lineHeight: v })}
         />
         <PanelSlider
-          label="Opacity"
+          label={tb.opacity}
           value={item.opacity ?? 100}
           min={0}
           max={100}
@@ -952,7 +1208,14 @@ export function CanvasElementToolbar({
           suffix="%"
           onChange={(v) => patchText({ opacity: v })}
         />
-        <div className="border-t border-gray-100 pt-3">
+        <div className="space-y-1.5 border-t border-gray-100 pt-3">
+          <button
+            type="button"
+            onClick={() => patchText(TEXT_STYLE_RESET_PATCH)}
+            className="inline-flex h-7 w-full items-center justify-center rounded-lg border border-gray-200 text-[11px] font-medium text-gray-500 hover:bg-gray-50"
+          >
+            {tb.resetStyle}
+          </button>
           <button
             type="button"
             onClick={() => {
@@ -962,10 +1225,10 @@ export function CanvasElementToolbar({
             className="inline-flex h-7 w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 text-[11px] font-medium text-red-600 hover:bg-red-50"
           >
             <Trash2 className="h-3.5 w-3.5" />
-            Remove text
+            {tb.removeText}
           </button>
-          <p className="mt-1.5 text-center text-[10px] text-gray-400">
-            Copy: Ctrl+Shift+C · Paste: Ctrl+Shift+V
+          <p className="text-center text-[10px] text-gray-400">
+            {tb.copyPasteHint}
           </p>
         </div>
       </div>
@@ -993,11 +1256,11 @@ export function CanvasElementToolbar({
 
     editPanel = (
       <div className="space-y-3">
-        <PanelRow label="Label">
+        <PanelRow label={tb.label}>
           <input
             type="text"
             value={item.label}
-            placeholder="Button text"
+            placeholder={tb.buttonTextPlaceholder}
             onChange={(e) => patchButton({ label: e.target.value })}
             className="h-7 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-[11px] text-gray-800 outline-none focus:border-indigo-300"
           />
@@ -1046,7 +1309,7 @@ export function CanvasElementToolbar({
             className="inline-flex h-7 w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 text-[11px] font-medium text-red-600 hover:bg-red-50"
           >
             <Trash2 className="h-3.5 w-3.5" />
-            Remove button
+            {tb.removeButton}
           </button>
         </div>
       </div>
@@ -1061,11 +1324,11 @@ export function CanvasElementToolbar({
 
     editPanel = (
       <div className="space-y-3">
-        <PanelRow label="Label">
+        <PanelRow label={tb.label}>
           <input
             type="text"
             value={label}
-            placeholder="Button text"
+            placeholder={tb.buttonTextPlaceholder}
             onChange={(e) => patch({ label: e.target.value })}
             className="h-7 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-[11px] text-gray-800 outline-none focus:border-indigo-300"
           />
@@ -1136,11 +1399,12 @@ function RemoveBgAction({
   error: string | null
   onClick: () => void
 }) {
+  const tb = useMessages().pages.builder.toolbar
   if (available === false) {
     return (
       <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-2.5 text-center">
         <p className="text-[11px] font-medium text-gray-500">
-          Remove background — feature not available yet
+          {tb.removeBgUnavailable}
         </p>
       </div>
     )
@@ -1158,9 +1422,9 @@ function RemoveBgAction({
         ) : (
           <Wand2 className="h-3.5 w-3.5" />
         )}
-        Remove background
+        {tb.removeBackground}
         <span className="rounded-full bg-indigo-600 px-1.5 py-px text-[9px] font-bold uppercase text-white">
-          Beta
+          {tb.beta}
         </span>
       </button>
       {error && (

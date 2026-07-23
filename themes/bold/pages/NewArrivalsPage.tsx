@@ -25,7 +25,8 @@ interface NewArrivalsPageProps {
 }
 
 export function NewArrivalsPage({ config = DEFAULT_BOLD_CONFIG, products }: NewArrivalsPageProps) {
-  const items = products && products.length > 0 ? products : MOCK_PRODUCTS
+  // products undefined = builder/preview (mock); array (walau kosong) = live.
+  const items = products ?? MOCK_PRODUCTS
 
   return (
     <div className="min-h-screen bg-zinc-50">

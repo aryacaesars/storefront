@@ -1,4 +1,8 @@
 import type { BlockInstance } from "@/themes/engine/schema"
+import {
+  parseCanvasImages,
+  type CanvasImageItem,
+} from "@/themes/engine/canvas-image"
 
 /**
  * Free-form bento layout. Cards are positioned absolutely inside the canvas:
@@ -210,30 +214,6 @@ export function labelResizeFromBottomEdge(
   return { hPct: roundLabelPct(hPct) }
 }
 
-export function labelResizeFromCorner(
-  pointerX: number,
-  pointerY: number,
-  metrics: LabelContainerMetrics,
-  start: CategoryLabelLayout,
-  corner: "nw" | "ne" | "sw" | "se",
-): Partial<CategoryLabelLayout> {
-  const patch: Partial<CategoryLabelLayout> = {}
-
-  if (corner === "nw" || corner === "sw") {
-    Object.assign(patch, labelResizeFromLeftEdge(pointerX, metrics, start))
-  } else {
-    Object.assign(patch, labelResizeFromRightEdge(pointerX, metrics, start))
-  }
-
-  if (corner === "nw" || corner === "ne") {
-    Object.assign(patch, labelResizeFromTopEdge(pointerY, metrics, start))
-  } else {
-    Object.assign(patch, labelResizeFromBottomEdge(pointerY, metrics, start))
-  }
-
-  return patch
-}
-
 export function labelMoveFromDelta(
   deltaX: number,
   deltaY: number,
@@ -259,6 +239,97 @@ export function labelLayoutToPatch(layout: Partial<CategoryLabelLayout>): Record
   return patch
 }
 
+/**
+ * Typography overrides for the card label. Every field is optional — when
+ * unset the theme's bespoke base style applies (each grid has its own default
+ * font/weight/color), mirroring how hero title overrides work.
+ */
+export type CategoryLabelStyle = {
+  color?: string
+  fontFamily?: string
+  fontWeight?: number
+  fontStyle?: "normal" | "italic"
+  textDecoration?: "none" | "underline"
+  textTransform?: "none" | "uppercase"
+  /** em */
+  letterSpacing?: number
+  lineHeight?: number
+  /** Multiplier on the box-derived auto font size (default 1). */
+  sizeScale: number
+  /** 0–100 (100 = opaque). */
+  opacity: number
+}
+
+export const LABEL_STYLE_KEYS = [
+  "labelColor",
+  "labelFontFamily",
+  "labelFontWeight",
+  "labelFontStyle",
+  "labelTextDecoration",
+  "labelTextTransform",
+  "labelLetterSpacing",
+  "labelLineHeight",
+  "labelSizeScale",
+  "labelOpacity",
+] as const
+
+function str(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value : undefined
+}
+
+function optNum(value: unknown): number | undefined {
+  const n = Number(value)
+  return typeof value === "number" || (typeof value === "string" && value.trim())
+    ? Number.isFinite(n)
+      ? n
+      : undefined
+    : undefined
+}
+
+export function parseLabelStyle(
+  settings: Record<string, unknown> | undefined,
+): CategoryLabelStyle {
+  return {
+    color: str(settings?.labelColor),
+    fontFamily: str(settings?.labelFontFamily),
+    fontWeight: optNum(settings?.labelFontWeight),
+    fontStyle: settings?.labelFontStyle === "italic" ? "italic" : undefined,
+    textDecoration:
+      settings?.labelTextDecoration === "underline" ? "underline" : undefined,
+    textTransform:
+      settings?.labelTextTransform === "uppercase" ? "uppercase" : undefined,
+    letterSpacing: optNum(settings?.labelLetterSpacing),
+    lineHeight: optNum(settings?.labelLineHeight),
+    sizeScale: clamp(optNum(settings?.labelSizeScale) ?? 1, 0.1, 10),
+    opacity: clamp(optNum(settings?.labelOpacity) ?? 100, 0, 100),
+  }
+}
+
+/** Base label font size (px) fashion cards scale from (fixed-height cards). */
+export const FASHION_LABEL_BASE_PX = 20
+
+/** Auto font-size ratio (font px per label-box px) per template. */
+export function labelFontBoxRatio(templateId: string): number {
+  return templateId === "minimalist" ? 0.38 : 0.72
+}
+
+/** Inline-style overrides layered on top of a grid's bespoke base label style. */
+export function labelStyleOverrides(
+  style: CategoryLabelStyle,
+): Record<string, string | number> {
+  const css: Record<string, string | number> = {}
+  if (style.color) css.color = style.color
+  if (style.fontFamily) css.fontFamily = style.fontFamily
+  if (style.fontWeight !== undefined) css.fontWeight = style.fontWeight
+  if (style.fontStyle) css.fontStyle = style.fontStyle
+  if (style.textDecoration) css.textDecoration = style.textDecoration
+  if (style.textTransform) css.textTransform = style.textTransform
+  if (style.letterSpacing !== undefined) css.letterSpacing = `${style.letterSpacing}em`
+  if (style.lineHeight !== undefined) css.lineHeight = style.lineHeight
+  if (style.opacity !== 100) css.opacity = style.opacity / 100
+  return css
+}
+
 export type CategoryCardData = {
   id: string
   slug: string
@@ -269,6 +340,9 @@ export type CategoryCardData = {
   layout: CategoryCardLayout
   labelLayer: LabelLayer
   labelLayout: CategoryLabelLayout
+  labelStyle: CategoryLabelStyle
+  /** Canvas free-box images (model hero) — bila terisi menggantikan legacy `image`. */
+  canvasImages: CanvasImageItem[]
 }
 
 export type CanvasMetrics = {
@@ -398,6 +472,8 @@ export function blockToCategoryCard(block: BlockInstance, index: number): Catego
     layout: parseLayout(s, index),
     labelLayer: parseLabelLayer(s?.labelLayer),
     labelLayout: parseLabelLayout(s, parseLayout(s, index)),
+    labelStyle: parseLabelStyle(s),
+    canvasImages: parseCanvasImages(s),
   }
 }
 
@@ -419,6 +495,8 @@ export function defaultCategoryCards(): CategoryCardData[] {
     layout: DEFAULT_CARD_LAYOUTS[index],
     labelLayer: "front",
     labelLayout: DEFAULT_LABEL_LAYOUTS[inferLabelSize(DEFAULT_CARD_LAYOUTS[index])],
+    labelStyle: parseLabelStyle(undefined),
+    canvasImages: [],
   }))
 }
 

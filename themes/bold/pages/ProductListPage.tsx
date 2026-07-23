@@ -5,7 +5,7 @@ import type { ThemePageProps } from "@/themes/engine/page-props"
 /** Halaman /products — katalog penuh (ex all-products). */
 export function ProductListPage({
   config,
-  products = [],
+  products,
   categories = [],
   priceBounds = null,
   catalogFilters = {},

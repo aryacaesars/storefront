@@ -4,23 +4,36 @@ import { JewelryFilterClient } from "@/themes/fashion/sections/collections/Jewel
 import { JewelryGrid } from "@/themes/fashion/sections/collections/JewelryGrid"
 import { JournalSection } from "@/themes/fashion/sections/collections/JournalSection"
 import { CollectionsFooter } from "@/themes/fashion/sections/collections/CollectionsFooter"
+import { ProductGrid } from "@/themes/fashion/sections/shop/ProductGrid"
 import { DEFAULT_FASHION_CONFIG } from "@/themes/fashion/theme.config"
 import type { ThemeConfig } from "@/themes/engine/schema"
+import type { CatalogProduct } from "@/features/storefront/catalog-types"
 
 interface CollectionsPageProps {
   config?: ThemeConfig
+  products?: CatalogProduct[]
 }
 
-export function CollectionsPage({ config = DEFAULT_FASHION_CONFIG }: CollectionsPageProps) {
+export function CollectionsPage({
+  config = DEFAULT_FASHION_CONFIG,
+  products,
+}: CollectionsPageProps) {
+  // products undefined = builder/preview (mock); array (walau kosong) = live.
+  const isLive = products !== undefined
+
   return (
     <div style={{ backgroundColor: "var(--theme-bg)" }}>
       <CollectionsHero />
-      <FilterBarClient totalProducts={24} />
+      <FilterBarClient totalProducts={isLive ? products.length : 24} />
       <div className="mx-auto max-w-7xl px-6 py-10">
-        <div className="flex gap-10">
-          <JewelryFilterClient />
-          <JewelryGrid />
-        </div>
+        {isLive ? (
+          <ProductGrid products={products} />
+        ) : (
+          <div className="flex gap-10">
+            <JewelryFilterClient />
+            <JewelryGrid />
+          </div>
+        )}
       </div>
       <JournalSection />
       <CollectionsFooter config={config} />

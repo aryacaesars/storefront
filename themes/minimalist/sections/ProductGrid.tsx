@@ -2,12 +2,23 @@ import Link from "next/link"
 import { mockProductToCatalog, TRENDING_PRODUCTS } from "@/themes/minimalist/data/mock"
 import { getStringSetting } from "@/themes/engine/section-settings-schema"
 import type { SectionProps } from "@/themes/engine/section-registry"
+import {
+  CanvasSectionText,
+  findSectionTextBlock,
+} from "@/features/builder/components/canvas/CanvasSectionText"
 import { ProductCard } from "./ProductCard"
 
 const TRENDING_LIMIT = 8
 
-export function ProductGrid({ title, settings, products }: SectionProps & { title?: string }) {
+export function ProductGrid({
+  title,
+  settings,
+  blocks,
+  canvas,
+  products,
+}: SectionProps & { title?: string }) {
   const displayTitle = getStringSetting(settings, "title", title ?? "Trending Now")
+  const titleBlock = findSectionTextBlock(blocks, "minimalist-grid-title")
   const isLive = products !== undefined
   const items = isLive
     ? products.slice(0, TRENDING_LIMIT)
@@ -16,12 +27,15 @@ export function ProductGrid({ title, settings, products }: SectionProps & { titl
   return (
     <section className="mx-auto max-w-7xl px-6 py-16">
       <div className="mb-10 flex flex-col items-center gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <h2
-          className="text-center text-2xl font-semibold text-[var(--theme-text)] @2xl:text-3xl sm:text-left"
-          style={{ fontFamily: "var(--theme-heading-font)" }}
-        >
-          {displayTitle}
-        </h2>
+        <CanvasSectionText
+          canvas={canvas}
+          block={titleBlock}
+          fallback={displayTitle}
+          basePx={30}
+          as="h2"
+          className="text-center font-semibold text-[var(--theme-text)] sm:text-left"
+          baseStyle={{ fontFamily: "var(--theme-heading-font)" }}
+        />
         <Link
           href="/products"
           className="inline-flex shrink-0 items-center justify-center rounded-full border border-[var(--theme-text)]/15 px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-[var(--theme-text)] transition-colors hover:border-[var(--theme-primary)] hover:text-[var(--theme-primary)]"

@@ -63,6 +63,42 @@ export async function authenticateCustomer(input: {
   return { id: customer.id, storeId: customer.storeId }
 }
 
+/** Delete a customer's address. The active (default) address cannot be deleted. */
+export async function deleteCustomerAddress(
+  customerId: string,
+  addressId: string,
+): Promise<void> {
+  const existing = await prisma.address.findFirst({
+    where: { id: addressId, customerId },
+    select: { id: true, isDefault: true },
+  })
+  if (!existing) throw new Error("ADDRESS_NOT_FOUND")
+  if (existing.isDefault) throw new Error("ADDRESS_IS_DEFAULT")
+
+  await prisma.address.delete({ where: { id: existing.id } })
+}
+
+/** Change a customer's password after verifying the current one. */
+export async function changeCustomerPassword(input: {
+  customerId: string
+  currentPassword: string
+  newPassword: string
+}): Promise<void> {
+  const customer = await prisma.customer.findUnique({
+    where: { id: input.customerId },
+    select: { passwordHash: true },
+  })
+  if (!customer?.passwordHash) throw new CustomerAuthError("INVALID_CREDENTIALS")
+
+  const ok = await verifyPassword(input.currentPassword, customer.passwordHash)
+  if (!ok) throw new CustomerAuthError("INVALID_CREDENTIALS")
+
+  await prisma.customer.update({
+    where: { id: input.customerId },
+    data: { passwordHash: await hashPassword(input.newPassword) },
+  })
+}
+
 /** Customer profile + their orders (newest first) for the account page. */
 export async function getCustomerWithOrders(customerId: string, storeId: string) {
   return prisma.customer.findFirst({
@@ -191,6 +227,29 @@ export async function saveCustomerAddress(input: {
     },
     select: { id: true },
   })
+}
+
+/** Set one address as the customer's active (default) address. */
+export async function setDefaultCustomerAddress(
+  customerId: string,
+  addressId: string,
+): Promise<void> {
+  const existing = await prisma.address.findFirst({
+    where: { id: addressId, customerId },
+    select: { id: true },
+  })
+  if (!existing) throw new Error("ADDRESS_NOT_FOUND")
+
+  await prisma.$transaction([
+    prisma.address.updateMany({
+      where: { customerId },
+      data: { isDefault: false },
+    }),
+    prisma.address.update({
+      where: { id: existing.id },
+      data: { isDefault: true },
+    }),
+  ])
 }
 
 /** Create a default address for a customer if they have none yet. */

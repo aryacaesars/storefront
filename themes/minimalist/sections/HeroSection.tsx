@@ -162,6 +162,22 @@ function MinimalistTitleLine({
     height: `${labelLayout.hPct}%`,
   }
 
+  // Box front auto-height (fit teks, ala box CTA) — hPct tetap sumber ukuran font.
+  const labelBoxStyleFit: React.CSSProperties = {
+    position: "absolute",
+    left: `${labelLayout.xPct}%`,
+    top: `${labelLayout.yPct}%`,
+    width: `${labelLayout.wPct}%`,
+  }
+
+  const resizeHandles = lineSelected && labelMovable && (
+    <CanvasLabelResizeHandles
+      layout={labelLayout}
+      containerRef={frameRef}
+      onResize={(patch) => onLayoutChange(heroTitleLayoutToPatch(line, patch))}
+    />
+  )
+
   const startLabelMove = useCallback(
     (event: React.PointerEvent<HTMLElement>) => {
       if (!labelMovable || !frameRef.current || isLabelHandleTarget(event.target)) return
@@ -242,15 +258,15 @@ function MinimalistTitleLine({
         <div
           aria-hidden
           data-canvas-element={domKey}
-          className={cn(
-            "absolute z-[15] cursor-move rounded-sm",
-            lineSelected &&
-              "ring-2 ring-violet-500/40 ring-offset-1 ring-offset-transparent",
-          )}
-          style={labelBoxStyle}
+          className="absolute z-[15] cursor-move rounded-sm"
+          style={labelBoxStyleFit}
           onPointerDown={handleLabelPointerDown}
           onClick={handleLabelClick}
-        />
+        >
+          {/* Duplikat teks invisible = pengukur tinggi supaya proxy fit teks (ala CTA). */}
+          <div className="invisible">{labelContent}</div>
+          {resizeHandles}
+        </div>
       )}
 
       {layer === "front" && (
@@ -259,13 +275,13 @@ function MinimalistTitleLine({
           className={cn(
             "absolute flex items-start overflow-visible",
             labelMovable && "cursor-move",
-            lineSelected && "rounded-sm ring-2 ring-indigo-400 ring-offset-2 ring-offset-transparent",
           )}
-          style={{ ...labelBoxStyle, zIndex }}
+          style={{ ...labelBoxStyleFit, zIndex }}
           onPointerDown={handleLabelPointerDown}
           onClick={handleLabelClick}
         >
           {labelContent}
+          {resizeHandles}
         </div>
       )}
     </>
@@ -531,6 +547,18 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
             />
           ))}
 
+          <CanvasFreeTextLayer
+            items={canvasTexts}
+            editable={editable}
+            interactive={mediaInteractive}
+            sectionId={sectionId}
+            blockId={mediaBlock?.id}
+            editor={editor}
+            designWidth={designWidth}
+            renderLayer="behind"
+            onItemsChange={(texts) => onMediaChange({ texts })}
+          />
+
           {/* Multi-image layer: render each image independently */}
           {canvasImages.length > 0 && mediaBlock && (
             <div
@@ -625,30 +653,6 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
             onItemsChange={(texts) => onMediaChange({ texts })}
           />
         </div>
-
-        {mediaInteractive &&
-          activeTitleLine &&
-          titleLines
-            .filter((item) => item.line === activeTitleLine)
-            .map((item) => (
-            <div
-              key={`${item.line}-handles`}
-              className="pointer-events-none absolute z-[30] overflow-visible"
-              style={{
-                position: "absolute",
-                left: `${item.labelLayout.xPct}%`,
-                top: `${item.labelLayout.yPct}%`,
-                width: `${item.labelLayout.wPct}%`,
-                height: `${item.labelLayout.hPct}%`,
-              }}
-            >
-              <CanvasLabelResizeHandles
-                layout={item.labelLayout}
-                containerRef={frameRef}
-                onResize={(patch) => onMediaChange(heroTitleLayoutToPatch(item.line, patch))}
-              />
-            </div>
-          ))}
 
         {ctaBlock && (
           <CanvasHeroCta

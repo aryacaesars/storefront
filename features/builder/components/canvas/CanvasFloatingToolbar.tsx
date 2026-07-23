@@ -3,19 +3,13 @@
 import { useState } from "react"
 import { Layers, Palette, PaintRoller, SlidersHorizontal, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 import {
   canvasElementDomKey,
   type SelectedElement,
 } from "@/themes/engine/section-editor"
 
 type ToolbarPanel = "edit" | null
-
-const KIND_LABELS: Record<SelectedElement["kind"], string> = {
-  image: "Gambar",
-  text: "Teks",
-  button: "Tombol",
-  frame: "Latar",
-}
 
 interface CanvasFloatingToolbarProps {
   element: SelectedElement
@@ -50,6 +44,14 @@ export function CanvasFloatingToolbar({
   mobile = false,
 }: CanvasFloatingToolbarProps) {
   const [openPanel, setOpenPanel] = useState<ToolbarPanel>(null)
+  const t = useMessages().pages.builder.toolbar
+
+  const kindLabels: Record<SelectedElement["kind"], string> = {
+    image: t.kindImage,
+    text: t.kindText,
+    button: t.kindButton,
+    frame: t.kindFrame,
+  }
 
   const domKey = canvasElementDomKey(element)
 
@@ -86,12 +88,12 @@ export function CanvasFloatingToolbar({
         )}
       >
         <span className="shrink-0 rounded-full bg-indigo-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-indigo-700">
-          {KIND_LABELS[element.kind]}
+          {kindLabels[element.kind]}
         </span>
         <span className={dividerClass} />
         <ToolbarButton
           icon={<SlidersHorizontal className="h-3.5 w-3.5" />}
-          label="Edit"
+          label={t.edit}
           active={openPanel === "edit"}
           disabled={!editPanel}
           compact={mobile}
@@ -100,7 +102,7 @@ export function CanvasFloatingToolbar({
         <span className={dividerClass} />
         <ToolbarButton
           icon={<Palette className="h-3.5 w-3.5" />}
-          label="Color"
+          label={t.color}
           disabled={!hasColor}
           compact={mobile}
           onClick={() => {
@@ -111,7 +113,7 @@ export function CanvasFloatingToolbar({
         <span className={dividerClass} />
         <ToolbarButton
           icon={<Layers className="h-3.5 w-3.5" />}
-          label="Position"
+          label={t.position}
           compact={mobile}
           onClick={() => {
             setOpenPanel(null)
@@ -121,8 +123,8 @@ export function CanvasFloatingToolbar({
         <span className={dividerClass} />
         <ToolbarButton
           icon={<PaintRoller className="h-3.5 w-3.5" />}
-          label={mobile ? "Copy" : "Copy style"}
-          title="Ctrl+Shift+C · paste: Ctrl+Shift+V"
+          label={mobile ? t.copy : t.copyStyle}
+          title={t.copyShortcutTitle}
           disabled={!onCopyStyle}
           compact={mobile}
           onClick={() => {
@@ -133,7 +135,7 @@ export function CanvasFloatingToolbar({
         <span className={dividerClass} />
         <button
           type="button"
-          aria-label="Tutup seleksi"
+          aria-label={t.closeSelection}
           onClick={onDeselect}
           className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
         >

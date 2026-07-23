@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 import { cookies } from "next/headers"
 import type { CartItem } from "@/lib/storefront/cart"
+import { getCustomerSession } from "@/features/storefront/customer-dal"
 import type { ThemeConfig } from "./schema"
 import { ThemeChromeView, type ChromeMode } from "./ThemeChromeView"
 
@@ -28,10 +29,18 @@ export async function ThemeChrome({
   children,
   mode = "default",
 }: ThemeChromeProps) {
-  const cartCount = mode === "checkout" ? 0 : await getCartCount()
+  const [cartCount, session] = await Promise.all([
+    mode === "checkout" ? Promise.resolve(0) : getCartCount(),
+    getCustomerSession(),
+  ])
 
   return (
-    <ThemeChromeView config={config} cartCount={cartCount} mode={mode}>
+    <ThemeChromeView
+      config={config}
+      cartCount={cartCount}
+      mode={mode}
+      customerName={session ? (session.name ?? session.email) : null}
+    >
       {children}
     </ThemeChromeView>
   )

@@ -16,9 +16,11 @@ interface HeaderProps {
   config: ThemeConfig
   cartCount?: number
   basePath?: string
+  /** Nama customer yang sedang login — tampil di sebelah ikon profile. */
+  customerName?: string | null
 }
 
-export function Header({ config, cartCount = 0, basePath }: HeaderProps) {
+export function Header({ config, cartCount = 0, basePath, customerName }: HeaderProps) {
   const logoDisplay = config.logoDisplay ?? "logo"
   const showLogo = logoDisplay !== "text" && Boolean(config.logoUrl)
   const showText = logoDisplay === "text" || logoDisplay === "both" || !config.logoUrl
@@ -73,10 +75,15 @@ export function Header({ config, cartCount = 0, basePath }: HeaderProps) {
             {!basePath && (
               <Link
                 href="/account"
-                className="text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
+                className="flex items-center gap-1.5 text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-text)]"
                 aria-label="Account"
               >
                 <User className="h-[18px] w-[18px]" strokeWidth={1.5} />
+                {customerName && (
+                  <span className="hidden max-w-[120px] truncate text-xs font-semibold text-[var(--theme-text)] @2xl:inline">
+                    {customerName.trim().split(/\s+/)[0]}
+                  </span>
+                )}
               </Link>
             )}
             <Link

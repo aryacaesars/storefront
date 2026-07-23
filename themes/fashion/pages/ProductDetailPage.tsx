@@ -19,7 +19,7 @@ export function ProductDetailPage({
   config = DEFAULT_FASHION_CONFIG,
   slug = "sp-1",
   product,
-  products = [],
+  products,
 }: ThemePageProps) {
   const { product: resolved, isLiveCatalog } = resolveProductDetail(
     slug,

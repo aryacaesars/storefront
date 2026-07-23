@@ -9,10 +9,10 @@ import {
 import { createDragSession } from "@/features/builder/components/canvas/visual-frame"
 import {
   labelResizeFromBottomEdge,
-  labelResizeFromCorner,
   labelResizeFromLeftEdge,
   labelResizeFromRightEdge,
   labelResizeFromTopEdge,
+  MIN_LABEL_PCT,
   type CategoryLabelLayout,
   type LabelContainerMetrics,
 } from "@/themes/bento/sections/category-grid-layout"
@@ -74,28 +74,44 @@ export function CanvasLabelResizeHandles({
     [containerRef, layout],
   )
 
+  // Drag sudut = uniform scale ala box teks CTA: lebar & tinggi (→ font) membesar
+  // dengan faktor sama, sudut berlawanan jadi anchor — box tidak bisa gepeng.
   const startCornerDrag = useCallback(
     (corner: Corner) => (event: React.PointerEvent<HTMLElement>) => {
       event.preventDefault()
       event.stopPropagation()
       if (!containerRef.current) return
 
+      const startX = event.clientX
       const startLayout = { ...layout }
+      const anchorRight = startLayout.xPct + startLayout.wPct
+      const anchorBottom = startLayout.yPct + startLayout.hPct
+      const isEast = corner === "ne" || corner === "se"
+      const isSouth = corner === "sw" || corner === "se"
       const session = createDragSession<ResizePatch>(event, (patch) => onResizeRef.current(patch))
       session.arm()
 
       session.listen((moveEvent) => {
         if (!containerRef.current) return
         const metrics = getContainerMetrics(containerRef.current)
-        session.push(
-          labelResizeFromCorner(
-            moveEvent.clientX,
-            moveEvent.clientY,
-            metrics,
-            startLayout,
-            corner,
-          ),
-        )
+        if (metrics.width <= 0) return
+
+        const dxPct = ((moveEvent.clientX - startX) / metrics.width) * 100
+        const rawW = isEast ? startLayout.wPct + dxPct : startLayout.wPct - dxPct
+        const maxW = isEast ? 100 - startLayout.xPct : anchorRight
+        const newW = Math.max(MIN_LABEL_PCT, Math.min(maxW, rawW))
+        const factor = newW / startLayout.wPct
+
+        const maxH = isSouth ? 100 - startLayout.yPct : anchorBottom
+        const newH = Math.max(MIN_LABEL_PCT, Math.min(maxH, startLayout.hPct * factor))
+
+        const round = (v: number) => Math.round(v * 10) / 10
+        session.push({
+          wPct: round(newW),
+          hPct: round(newH),
+          ...(isEast ? {} : { xPct: round(Math.max(0, anchorRight - newW)) }),
+          ...(isSouth ? {} : { yPct: round(Math.max(0, anchorBottom - newH)) }),
+        })
       })
     },
     [containerRef, layout],

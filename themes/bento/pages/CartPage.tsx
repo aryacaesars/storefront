@@ -1,13 +1,13 @@
 import Link from "next/link"
 import type { ThemePageProps } from "@/themes/engine/page-props"
 import { formatIdr } from "@/features/storefront/catalog-types"
-import { removeFromCart } from "@/app/(storefront)/cart/actions"
+import { removeFromCart, updateQuantity } from "@/app/(storefront)/cart/actions"
 
 export function CartPage({ cart = [] }: ThemePageProps) {
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
   return (
-    <section className="mx-auto max-w-4xl px-4 py-12 @2xl:px-6">
+    <section className="mx-auto max-w-7xl px-4 py-12 @2xl:px-6">
       <div className="rounded-[27px] bg-white p-8 shadow-[0px_0px_19px_rgba(0,0,0,0.12)]">
         <h1
           className="text-3xl font-bold text-[#1a1c1b]"
@@ -35,18 +35,48 @@ export function CartPage({ cart = [] }: ThemePageProps) {
             <ul className="mt-10 space-y-4">
               {cart.map((item) => (
                 <li key={item.lineKey} className="flex gap-5 rounded-2xl border border-gray-100 p-4">
-                  <div className="h-24 w-20 shrink-0 rounded-xl overflow-hidden bg-gray-100">
+                  <Link
+                    href={`/products/${item.slug}`}
+                    className="h-24 w-20 shrink-0 rounded-xl overflow-hidden bg-gray-100"
+                  >
                     {item.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
                     ) : (
                       <div className="h-full w-full bg-gray-200" />
                     )}
-                  </div>
+                  </Link>
                   <div className="flex flex-1 flex-col justify-between">
                     <div>
-                      <p className="text-sm font-bold text-[#1a1c1b]">{item.name}</p>
-                      <p className="text-xs text-[#515160]">Qty: {item.quantity}</p>
+                      <Link
+                        href={`/products/${item.slug}`}
+                        className="text-sm font-bold text-[#1a1c1b] hover:underline"
+                      >
+                        {item.name}
+                      </Link>
+                      <div className="mt-2 flex items-center gap-2">
+                        <form action={updateQuantity.bind(null, item.lineKey, item.quantity - 1)}>
+                          <button
+                            type="submit"
+                            aria-label="Kurangi jumlah"
+                            className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 text-sm text-[#515160] transition-colors hover:border-gray-400"
+                          >
+                            −
+                          </button>
+                        </form>
+                        <span className="w-6 text-center text-sm font-semibold text-[#1a1c1b]">
+                          {item.quantity}
+                        </span>
+                        <form action={updateQuantity.bind(null, item.lineKey, item.quantity + 1)}>
+                          <button
+                            type="submit"
+                            aria-label="Tambah jumlah"
+                            className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 text-sm text-[#515160] transition-colors hover:border-gray-400"
+                          >
+                            +
+                          </button>
+                        </form>
+                      </div>
                     </div>
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-bold" style={{ color: "var(--theme-primary)" }}>

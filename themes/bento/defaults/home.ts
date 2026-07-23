@@ -73,7 +73,16 @@ export const DEFAULT_BENTO_HOME: PageTemplate = {
         },
       })),
     },
-    "product-grid": { type: "product-grid" },
+    "product-grid": {
+      type: "product-grid",
+      blocks: [
+        {
+          id: "bento-grid-title",
+          type: "section-text",
+          settings: { label: "", labelBasePx: 36 },
+        },
+      ],
+    },
     "call-to-action": {
       type: "call-to-action",
       blocks: [

@@ -13,9 +13,11 @@ interface HeaderProps {
   config: ThemeConfig
   cartCount?: number
   basePath?: string
+  /** Nama customer yang sedang login — tampil di sebelah ikon profile. */
+  customerName?: string | null
 }
 
-export function Header({ config, cartCount = 0, basePath }: HeaderProps) {
+export function Header({ config, cartCount = 0, basePath, customerName }: HeaderProps) {
   const logoDisplay = config.logoDisplay ?? "logo"
   const showLogo = logoDisplay !== "text" && Boolean(config.logoUrl)
   const showText = logoDisplay === "text" || logoDisplay === "both" || !config.logoUrl
@@ -73,6 +75,7 @@ export function Header({ config, cartCount = 0, basePath }: HeaderProps) {
               basePath={basePath}
               cartCount={cartCount}
               links={visibleLinks}
+              customerName={customerName}
             />
           </div>
         </div>

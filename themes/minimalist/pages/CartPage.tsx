@@ -1,13 +1,13 @@
 import Link from "next/link"
 import type { ThemePageProps } from "@/themes/engine/page-props"
 import { formatIdr } from "@/features/storefront/catalog-types"
-import { removeFromCart } from "@/app/(storefront)/cart/actions"
+import { removeFromCart, updateQuantity } from "@/app/(storefront)/cart/actions"
 
 export function CartPage({ cart = [] }: ThemePageProps) {
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
   return (
-    <section className="mx-auto max-w-4xl px-6 py-12">
+    <section className="mx-auto max-w-7xl px-6 py-12">
       <h1
         className="text-3xl font-semibold text-[var(--theme-text)]"
         style={{ fontFamily: "var(--theme-heading-font)" }}
@@ -34,18 +34,48 @@ export function CartPage({ cart = [] }: ThemePageProps) {
           <ul className="mt-10 divide-y divide-black/5 border-y border-black/5">
             {cart.map((item) => (
               <li key={item.lineKey} className="flex gap-5 py-6">
-                <div className="h-24 w-20 shrink-0 overflow-hidden rounded-sm bg-gray-100">
+                <Link
+                  href={`/products/${item.slug}`}
+                  className="h-24 w-20 shrink-0 overflow-hidden rounded-sm bg-gray-100"
+                >
                   {item.imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
                   ) : (
                     <div className="h-full w-full bg-gray-200" />
                   )}
-                </div>
+                </Link>
                 <div className="flex flex-1 flex-col justify-between">
                   <div>
-                    <p className="text-sm font-medium text-[var(--theme-text)]">{item.name}</p>
-                    <p className="text-xs text-[var(--theme-muted)]">Qty: {item.quantity}</p>
+                    <Link
+                      href={`/products/${item.slug}`}
+                      className="text-sm font-medium text-[var(--theme-text)] hover:underline"
+                    >
+                      {item.name}
+                    </Link>
+                    <div className="mt-2 flex items-center gap-2">
+                      <form action={updateQuantity.bind(null, item.lineKey, item.quantity - 1)}>
+                        <button
+                          type="submit"
+                          aria-label="Kurangi jumlah"
+                          className="flex h-7 w-7 items-center justify-center border border-black/10 text-sm text-[var(--theme-muted)] transition-colors hover:border-black/30"
+                        >
+                          −
+                        </button>
+                      </form>
+                      <span className="w-6 text-center text-sm font-medium text-[var(--theme-text)]">
+                        {item.quantity}
+                      </span>
+                      <form action={updateQuantity.bind(null, item.lineKey, item.quantity + 1)}>
+                        <button
+                          type="submit"
+                          aria-label="Tambah jumlah"
+                          className="flex h-7 w-7 items-center justify-center border border-black/10 text-sm text-[var(--theme-muted)] transition-colors hover:border-black/30"
+                        >
+                          +
+                        </button>
+                      </form>
+                    </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-semibold text-[var(--theme-text)]">

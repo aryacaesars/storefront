@@ -10,6 +10,7 @@ import {
   FileText,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 import type { SelectedElementKind } from "@/themes/engine/section-editor"
 
 export type BuilderTool =
@@ -23,7 +24,6 @@ export type BuilderTool =
 
 export type BuilderToolDef = {
   id: BuilderTool
-  label: string
   icon: typeof ImageIcon
   /** Only show when page supports section editing */
   needsSections?: boolean
@@ -31,14 +31,15 @@ export type BuilderToolDef = {
   marketingOnly?: boolean
 }
 
+/** Label diambil dari messages `pages.builder.tools[id]` (ikut toggle bahasa dashboard). */
 export const BUILDER_TOOLS: BuilderToolDef[] = [
-  { id: "sections", label: "Sections", icon: LayoutTemplate, needsSections: true },
-  { id: "image", label: "Image", icon: ImageIcon, needsSections: true },
-  { id: "text", label: "Text", icon: Type, needsSections: true },
-  { id: "layers", label: "Layer", icon: Layers, needsSections: true },
-  { id: "color", label: "Warna", icon: Palette, needsSections: true },
-  { id: "theme", label: "Theme", icon: Paintbrush },
-  { id: "page", label: "Konten", icon: FileText, marketingOnly: true },
+  { id: "sections", icon: LayoutTemplate, needsSections: true },
+  { id: "image", icon: ImageIcon, needsSections: true },
+  { id: "text", icon: Type, needsSections: true },
+  { id: "layers", icon: Layers, needsSections: true },
+  { id: "color", icon: Palette, needsSections: true },
+  { id: "theme", icon: Paintbrush },
+  { id: "page", icon: FileText, marketingOnly: true },
 ]
 
 interface BuilderToolRailProps {
@@ -54,6 +55,7 @@ export function BuilderToolRail({
   showSectionsTools,
   showMarketingTool,
 }: BuilderToolRailProps) {
+  const toolLabels = useMessages().pages.builder.tools
   const tools = BUILDER_TOOLS.filter((tool) => {
     if (tool.needsSections && !showSectionsTools) return false
     if (tool.marketingOnly && !showMarketingTool) return false
@@ -72,8 +74,8 @@ export function BuilderToolRail({
           <button
             key={tool.id}
             type="button"
-            title={tool.label}
-            aria-label={tool.label}
+            title={toolLabels[tool.id]}
+            aria-label={toolLabels[tool.id]}
             aria-pressed={isActive}
             onClick={() => onToolChange(tool.id)}
             className={cn(

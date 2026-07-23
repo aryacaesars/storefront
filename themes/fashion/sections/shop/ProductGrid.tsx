@@ -7,9 +7,10 @@ interface ProductGridProps {
   products?: CatalogProduct[]
 }
 
-export function ProductGrid({ products = [] }: ProductGridProps) {
-  const isLive = products.length > 0
-  const items = isLive ? products : SHOP_PRODUCTS.map(mockShopToCatalog)
+export function ProductGrid({ products }: ProductGridProps) {
+  // products undefined = builder/preview (mock); array (walau kosong) = live.
+  const isLive = products !== undefined
+  const items = products ?? SHOP_PRODUCTS.map(mockShopToCatalog)
 
   if (items.length === 0) {
     return (

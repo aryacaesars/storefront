@@ -2,7 +2,10 @@
 
 import { useActionState, useEffect, useState } from "react"
 import {
+  changePasswordAction,
+  deleteAddressAction,
   saveAddressAction,
+  setDefaultAddressAction,
   updateProfileAction,
   type AccountFormState,
 } from "@/app/(storefront)/account/actions"
@@ -128,6 +131,82 @@ export function AccountProfileForm({
   )
 }
 
+export function AccountPasswordForm({ variant = "default" }: { variant?: Variant }) {
+  const [state, formAction, pending] = useActionState<AccountFormState, FormData>(
+    changePasswordAction,
+    undefined,
+  )
+  const inputClass = inputByVariant[variant]
+  const labelClass = labelByVariant[variant]
+
+  return (
+    <form action={formAction} className="space-y-4">
+      <div>
+        <label htmlFor="current-password" className={labelClass}>
+          Current password
+        </label>
+        <input
+          id="current-password"
+          name="currentPassword"
+          type="password"
+          required
+          autoComplete="current-password"
+          className={cn(inputClass, "mt-1.5")}
+        />
+      </div>
+      <div>
+        <label htmlFor="new-password" className={labelClass}>
+          New password
+        </label>
+        <input
+          id="new-password"
+          name="newPassword"
+          type="password"
+          required
+          minLength={6}
+          autoComplete="new-password"
+          className={cn(inputClass, "mt-1.5")}
+        />
+      </div>
+      <div>
+        <label htmlFor="confirm-password" className={labelClass}>
+          Confirm new password
+        </label>
+        <input
+          id="confirm-password"
+          name="confirmPassword"
+          type="password"
+          required
+          minLength={6}
+          autoComplete="new-password"
+          className={cn(inputClass, "mt-1.5")}
+        />
+      </div>
+      {state && "error" in state && state.error && (
+        <p className="text-sm text-red-600" role="alert">
+          {state.error}
+        </p>
+      )}
+      {state && "ok" in state && state.message && (
+        <p className="text-sm text-emerald-600" role="status">
+          {state.message}
+        </p>
+      )}
+      <button
+        type="submit"
+        disabled={pending}
+        className={submitByVariant[variant]}
+        style={{
+          backgroundColor:
+            variant === "bold" ? "var(--theme-accent)" : "var(--theme-primary)",
+        }}
+      >
+        {pending ? "Saving..." : "Change password"}
+      </button>
+    </form>
+  )
+}
+
 export function AccountAddressSection({
   addresses,
   variant = "default",
@@ -141,6 +220,14 @@ export function AccountAddressSection({
     saveAddressAction,
     undefined,
   )
+  const [defaultState, defaultFormAction, defaultPending] = useActionState<
+    AccountFormState,
+    FormData
+  >(setDefaultAddressAction, undefined)
+  const [deleteState, deleteFormAction, deletePending] = useActionState<
+    AccountFormState,
+    FormData
+  >(deleteAddressAction, undefined)
 
   const inputClass = inputByVariant[variant]
   const isBold = variant === "bold"
@@ -394,7 +481,7 @@ export function AccountAddressSection({
                             : { backgroundColor: "var(--theme-primary)" }
                         }
                       >
-                        Default
+                        Aktif
                       </span>
                     )}
                   </div>
@@ -410,18 +497,78 @@ export function AccountAddressSection({
                     {address.city}, {address.province} {address.postalCode}
                   </p>
                 </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => startEdit(address)}
+                    className={
+                      isBold
+                        ? "cursor-pointer text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--theme-primary)] transition-opacity hover:opacity-70"
+                        : "cursor-pointer text-xs font-semibold text-[var(--theme-primary)]"
+                    }
+                  >
+                    Ubah
+                  </button>
+                  {!address.isDefault && (
+                    <>
+                      <span
+                        aria-hidden
+                        className={isBold ? "text-zinc-200" : "text-black/15"}
+                      >
+                        |
+                      </span>
+                      <form
+                        action={deleteFormAction}
+                        onSubmit={(e) => {
+                          if (!window.confirm("Hapus alamat ini?")) e.preventDefault()
+                        }}
+                      >
+                        <input type="hidden" name="addressId" value={address.id} />
+                        <button
+                          type="submit"
+                          disabled={deletePending}
+                          className={
+                            isBold
+                              ? "cursor-pointer text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--theme-primary)] transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-50"
+                              : "cursor-pointer text-xs font-semibold text-[var(--theme-primary)] disabled:cursor-not-allowed disabled:opacity-50"
+                          }
+                        >
+                          Hapus
+                        </button>
+                      </form>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {address.isDefault ? (
                 <button
                   type="button"
-                  onClick={() => startEdit(address)}
+                  disabled
                   className={
                     isBold
-                      ? "min-h-11 shrink-0 cursor-pointer text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--theme-primary)] transition-opacity hover:opacity-70"
-                      : "cursor-pointer shrink-0 text-xs font-semibold text-[var(--theme-primary)]"
+                      ? "mt-3 h-9 cursor-not-allowed border border-zinc-200 px-4 text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300"
+                      : "mt-3 h-9 cursor-not-allowed rounded-lg border border-black/10 px-4 text-xs font-semibold text-[var(--theme-muted)]/60"
                   }
                 >
-                  Edit
+                  Atur sebagai utama
                 </button>
-              </div>
+              ) : (
+                <form action={defaultFormAction}>
+                  <input type="hidden" name="addressId" value={address.id} />
+                  <button
+                    type="submit"
+                    disabled={defaultPending}
+                    className={
+                      isBold
+                        ? "mt-3 h-9 cursor-pointer border border-zinc-900 px-4 text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-900 transition-colors hover:bg-zinc-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                        : "mt-3 h-9 cursor-pointer rounded-lg border border-black/20 px-4 text-xs font-semibold text-[var(--theme-text)] transition-colors hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-50"
+                    }
+                  >
+                    {defaultPending ? "Menyimpan..." : "Atur sebagai utama"}
+                  </button>
+                </form>
+              )}
             </li>
           ))}
         </ul>
@@ -430,6 +577,26 @@ export function AccountAddressSection({
       {state && "ok" in state && state.message && (
         <p className="mt-3 text-sm text-emerald-600" role="status">
           {state.message}
+        </p>
+      )}
+      {defaultState && "error" in defaultState && defaultState.error && (
+        <p className="mt-3 text-sm text-red-600" role="alert">
+          {defaultState.error}
+        </p>
+      )}
+      {defaultState && "ok" in defaultState && defaultState.message && (
+        <p className="mt-3 text-sm text-emerald-600" role="status">
+          {defaultState.message}
+        </p>
+      )}
+      {deleteState && "error" in deleteState && deleteState.error && (
+        <p className="mt-3 text-sm text-red-600" role="alert">
+          {deleteState.error}
+        </p>
+      )}
+      {deleteState && "ok" in deleteState && deleteState.message && (
+        <p className="mt-3 text-sm text-emerald-600" role="status">
+          {deleteState.message}
         </p>
       )}
     </div>

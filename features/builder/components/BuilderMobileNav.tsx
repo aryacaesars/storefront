@@ -1,6 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 import {
   BUILDER_TOOLS,
   type BuilderTool,
@@ -20,6 +21,7 @@ export function BuilderMobileNav({
   showSectionsTools,
   showMarketingTool,
 }: BuilderMobileNavProps) {
+  const toolLabels = useMessages().pages.builder.tools
   const tools = BUILDER_TOOLS.filter((tool) => {
     if (tool.needsSections && !showSectionsTools) return false
     if (tool.marketingOnly && !showMarketingTool) return false
@@ -39,7 +41,7 @@ export function BuilderMobileNav({
           <button
             key={tool.id}
             type="button"
-            aria-label={tool.label}
+            aria-label={toolLabels[tool.id]}
             aria-pressed={isActive}
             onClick={() => onToolChange(tool.id)}
             className={cn(
@@ -58,7 +60,7 @@ export function BuilderMobileNav({
               <Icon className="h-5 w-5" strokeWidth={1.75} />
             </span>
             <span className="max-w-full truncate text-[10px] font-medium leading-tight">
-              {tool.label}
+              {toolLabels[tool.id]}
             </span>
           </button>
         )

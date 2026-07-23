@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useOptionalMessages } from "@/features/i18n/LocaleProvider"
 import { cn } from "@/lib/utils"
 import { CanvasGridOverlay } from "@/features/builder/components/canvas/CanvasGridOverlay"
 import { CanvasInlineText } from "@/features/builder/components/canvas/CanvasInlineText"
@@ -226,6 +227,22 @@ function BoldTitleLine({
     height: `${labelLayout.hPct}%`,
   }
 
+  // Box front auto-height (fit teks, ala box CTA) — hPct tetap sumber ukuran font.
+  const labelBoxStyleFit: React.CSSProperties = {
+    position: "absolute",
+    left: `${labelLayout.xPct}%`,
+    top: `${labelLayout.yPct}%`,
+    width: `${labelLayout.wPct}%`,
+  }
+
+  const resizeHandles = lineSelected && labelResizable && (
+    <CanvasLabelResizeHandles
+      layout={labelLayout}
+      containerRef={frameRef}
+      onResize={(patch) => onLayoutChange(heroTitleLayoutToPatch(line, patch))}
+    />
+  )
+
   const startLabelMove = useCallback(
     (event: React.PointerEvent<HTMLElement>) => {
       if (!labelMovable || !frameRef.current || isLabelHandleTarget(event.target)) return
@@ -306,15 +323,15 @@ function BoldTitleLine({
         <div
           aria-hidden
           data-canvas-element={domKey}
-          className={cn(
-            "absolute z-[15] cursor-move rounded-sm",
-            lineSelected &&
-              "ring-2 ring-violet-500/40 ring-offset-1 ring-offset-transparent",
-          )}
-          style={labelBoxStyle}
+          className="absolute z-[15] cursor-move rounded-sm"
+          style={labelBoxStyleFit}
           onPointerDown={handleLabelPointerDown}
           onClick={handleLabelClick}
-        />
+        >
+          {/* Duplikat teks invisible = pengukur tinggi supaya proxy fit teks (ala CTA). */}
+          <div className="invisible">{labelContent}</div>
+          {resizeHandles}
+        </div>
       )}
 
       {layer === "front" && (
@@ -323,14 +340,13 @@ function BoldTitleLine({
           className={cn(
             "absolute flex items-start overflow-visible",
             labelMovable && "cursor-move",
-            lineSelected &&
-              "rounded-sm ring-2 ring-indigo-400 ring-offset-2 ring-offset-transparent",
           )}
-          style={{ ...labelBoxStyle, zIndex }}
+          style={{ ...labelBoxStyleFit, zIndex }}
           onPointerDown={handleLabelPointerDown}
           onClick={handleLabelClick}
         >
           {labelContent}
+          {resizeHandles}
         </div>
       )}
     </>
@@ -338,6 +354,7 @@ function BoldTitleLine({
 }
 
 export function HeroSection({ config, blocks, canvas, isMobile = false }: SectionProps) {
+  const hints = useOptionalMessages()?.pages.builder.canvasHints
   const frameRef = useRef<HTMLDivElement>(null)
   const [measuredWidth, setMeasuredWidth] = useState(
     isMobile ? HERO_MOBILE_DESIGN_WIDTH : HERO_DESIGN_WIDTH,
@@ -374,10 +391,10 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
   const title2Layer = parseTitleLayer(mediaSettings?.title2Layer)
 
   const designWidth = isMobile ? HERO_MOBILE_DESIGN_WIDTH : HERO_DESIGN_WIDTH
+  // Full-bleed proporsional: aspect ratio frame konstan (designWidth : 580),
+  // semua elemen berbasis % + scale → proporsi builder == live di semua lebar.
   const layoutScale = measuredWidth > 0 ? measuredWidth / designWidth : 1
-  // Bold full-bleed: kalau height ikut layoutScale, di layar lebar hero jadi ~900px+.
-  // Bento/minimalist di-cap max-w-7xl ≈ design width → tinggi ~580. Samakan di sini.
-  const heightScale = isMobile ? layoutScale : Math.min(layoutScale, 1)
+  const heightScale = layoutScale
   const frameHeight = BOLD_HERO_DESIGN_HEIGHT * heightScale
   const scale = heightScale
 
@@ -550,8 +567,16 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
       id="section-hero"
       data-canvas-element={elementDomKey("frame", mediaBlock?.id)}
       className="relative w-full overflow-visible bg-sky-400"
-      style={{ height: frameHeight, ...frameBgStyle }}
+      style={{
+        aspectRatio: `${designWidth} / ${BOLD_HERO_DESIGN_HEIGHT}`,
+        ...frameBgStyle,
+      }}
     >
+      {/* Legacy single image di storefront: full-bleed cover */}
+      {canvasImages.length === 0 && Boolean(image.url) && !editable && (
+        <HeroBackground url={image.url} alt={titleLine1} zoom={heroImageZoom} />
+      )}
+
       {editable && (
         <CanvasGridOverlay canvasHeight={BOLD_HERO_DESIGN_HEIGHT} scale={scale} />
       )}
@@ -587,6 +612,18 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
             }
           />
         ))}
+
+        <CanvasFreeTextLayer
+          items={canvasTexts}
+          editable={editable}
+          interactive={mediaInteractive}
+          sectionId={sectionId}
+          blockId={mediaBlock?.id}
+          editor={editor}
+          designWidth={designWidth}
+          renderLayer="behind"
+          onItemsChange={(texts) => onMediaChange({ texts })}
+        />
 
         {/* Multi-image canvas layer (same as bento — move / crop / background toggle) */}
         {canvasImages.length > 0 && mediaBlock && (
@@ -626,27 +663,23 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
           </div>
         )}
 
-        {/* Legacy single image: editable frame in builder, full-bleed cover on storefront */}
-        {canvasImages.length === 0 && Boolean(image.url) && mediaBlock && (
-          editable ? (
-            <div
-              className="absolute inset-0"
-              style={{ zIndex: Z_IMAGE }}
-              onClick={(event) => {
-                event.stopPropagation()
-                selectElement("image", mediaBlock.id)
-              }}
-            >
-              <CanvasImageFrame
-                image={image}
-                interactive={mediaInteractive}
-                domKey={elementDomKey("image", mediaBlock.id)}
-                onChange={onMediaChange}
-              />
-            </div>
-          ) : (
-            <HeroBackground url={image.url} alt={titleLine1} zoom={heroImageZoom} />
-          )
+        {/* Legacy single image: editable frame di builder (storefront: full-bleed di outer) */}
+        {canvasImages.length === 0 && Boolean(image.url) && mediaBlock && editable && (
+          <div
+            className="absolute inset-0"
+            style={{ zIndex: Z_IMAGE }}
+            onClick={(event) => {
+              event.stopPropagation()
+              selectElement("image", mediaBlock.id)
+            }}
+          >
+            <CanvasImageFrame
+              image={image}
+              interactive={mediaInteractive}
+              domKey={elementDomKey("image", mediaBlock.id)}
+              onChange={onMediaChange}
+            />
+          </div>
         )}
 
         {/* Subtle left scrim for text legibility on bright skies */}
@@ -705,39 +738,16 @@ export function HeroSection({ config, blocks, canvas, isMobile = false }: Sectio
         />
       </div>
 
-      {/* Title resize handles — outside overflow-hidden so they can overflow */}
-      {mediaInteractive &&
-        activeTitleLine &&
-        titleLines
-          .filter((item) => item.line === activeTitleLine)
-          .map((item) => (
-          <div
-            key={`${item.line}-handles`}
-            className="pointer-events-none absolute z-[30] overflow-visible"
-            style={{
-              position: "absolute",
-              left: `${item.labelLayout.xPct}%`,
-              top: `${item.labelLayout.yPct}%`,
-              width: `${item.labelLayout.wPct}%`,
-              height: `${item.labelLayout.hPct}%`,
-            }}
-          >
-            <CanvasLabelResizeHandles
-              layout={item.labelLayout}
-              containerRef={frameRef}
-              onResize={(patch) => onMediaChange(heroTitleLayoutToPatch(item.line, patch))}
-            />
-          </div>
-        ))}
-
       {editable && !editor?.selectedBlockId && (
         <p className="pointer-events-none absolute bottom-3 left-0 right-0 z-[30] text-center text-[10px] text-white/70">
-          Klik judul atau tombol CTA untuk edit · ganti foto lewat panel kiri
+          {hints?.boldHeroSelect ??
+            "Klik judul atau tombol CTA untuk edit · ganti foto lewat panel kiri"}
         </p>
       )}
       {editable && mediaInteractive && (
         <p className="pointer-events-none absolute bottom-3 left-0 right-0 z-[30] text-center text-[10px] text-white/70">
-          Drag box judul untuk pindah · tarik handle ungu untuk ukuran · atur layer di panel kiri
+          {hints?.boldHeroDrag ??
+            "Drag box judul untuk pindah · tarik handle ungu untuk ukuran · atur layer di panel kiri"}
         </p>
       )}
     </div>

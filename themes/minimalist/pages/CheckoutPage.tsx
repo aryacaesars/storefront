@@ -60,7 +60,7 @@ export function CheckoutPage({
             </div>
             {checkoutCustomer && (
               <Link
-                href="/account"
+                href="/account?tab=address"
                 className="border border-[var(--theme-text)]/20 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-[var(--theme-text)]"
               >
                 {checkoutAddress ? "Ubah alamat" : "Tambah alamat"}
@@ -103,7 +103,7 @@ export function CheckoutPage({
                 <div className="flex flex-col items-center justify-center border border-dashed border-black/10 px-4 py-5 text-center">
                   <p className="text-sm text-[var(--theme-muted)]">Belum ada alamat.</p>
                   <Link
-                    href="/account"
+                    href="/account?tab=address"
                     className="mt-2 text-sm font-semibold text-[var(--theme-primary)]"
                   >
                     Tambah alamat

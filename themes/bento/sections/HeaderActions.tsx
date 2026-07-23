@@ -10,6 +10,8 @@ interface HeaderActionsProps {
   basePath?: string
   cartCount: number
   links?: readonly { label: string; href: string }[]
+  /** Nama customer yang sedang login — tampil di sebelah ikon profile. */
+  customerName?: string | null
 }
 
 const iconBtnClass =
@@ -30,6 +32,7 @@ export function HeaderActions({
   basePath,
   cartCount,
   links = [],
+  customerName,
 }: HeaderActionsProps) {
   const isPreview = Boolean(basePath)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -41,8 +44,21 @@ export function HeaderActions({
         style={{ backgroundColor: "var(--theme-primary)" }}
       >
         {!isPreview && (
-          <Link href="/account" className={iconBtnClass} aria-label="Account">
+          <Link
+            href="/account"
+            className={
+              customerName
+                ? "flex h-8 shrink-0 items-center gap-1.5 rounded-full px-2 text-white transition-opacity hover:opacity-80"
+                : iconBtnClass
+            }
+            aria-label="Account"
+          >
             <User className="h-[18px] w-[18px]" strokeWidth={1.5} />
+            {customerName && (
+              <span className="hidden max-w-[120px] truncate text-xs font-semibold sm:inline">
+                {customerName.trim().split(/\s+/)[0]}
+              </span>
+            )}
           </Link>
         )}
 

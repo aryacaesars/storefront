@@ -20,7 +20,16 @@ interface NewArrivalsGridProps {
 }
 
 export function NewArrivalsGrid({ products }: NewArrivalsGridProps) {
-  const items = products && products.length > 0 ? products : MOCK_PRODUCTS
+  // products undefined = builder/preview (mock); array (walau kosong) = live.
+  const items = products ?? MOCK_PRODUCTS
+
+  if (items.length === 0) {
+    return (
+      <p className="py-10 text-center text-sm text-zinc-500">
+        Belum ada produk untuk ditampilkan.
+      </p>
+    )
+  }
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

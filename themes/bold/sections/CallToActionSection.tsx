@@ -78,6 +78,21 @@ export function CallToActionSection({ settings, blocks, canvas }: SectionProps) 
       className="relative overflow-hidden bg-white"
       style={{ aspectRatio: `${SPEC.frame.width} / ${SPEC.frame.height}` }}
     >
+      <CanvasFreeTextLayer
+        items={canvasTexts}
+        editable={editable}
+        interactive={interactive}
+        sectionId={sectionId}
+        blockId={contentBlock?.id}
+        editor={editor}
+        designWidth={SPEC.frame.width}
+        renderLayer="behind"
+        onItemsChange={(texts) =>
+          contentBlock &&
+          editor?.onBlockChange?.(canvas!.sectionId, contentBlock.id, { texts })
+        }
+      />
+
       {canvasImages.length > 0 && contentBlock && (
         <div
           className={cn("absolute inset-0", !editable && "pointer-events-none")}

@@ -1,6 +1,11 @@
 import Link from "next/link"
+import type { SectionProps } from "@/themes/engine/section-registry"
+import {
+  CanvasSectionText,
+  findSectionTextBlock,
+} from "@/features/builder/components/canvas/CanvasSectionText"
 
-export function BrandStory() {
+export function BrandStory({ blocks, canvas }: SectionProps) {
   return (
     <div className="mx-auto max-w-7xl px-6 py-14">
       <div className="grid items-center gap-12 md:grid-cols-2">
@@ -14,26 +19,37 @@ export function BrandStory() {
         </div>
 
         <div>
-          <p className="mb-4 text-[10px] tracking-[0.2em] uppercase text-[var(--theme-primary)]">
-            OUR STORY
-          </p>
-          <h2
-            className="text-3xl font-medium leading-snug text-[var(--theme-text)]"
-            style={{ fontFamily: "var(--theme-heading-font)" }}
-          >
-            Elevated Living Through Intentional Design
-          </h2>
-          <p className="mt-4 text-sm leading-relaxed text-[var(--theme-muted)]">
-            At Luna Soft, we believe that beauty is found in simplicity. Our philosophy is rooted
-            in the pursuit of &ldquo;Quiet Luxury&rdquo; — creating pieces that don&rsquo;t need
-            to shout to be noticed. Every garment and object is selected for its quality, its
-            timelessness, and the way it complements a life lived with intention.
-          </p>
+          <CanvasSectionText
+            canvas={canvas}
+            block={findSectionTextBlock(blocks, "fashion-story-eyebrow")}
+            fallback="OUR STORY"
+            basePx={10}
+            className="mb-4 tracking-[0.2em] uppercase text-[var(--theme-primary)]"
+          />
+          <CanvasSectionText
+            canvas={canvas}
+            block={findSectionTextBlock(blocks, "fashion-story-title")}
+            fallback="Elevated Living Through Intentional Design"
+            basePx={30}
+            as="h2"
+            className="font-medium leading-snug text-[var(--theme-text)]"
+            baseStyle={{ fontFamily: "var(--theme-heading-font)" }}
+          />
+          <CanvasSectionText
+            canvas={canvas}
+            block={findSectionTextBlock(blocks, "fashion-story-body")}
+            fallback={`At Luna Soft, we believe that beauty is found in simplicity. Our philosophy is rooted in the pursuit of "Quiet Luxury" — creating pieces that don't need to shout to be noticed. Every garment and object is selected for its quality, its timelessness, and the way it complements a life lived with intention.`}
+            basePx={14}
+            className="mt-4 leading-relaxed text-[var(--theme-muted)]"
+          />
           <blockquote className="mt-5 border-l-2 border-[var(--theme-accent)] pl-4">
-            <p className="text-sm italic leading-relaxed text-[var(--theme-muted)]">
-              &ldquo;We design for the woman who values the tactile experience of a silk weave as
-              much as the silhouette it creates.&rdquo;
-            </p>
+            <CanvasSectionText
+              canvas={canvas}
+              block={findSectionTextBlock(blocks, "fashion-story-quote")}
+              fallback={`"We design for the woman who values the tactile experience of a silk weave as much as the silhouette it creates."`}
+              basePx={14}
+              className="italic leading-relaxed text-[var(--theme-muted)]"
+            />
           </blockquote>
           <Link
             href="#"

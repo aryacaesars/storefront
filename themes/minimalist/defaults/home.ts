@@ -74,7 +74,16 @@ export const DEFAULT_MINIMALIST_HOME: PageTemplate = {
         },
       })),
     },
-    "product-grid": { type: "product-grid" },
+    "product-grid": {
+      type: "product-grid",
+      blocks: [
+        {
+          id: "minimalist-grid-title",
+          type: "section-text",
+          settings: { label: "", labelBasePx: 30 },
+        },
+      ],
+    },
     "call-to-action": {
       type: "call-to-action",
       blocks: [

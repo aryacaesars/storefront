@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import { EditorTopbar } from "./EditorTopbar"
 import { ThemeLivePreview } from "./ThemeLivePreview"
 import { scrollPreviewIntoView } from "./PreviewCanvas"
-import { BuilderToolRail, BUILDER_TOOLS, builderToolForSelectedElement, type BuilderTool } from "./BuilderToolRail"
+import { BuilderToolRail, builderToolForSelectedElement, type BuilderTool } from "./BuilderToolRail"
 import { BuilderToolPanels } from "./BuilderToolPanels"
 import { BuilderMobileNav } from "./BuilderMobileNav"
 import { BuilderMobileSheet } from "./BuilderMobileSheet"
@@ -615,8 +615,7 @@ export function CustomizeWorkspace({
     scheduleMobilePanelOpen()
   }, [scheduleMobilePanelOpen])
 
-  const activeToolLabel =
-    BUILDER_TOOLS.find((t) => t.id === activeTool)?.label ?? "Tools"
+  const activeToolLabel = t.tools[activeTool] ?? t.tools.fallback
 
   const toolPanelProps = {
     activeTool,

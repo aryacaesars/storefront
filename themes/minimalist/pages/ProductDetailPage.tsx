@@ -17,7 +17,7 @@ const MOCK_CATALOG = TRENDING_PRODUCTS.map(mockProductToCatalog)
 export function ProductDetailPage({
   slug = "1",
   product,
-  products = [],
+  products,
 }: ThemePageProps) {
   const { product: resolved, related, isLiveCatalog } = resolveProductDetail(
     slug,

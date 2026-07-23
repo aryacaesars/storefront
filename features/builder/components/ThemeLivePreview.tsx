@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef } from "react"
+import { useMessages } from "@/features/i18n/LocaleProvider"
 import { ThemeProvider } from "@/themes/engine/theme-provider"
 import { isTemplateRegistered } from "@/themes/engine/registry"
 import { ThemeFontScope } from "@/themes/engine/ThemeFontScope"
@@ -51,6 +52,7 @@ export function ThemeLivePreview({
   sectionEditor,
   previewRootRef,
 }: ThemeLivePreviewProps) {
+  const t = useMessages().pages.builder.preview
   const fallbackRef = useRef<HTMLDivElement>(null)
   const scrollRootRef = previewRootRef ?? fallbackRef
   const ready = isTemplateRegistered(templateId)
@@ -68,11 +70,10 @@ export function ThemeLivePreview({
 
   const pageBody = !ready ? (
     <div className="flex min-h-[480px] flex-col items-center justify-center gap-2 px-8 text-center">
-      <p className="text-sm font-semibold text-gray-900">Preview belum tersedia</p>
+      <p className="text-sm font-semibold text-gray-900">{t.notReadyTitle}</p>
       <p className="text-xs text-gray-500">
-        Template <span className="font-medium">{templateId}</span> masih dalam
-        pengembangan. Aktifkan template ini dulu, lalu kembali setelah halaman
-        theme-nya selesai.
+        {t.notReadyBodyBefore} <span className="font-medium">{templateId}</span>{" "}
+        {t.notReadyBodyAfter}
       </p>
     </div>
   ) : isNonHomePage ? (
@@ -95,11 +96,9 @@ export function ThemeLivePreview({
           ) : (
             <div className="flex min-h-[480px] flex-col items-center justify-center gap-2 px-8 text-center">
               <p className="text-sm font-semibold text-gray-900">
-                Halaman belum tersedia
+                {t.pageNotReadyTitle}
               </p>
-              <p className="text-xs text-gray-500">
-                Halaman ini belum diimplementasi untuk template ini.
-              </p>
+              <p className="text-xs text-gray-500">{t.pageNotReadyBody}</p>
             </div>
           )}
         </ThemeProvider>
@@ -132,7 +131,7 @@ export function ThemeLivePreview({
   return (
     <div className="flex h-full flex-col overflow-hidden bg-gray-100">
       <div className="shrink-0 border-b border-amber-100 bg-amber-50 px-4 py-2 text-center text-[11px] text-amber-800">
-        Preview mode — navigasi terbatas ke halaman ter-wire; subdomain live:{" "}
+        {t.banner}{" "}
         <span className="font-semibold">{storefrontHost}</span>
       </div>
 

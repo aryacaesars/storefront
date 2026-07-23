@@ -26,6 +26,21 @@ export type CanvasTextItem = {
   textTransform?: "uppercase" | "capitalize" | "none"
   /** 0–100 */
   opacity?: number
+  /** Layer relatif terhadap gambar section (default "front") — paritas judul hero. */
+  layer?: "front" | "behind"
+}
+
+/** Patch untuk "Reset style to theme default" — layout (x/y/width/fontSize) & value dipertahankan. */
+export const TEXT_STYLE_RESET_PATCH: Partial<CanvasTextItem> = {
+  color: undefined,
+  fontFamily: undefined,
+  fontWeight: undefined,
+  fontStyle: undefined,
+  letterSpacing: undefined,
+  lineHeight: undefined,
+  textDecoration: undefined,
+  textTransform: undefined,
+  opacity: undefined,
 }
 
 export const DEFAULT_CANVAS_TEXT_ITEM: Omit<CanvasTextItem, "id"> = {
@@ -75,6 +90,7 @@ function normalizeCanvasText(raw: Record<string, unknown>): CanvasTextItem {
         ? raw.textTransform
         : undefined,
     opacity: optNum(raw.opacity),
+    layer: raw.layer === "behind" ? "behind" : undefined,
   }
 }
 

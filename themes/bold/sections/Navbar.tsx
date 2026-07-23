@@ -27,6 +27,8 @@ interface NavbarProps {
   basePath?: string
   activeKey?: string
   transparent?: boolean
+  /** Nama customer yang sedang login — tampil di sebelah ikon profile. */
+  customerName?: string | null
 }
 
 export function Navbar({
@@ -35,6 +37,7 @@ export function Navbar({
   basePath,
   activeKey,
   transparent = false,
+  customerName,
 }: NavbarProps) {
   const isMobile = useDeviceIsMobile()
   const visibleLinks = NAV_LINKS.filter((link) =>
@@ -72,10 +75,15 @@ export function Navbar({
           {!basePath && (
             <Link
               href="/account"
-              className="text-white/80 transition-colors hover:text-white"
+              className="flex items-center gap-1.5 text-white/80 transition-colors hover:text-white"
               aria-label="Account"
             >
               <User className="h-4 w-4" strokeWidth={1.5} />
+              {customerName && (
+                <span className="hidden max-w-[120px] truncate text-[10px] font-bold uppercase tracking-[0.15em] sm:inline">
+                  {customerName.trim().split(/\s+/)[0]}
+                </span>
+              )}
             </Link>
           )}
           <Link
