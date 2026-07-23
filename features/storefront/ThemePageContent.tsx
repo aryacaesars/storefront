@@ -18,6 +18,7 @@ import type { CatalogListFilters } from "@/features/storefront/catalog-types"
 import { getStoreBySlug } from "@/server/services/tenant.service"
 import { getCustomerSession } from "@/features/storefront/customer-dal"
 import { getCustomerDefaultAddress } from "@/server/services/customer.service"
+import { prisma } from "@/lib/db/prisma"
 import { normalizeCartItem, type CartItem } from "@/lib/storefront/cart"
 import type { ThemePageProps } from "@/themes/engine/page-props"
 import type { StorefrontCategory } from "@/features/storefront/catalog-types"
@@ -96,6 +97,57 @@ export async function ThemePageContent({
       } catch {
         cart = []
       }
+    }
+    // Annotate cart items with current DB state to surface warnings in UI
+    if (cart.length > 0) {
+      const productIds = [...new Set(cart.map((i) => i.productId))]
+      const variantIds = [
+        ...new Set(cart.map((i) => i.variantId).filter(Boolean) as string[]),
+      ]
+      const [products, variants] = await Promise.all([
+        prisma.product.findMany({
+          where: { id: { in: productIds } },
+          select: {
+            id: true,
+            price: true,
+            images: { select: { url: true }, orderBy: { order: "asc" } },
+          },
+        }),
+        variantIds.length
+          ? prisma.productVariant.findMany({
+              where: { id: { in: variantIds } },
+              select: { id: true, productId: true, price: true, imageUrl: true },
+            })
+          : Promise.resolve([]),
+      ])
+      const productMap = new Map(products.map((p) => [p.id, p]))
+      const variantMap = new Map(variants.map((v) => [v.id, v]))
+      // also detect if product has any variants at all
+      const allVariants = await prisma.productVariant.findMany({
+        where: { productId: { in: productIds } },
+        select: { id: true, productId: true },
+      })
+      const productHasVariants = new Map<string, boolean>()
+      for (const v of allVariants) productHasVariants.set(v.productId, true)
+
+      cart = cart.map((item) => {
+        const prod = productMap.get(item.productId)
+        const variant = item.variantId ? variantMap.get(item.variantId) : undefined
+        const needsVariantSelection = !!productHasVariants.get(item.productId) && !item.variantId
+        let priceMismatch = false
+        let currentPrice: number | undefined = undefined
+        if (variant) {
+          currentPrice = variant.price
+        } else if (prod) {
+          currentPrice = prod.price
+        }
+        if (currentPrice !== undefined && currentPrice !== item.price) {
+          priceMismatch = true
+        }
+        // Prefer variant image, then product primary image, then existing cart image
+        const preferredImage = variant?.imageUrl ?? prod?.images?.[0]?.url ?? item.imageUrl
+        return { ...item, needsVariantSelection, priceMismatch, currentPrice, imageUrl: preferredImage }
+      })
     }
     if (tenantSlug) {
       const store = await getStoreBySlug(tenantSlug)

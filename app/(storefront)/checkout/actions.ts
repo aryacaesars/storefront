@@ -91,12 +91,24 @@ export async function placeOrderAction(
 
   const productMap = new Map(products.map((p) => [p.id, p]))
   const variantMap = new Map(variants.map((v) => [v.id, v]))
+  // Detect if any product now has variants; if so and the cart item doesn't have a variant selected,
+  // block checkout to force user choose a variant.
+  const allVariants = await prisma.productVariant.findMany({
+    where: { productId: { in: productIds }, product: { storeId, published: true } },
+    select: { productId: true },
+  })
+  const productHasVariants = new Map<string, boolean>()
+  for (const v of allVariants) productHasVariants.set(v.productId, true)
 
   const resolvedLines: ResolvedLine[] = []
 
   for (const item of cart) {
     const product = productMap.get(item.productId)
     if (!product) return { error: `Product "${item.name}" is unavailable.` }
+
+    if (!item.variantId && productHasVariants.get(item.productId)) {
+      return { error: `Product "${item.name}" now has variants — please select a variant before checkout.` }
+    }
 
     if (item.variantId) {
       const variant = variantMap.get(item.variantId)
@@ -106,9 +118,15 @@ export async function placeOrderAction(
       if (variant.stock < item.quantity) {
         return { error: `Insufficient stock for "${item.name}".` }
       }
+      const unitPrice = item.price ?? variant.price
+      if (item.price !== undefined && item.price !== variant.price) {
+        console.warn(
+          `[checkout] cart price differs from variant price for ${item.name}: cart=${item.price} db=${variant.price}`,
+        )
+      }
       resolvedLines.push({
         item,
-        unitPrice: variant.price,
+        unitPrice,
         variantLabel: variant.label,
       })
       continue
@@ -117,9 +135,15 @@ export async function placeOrderAction(
     if (product.stock < item.quantity) {
       return { error: `Insufficient stock for "${item.name}".` }
     }
+    const unitPrice = item.price ?? product.price
+    if (item.price !== undefined && item.price !== product.price) {
+      console.warn(
+        `[checkout] cart price differs from product price for ${item.name}: cart=${item.price} db=${product.price}`,
+      )
+    }
     resolvedLines.push({
       item,
-      unitPrice: product.price,
+      unitPrice,
     })
   }
 

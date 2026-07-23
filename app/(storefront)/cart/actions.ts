@@ -47,6 +47,36 @@ export async function addToCart(input: {
   const existing = items.find((i) => i.lineKey === lineKey)
   if (existing) {
     existing.quantity += qty
+  } else if (input.variantId) {
+    // If user selects a variant but there's an existing cart line for the same product
+    // without a variant (legacy/problematic), convert that line into the variant line
+    const legacyIndex = items.findIndex(
+      (i) => i.productId === input.productId && !i.variantId,
+    )
+    if (legacyIndex !== -1) {
+      const legacy = items[legacyIndex]
+      legacy.variantId = input.variantId
+      legacy.variantLabel = input.variantLabel
+      legacy.name = displayName
+      legacy.price = input.price
+      // Replace legacy quantity with the newly selected quantity
+      legacy.quantity = qty
+      legacy.lineKey = lineKey
+      // ensure no other item now duplicates the new lineKey
+      // (we already checked existing === undefined)
+    } else {
+      items.push({
+        productId: input.productId,
+        lineKey,
+        slug: input.slug,
+        name: displayName,
+        price: input.price,
+        quantity: qty,
+        imageUrl: input.imageUrl,
+        variantId: input.variantId,
+        variantLabel: input.variantLabel,
+      })
+    }
   } else {
     items.push({
       productId: input.productId,

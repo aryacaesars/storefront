@@ -55,6 +55,12 @@ export function CartPage({ config = DEFAULT_FASHION_CONFIG, cart = [] }: ThemePa
                       >
                         {item.name}
                       </Link>
+                      {item.needsVariantSelection && (
+                        <p className="mt-2 text-xs text-yellow-700">⚠️ Produk memiliki varian baru — pilih varian di halaman produk.</p>
+                      )}
+                      {item.priceMismatch && item.currentPrice !== undefined && (
+                        <p className="mt-2 text-xs text-yellow-700">⚠️ Harga berubah: sekarang {formatIdr(item.currentPrice)}. Periksa pilihan varian.</p>
+                      )}
                       <div className="mt-2 flex items-center gap-2">
                         <form action={updateQuantity.bind(null, item.lineKey, item.quantity - 1)}>
                           <button

@@ -9,6 +9,11 @@ export type CartItem = {
   imageUrl?: string
   variantId?: string
   variantLabel?: string
+  /** UI hints set server-side: when product now has variants and user must choose one */
+  needsVariantSelection?: boolean
+  /** If price on product/variant differs from cart snapshot, currentPrice holds DB price */
+  priceMismatch?: boolean
+  currentPrice?: number
 }
 
 export function cartLineKey(productId: string, variantId?: string): string {

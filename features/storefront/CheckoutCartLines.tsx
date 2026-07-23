@@ -49,6 +49,12 @@ export function CheckoutCartLines({ cart }: { cart: CartItem[] }) {
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold text-[#1a1c1b]">{item.name}</p>
             <p className="mt-0.5 text-xs text-[#515160]">{formatIdr(item.price)}</p>
+            {item.needsVariantSelection && (
+              <p className="mt-2 text-xs text-yellow-700">⚠️ Produk memiliki varian baru — pilih varian di halaman produk.</p>
+            )}
+            {item.priceMismatch && item.currentPrice !== undefined && (
+              <p className="mt-2 text-xs text-yellow-700">⚠️ Harga berubah: sekarang {formatIdr(item.currentPrice)}. Periksa pilihan varian.</p>
+            )}
 
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <div className="inline-flex items-center rounded-full border border-black/10">
