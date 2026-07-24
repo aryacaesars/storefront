@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
+import { prisma } from "@/lib/db/prisma"
 import { cartLineKey, normalizeCartItem, type CartItem } from "@/lib/storefront/cart"
 
 const CART_COOKIE = "sf_cart"
@@ -43,7 +44,29 @@ export async function addToCart(input: {
     ? `${input.name} (${input.variantLabel})`
     : input.name
 
-  const items = await readCartItems()
+  let items = await readCartItems()
+
+  // Prune stale lines for this product whose selected variant no longer exists in the DB.
+  // Without this, re-adding a product after its variant was deleted leaves the dead variant
+  // line alongside the newly added line.
+  const staleVariantIds = items
+    .filter((i) => i.productId === input.productId && i.variantId && i.variantId !== input.variantId)
+    .map((i) => i.variantId as string)
+  if (staleVariantIds.length > 0) {
+    const liveVariants = await prisma.productVariant.findMany({
+      where: { id: { in: staleVariantIds }, productId: input.productId },
+      select: { id: true },
+    })
+    const liveVariantIds = new Set(liveVariants.map((v) => v.id))
+    items = items.filter(
+      (i) =>
+        i.productId !== input.productId ||
+        !i.variantId ||
+        i.variantId === input.variantId ||
+        liveVariantIds.has(i.variantId),
+    )
+  }
+
   const existing = items.find((i) => i.lineKey === lineKey)
   if (existing) {
     existing.quantity += qty

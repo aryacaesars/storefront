@@ -13,9 +13,6 @@ export type CartItem = {
   needsVariantSelection?: boolean
   /** Varian yang dipilih sudah dihapus dari data master produk */
   variantUnavailable?: boolean
-  /** If price on product/variant differs from cart snapshot, currentPrice holds DB price */
-  priceMismatch?: boolean
-  currentPrice?: number
 }
 
 export function cartLineKey(productId: string, variantId?: string): string {

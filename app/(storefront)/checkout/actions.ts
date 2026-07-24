@@ -118,12 +118,8 @@ export async function placeOrderAction(
       if (variant.stock < item.quantity) {
         return { error: `Insufficient stock for "${item.name}".` }
       }
-      const unitPrice = item.price ?? variant.price
-      if (item.price !== undefined && item.price !== variant.price) {
-        console.warn(
-          `[checkout] cart price differs from variant price for ${item.name}: cart=${item.price} db=${variant.price}`,
-        )
-      }
+      // Authoritative price is always the current DB price, never the cart snapshot.
+      const unitPrice = variant.price
       resolvedLines.push({
         item,
         unitPrice,
@@ -135,12 +131,8 @@ export async function placeOrderAction(
     if (product.stock < item.quantity) {
       return { error: `Insufficient stock for "${item.name}".` }
     }
-    const unitPrice = item.price ?? product.price
-    if (item.price !== undefined && item.price !== product.price) {
-      console.warn(
-        `[checkout] cart price differs from product price for ${item.name}: cart=${item.price} db=${product.price}`,
-      )
-    }
+    // Authoritative price is always the current DB price, never the cart snapshot.
+    const unitPrice = product.price
     resolvedLines.push({
       item,
       unitPrice,

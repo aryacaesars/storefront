@@ -176,14 +176,9 @@ export function ProductVariantFields({
                 </div>
                 <div>
                   <label className={dashboardLabel}>{t.variantStock}</label>
-                  <input
-                    type="number"
-                    min={0}
+                  <VariantStockInput
                     value={row.stock}
-                    onChange={(e) =>
-                      updateRow(row.key, { stock: Number(e.target.value) || 0 })
-                    }
-                    className={dashboardInput}
+                    onChange={(stock) => updateRow(row.key, { stock })}
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -268,6 +263,31 @@ function VariantImageInput({
         disabled={uploading}
       />
     </label>
+  )
+}
+
+function VariantStockInput({
+  value,
+  onChange,
+}: {
+  value: number
+  onChange: (value: number) => void
+}) {
+  const [digits, setDigits] = useState(value > 0 ? String(value) : "")
+
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      value={digits}
+      onChange={(e) => {
+        const next = e.target.value.replace(/\D/g, "")
+        setDigits(next)
+        onChange(next ? Number(next) : 0)
+      }}
+      placeholder="0"
+      className={dashboardInput}
+    />
   )
 }
 

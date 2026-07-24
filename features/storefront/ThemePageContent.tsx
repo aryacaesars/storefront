@@ -136,19 +136,16 @@ export async function ThemePageContent({
         const needsVariantSelection = !!productHasVariants.get(item.productId) && !item.variantId
         // variantId di cart tapi record varian sudah dihapus dari master produk
         const variantUnavailable = !!item.variantId && !variant
-        let priceMismatch = false
-        let currentPrice: number | undefined = undefined
+        // Harga DB selalu otoritatif; snapshot cart di-override dengan harga terkini.
+        let price = item.price
         if (variant) {
-          currentPrice = variant.price
+          price = variant.price
         } else if (prod && !variantUnavailable) {
-          currentPrice = prod.price
-        }
-        if (currentPrice !== undefined && currentPrice !== item.price) {
-          priceMismatch = true
+          price = prod.price
         }
         // Prefer variant image, then product primary image, then existing cart image
         const preferredImage = variant?.imageUrl ?? prod?.images?.[0]?.url ?? item.imageUrl
-        return { ...item, needsVariantSelection, variantUnavailable, priceMismatch, currentPrice, imageUrl: preferredImage }
+        return { ...item, needsVariantSelection, variantUnavailable, price, imageUrl: preferredImage }
       })
     }
     if (tenantSlug) {

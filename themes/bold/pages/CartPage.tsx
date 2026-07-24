@@ -68,9 +68,6 @@ export function CartPage({ config, cart = [] }: ThemePageProps) {
                       {item.variantUnavailable && (
                         <p className="mt-2 text-xs text-red-600">⚠️ Varian ini sudah tidak tersedia. Hapus item lalu pilih ulang di halaman produk.</p>
                       )}
-                      {item.priceMismatch && item.currentPrice !== undefined && (
-                        <p className="mt-2 text-xs text-yellow-700">⚠️ Harga berubah: sekarang {formatIdr(item.currentPrice)}. Periksa pilihan varian.</p>
-                      )}
                       <div className="mt-2 flex items-center gap-2">
                         <form action={updateQuantity.bind(null, item.lineKey, item.quantity - 1)}>
                           <button
