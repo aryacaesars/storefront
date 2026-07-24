@@ -6,6 +6,10 @@ import { removeFromCart, updateQuantity } from "@/app/(storefront)/cart/actions"
 
 export function CartPage({ config, cart = [] }: ThemePageProps) {
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const cartBlocked = cart.some(
+    (item) => item.variantUnavailable || item.needsVariantSelection,
+  )
+  const canProceedToCheckout = !cartBlocked
 
   return (
     <div className="bg-white min-h-screen">
@@ -31,6 +35,11 @@ export function CartPage({ config, cart = [] }: ThemePageProps) {
           </div>
         ) : (
           <>
+            {cart.some((item) => item.needsVariantSelection || item.variantUnavailable) && (
+              <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                Ada item cart yang tidak valid. Buka produk lalu pilih varian yang benar sebelum checkout.
+              </div>
+            )}
             <ul className="mt-10 divide-y divide-gray-100 border-y border-gray-100">
               {cart.map((item) => (
                 <li key={item.lineKey} className="flex gap-5 py-6">
@@ -55,6 +64,9 @@ export function CartPage({ config, cart = [] }: ThemePageProps) {
                       </Link>
                       {item.needsVariantSelection && (
                         <p className="mt-2 text-xs text-yellow-700">⚠️ Produk memiliki varian baru — pilih varian di halaman produk.</p>
+                      )}
+                      {item.variantUnavailable && (
+                        <p className="mt-2 text-xs text-red-600">⚠️ Varian ini sudah tidak tersedia. Hapus item lalu pilih ulang di halaman produk.</p>
                       )}
                       {item.priceMismatch && item.currentPrice !== undefined && (
                         <p className="mt-2 text-xs text-yellow-700">⚠️ Harga berubah: sekarang {formatIdr(item.currentPrice)}. Periksa pilihan varian.</p>
@@ -104,13 +116,24 @@ export function CartPage({ config, cart = [] }: ThemePageProps) {
               <p className="text-lg font-black text-zinc-900">
                 Subtotal: {formatIdr(subtotal)}
               </p>
-              <Link
-                href="/checkout"
-                className="inline-flex h-12 items-center px-10 text-xs font-black uppercase tracking-[0.15em] text-zinc-900 transition-opacity hover:opacity-90"
-                style={{ backgroundColor: "var(--theme-accent)" }}
-              >
-                Checkout
-              </Link>
+              {canProceedToCheckout ? (
+                <Link
+                  href="/checkout"
+                  className="inline-flex h-12 items-center px-10 text-xs font-black uppercase tracking-[0.15em] text-zinc-900 transition-opacity hover:opacity-90"
+                  style={{ backgroundColor: "var(--theme-accent)" }}
+                >
+                  Checkout
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="inline-flex h-12 items-center px-10 text-xs font-black uppercase tracking-[0.15em] text-zinc-900 opacity-40"
+                  style={{ backgroundColor: "var(--theme-accent)" }}
+                >
+                  Checkout
+                </button>
+              )}
             </div>
           </>
         )}

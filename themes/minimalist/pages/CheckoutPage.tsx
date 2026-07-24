@@ -38,7 +38,7 @@ export function CheckoutPage({
     Boolean(checkoutAddress) &&
     cart.length > 0 &&
     Boolean(storeId) &&
-    !cart.some((i) => i.needsVariantSelection)
+    !cart.some((i) => i.needsVariantSelection || i.variantUnavailable)
 
   return (
     <section className="mx-auto max-w-5xl px-6 py-8">

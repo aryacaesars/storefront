@@ -1,13 +1,18 @@
 "use client"
 
-import { useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react"
 import type { MockProductDetail } from "@/themes/bold/data/mock"
-import { addToCart } from "@/app/(storefront)/cart/actions"
+import type { CatalogProduct } from "@/features/storefront/catalog-types"
+import { ProductPurchaseActions } from "@/features/storefront/ProductPurchaseActions"
+import {
+  ProductVariantPrice,
+  ProductVariantSelectionProvider,
+  useProductVariantSelection,
+} from "@/features/storefront/ProductVariantSelection"
 
 interface ProductGalleryClientProps {
   product: MockProductDetail
-  catalogProductId?: string
+  catalogProduct?: CatalogProduct
 }
 
 function StarRating({ rating }: { rating: number }) {
@@ -50,32 +55,36 @@ function GalleryImage({
   return <div className={`${imageClass} ${className ?? "h-full w-full"}`} />
 }
 
-export function ProductGalleryClient({ product, catalogProductId }: ProductGalleryClientProps) {
-  const router = useRouter()
+export function ProductGalleryClient({ product, catalogProduct }: ProductGalleryClientProps) {
+  if (catalogProduct) {
+    return (
+      <ProductVariantSelectionProvider product={catalogProduct}>
+        <GalleryContent product={product} catalogProduct={catalogProduct} />
+      </ProductVariantSelectionProvider>
+    )
+  }
+  return <GalleryContent product={product} />
+}
+
+function GalleryContent({
+  product,
+  catalogProduct,
+}: {
+  product: MockProductDetail
+  catalogProduct?: CatalogProduct
+}) {
+  const ctx = useProductVariantSelection()
   const [activeThumb, setActiveThumb] = useState(0)
   const [activeSize, setActiveSize] = useState(product.defaultSize)
-  const [addPending, startAddTransition] = useTransition()
-  const [justAdded, setJustAdded] = useState(false)
-
-  function handleAddToCart() {
-    if (!catalogProductId) return
-    startAddTransition(async () => {
-      await addToCart({
-        productId: catalogProductId,
-        slug: product.id,
-        name: product.name,
-        price: product.price,
-        imageUrl: product.imageUrl,
-      })
-      router.refresh()
-      setJustAdded(true)
-      setTimeout(() => setJustAdded(false), 2000)
-    })
-  }
 
   const activeThumbData = product.thumbnails[activeThumb]
-  const mainImageUrl = activeThumbData?.imageUrl ?? product.imageUrl
-  const outOfStock = product.inStock === false
+  // Gambar varian terpilih menang atas thumbnail aktif agar user selalu
+  // melihat varian yang akan masuk keranjang.
+  const mainImageUrl =
+    ctx?.selectedVariant?.imageUrl ?? activeThumbData?.imageUrl ?? product.imageUrl
+  const outOfStock = catalogProduct
+    ? catalogProduct.inStock === false
+    : product.inStock === false
   const priceDisplay =
     product.priceLabel ?? `$${product.price.toFixed(product.price % 1 === 0 ? 0 : 2)}`
 
@@ -149,79 +158,107 @@ export function ProductGalleryClient({ product, catalogProductId }: ProductGalle
           </div>
         )}
 
-        <p className="text-3xl font-black" style={{ color: "var(--theme-primary)" }}>
-          {priceDisplay}
-        </p>
+        {catalogProduct ? (
+          <ProductVariantPrice
+            className="text-3xl font-black"
+            style={{ color: "var(--theme-primary)" }}
+          />
+        ) : (
+          <p className="text-3xl font-black" style={{ color: "var(--theme-primary)" }}>
+            {priceDisplay}
+          </p>
+        )}
 
         {product.description && (
           <p className="text-sm leading-relaxed text-zinc-600">{product.description}</p>
         )}
 
+        {catalogProduct ? (
+          outOfStock ? (
+            <button
+              type="button"
+              disabled
+              className="h-12 w-full text-xs font-black uppercase tracking-[0.15em] text-white opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: "var(--theme-primary)" }}
+            >
+              OUT OF STOCK
+            </button>
+          ) : (
+            <ProductPurchaseActions
+              product={catalogProduct}
+              addLabel="ADD TO CART"
+              buyLabel="BUY IT NOW"
+              buttonClassName="h-12 w-full text-xs font-black uppercase tracking-[0.15em] text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              secondaryButtonClassName="h-12 w-full border border-zinc-900 text-xs font-bold uppercase tracking-[0.15em] text-zinc-900 transition-colors hover:bg-zinc-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+              buttonStyle={{ backgroundColor: "var(--theme-primary)" }}
+            />
+          )
+        ) : (
+          <>
+            {product.sizes.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-700">
+                    SELECT SIZE (US)
+                  </p>
+                  <button
+                    type="button"
+                    className="text-[10px] underline"
+                    style={{ color: "var(--theme-primary)" }}
+                  >
+                    SIZE GUIDE
+                  </button>
+                </div>
+                <div className="mt-2 grid grid-cols-4 gap-2">
+                  {product.sizes.map((size) => {
+                    const isActive = activeSize === size
+                    return (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => setActiveSize(size)}
+                        className="h-11 border text-sm font-bold transition-colors"
+                        style={
+                          isActive
+                            ? {
+                                backgroundColor: "var(--theme-primary)",
+                                color: "white",
+                                borderColor: "var(--theme-primary)",
+                              }
+                            : {
+                                backgroundColor: "white",
+                                color: "#3F3F46",
+                                borderColor: "#E5E7EB",
+                              }
+                        }
+                      >
+                        {size}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
-        {product.sizes.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-700">
-                SELECT SIZE (US)
-              </p>
+            <div className="space-y-2">
               <button
                 type="button"
-                className="text-[10px] underline"
-                style={{ color: "var(--theme-primary)" }}
+                disabled
+                className="h-12 w-full text-xs font-black uppercase tracking-[0.15em] text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                style={{ backgroundColor: "var(--theme-primary)" }}
               >
-                SIZE GUIDE
+                {outOfStock ? "OUT OF STOCK" : "ADD TO CART"}
+              </button>
+              <button
+                type="button"
+                disabled
+                className="h-12 w-full border border-zinc-900 text-xs font-bold uppercase tracking-[0.15em] text-zinc-900 transition-colors hover:bg-zinc-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                BUY IT NOW
               </button>
             </div>
-            <div className="mt-2 grid grid-cols-4 gap-2">
-              {product.sizes.map((size) => {
-                const isActive = activeSize === size
-                return (
-                  <button
-                    key={size}
-                    type="button"
-                    onClick={() => setActiveSize(size)}
-                    className="h-11 border text-sm font-bold transition-colors"
-                    style={
-                      isActive
-                        ? {
-                            backgroundColor: "var(--theme-primary)",
-                            color: "white",
-                            borderColor: "var(--theme-primary)",
-                          }
-                        : {
-                            backgroundColor: "white",
-                            color: "#3F3F46",
-                            borderColor: "#E5E7EB",
-                          }
-                    }
-                  >
-                    {size}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
+          </>
         )}
-
-        <div className="space-y-2">
-          <button
-            type="button"
-            onClick={catalogProductId ? handleAddToCart : undefined}
-            disabled={outOfStock || addPending || !catalogProductId}
-            className="h-12 w-full text-xs font-black uppercase tracking-[0.15em] text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ backgroundColor: "var(--theme-primary)" }}
-          >
-            {addPending ? "..." : justAdded ? "DITAMBAHKAN ✓" : outOfStock ? "OUT OF STOCK" : "ADD TO CART"}
-          </button>
-          <button
-            type="button"
-            disabled={outOfStock}
-            className="h-12 w-full border border-zinc-900 text-xs font-bold uppercase tracking-[0.15em] text-zinc-900 transition-colors hover:bg-zinc-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            BUY IT NOW
-          </button>
-        </div>
-
       </div>
     </div>
   )

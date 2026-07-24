@@ -134,11 +134,13 @@ export async function ThemePageContent({
         const prod = productMap.get(item.productId)
         const variant = item.variantId ? variantMap.get(item.variantId) : undefined
         const needsVariantSelection = !!productHasVariants.get(item.productId) && !item.variantId
+        // variantId di cart tapi record varian sudah dihapus dari master produk
+        const variantUnavailable = !!item.variantId && !variant
         let priceMismatch = false
         let currentPrice: number | undefined = undefined
         if (variant) {
           currentPrice = variant.price
-        } else if (prod) {
+        } else if (prod && !variantUnavailable) {
           currentPrice = prod.price
         }
         if (currentPrice !== undefined && currentPrice !== item.price) {
@@ -146,7 +148,7 @@ export async function ThemePageContent({
         }
         // Prefer variant image, then product primary image, then existing cart image
         const preferredImage = variant?.imageUrl ?? prod?.images?.[0]?.url ?? item.imageUrl
-        return { ...item, needsVariantSelection, priceMismatch, currentPrice, imageUrl: preferredImage }
+        return { ...item, needsVariantSelection, variantUnavailable, priceMismatch, currentPrice, imageUrl: preferredImage }
       })
     }
     if (tenantSlug) {

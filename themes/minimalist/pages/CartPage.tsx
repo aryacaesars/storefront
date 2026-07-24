@@ -5,6 +5,7 @@ import { removeFromCart, updateQuantity } from "@/app/(storefront)/cart/actions"
 
 export function CartPage({ cart = [] }: ThemePageProps) {
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const canProceedToCheckout = !cart.some((item) => item.needsVariantSelection || item.variantUnavailable)
 
   return (
     <section className="mx-auto max-w-7xl px-6 py-12">
@@ -31,6 +32,11 @@ export function CartPage({ cart = [] }: ThemePageProps) {
         </div>
       ) : (
         <>
+          {cart.some((item) => item.needsVariantSelection || item.variantUnavailable) && (
+            <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              Ada item cart yang tidak valid. Buka produk lalu pilih varian yang benar sebelum checkout.
+            </div>
+          )}
           <ul className="mt-10 divide-y divide-black/5 border-y border-black/5">
             {cart.map((item) => (
               <li key={item.lineKey} className="flex gap-5 py-6">
@@ -106,13 +112,24 @@ export function CartPage({ cart = [] }: ThemePageProps) {
               <span className="text-[var(--theme-muted)]">Subtotal</span>
               <span className="font-semibold text-[var(--theme-text)]">{formatIdr(subtotal)}</span>
             </div>
-            <Link
-              href="/checkout"
-              className="inline-flex h-11 w-full max-w-xs items-center justify-center text-xs font-bold uppercase tracking-[0.14em] text-white transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "var(--theme-primary)" }}
-            >
-              Proceed to Checkout
-            </Link>
+            {canProceedToCheckout ? (
+              <Link
+                href="/checkout"
+                className="inline-flex h-11 w-full max-w-xs items-center justify-center text-xs font-bold uppercase tracking-[0.14em] text-white transition-opacity hover:opacity-90"
+                style={{ backgroundColor: "var(--theme-primary)" }}
+              >
+                Proceed to Checkout
+              </Link>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="inline-flex h-11 w-full max-w-xs items-center justify-center text-xs font-bold uppercase tracking-[0.14em] text-white opacity-40"
+                style={{ backgroundColor: "var(--theme-primary)" }}
+              >
+                Proceed to Checkout
+              </button>
+            )}
           </div>
         </>
       )}

@@ -38,7 +38,7 @@ export function ProductDetailPage({
       <section className="mx-auto max-w-7xl px-6 py-10">
         <ProductGalleryClient
           product={galleryProduct}
-          catalogProductId={isLiveCatalog ? resolved?.id : undefined}
+          catalogProduct={isLiveCatalog ? resolved ?? undefined : undefined}
         />
       </section>
       <section className="mx-auto max-w-7xl px-6 pb-16">

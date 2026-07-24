@@ -37,7 +37,7 @@ export function CheckoutPage({
     Boolean(checkoutAddress) &&
     cart.length > 0 &&
     Boolean(storeId) &&
-    !cart.some((i) => i.needsVariantSelection)
+    !cart.some((i) => i.needsVariantSelection || i.variantUnavailable)
 
   return (
     <div style={{ backgroundColor: "var(--theme-bg)" }}>
