@@ -90,7 +90,6 @@ export function CanvasFreeTextLayer({
       ref={containerRef}
       className={cn(
         "absolute inset-0",
-        renderLayer === "front" ? "z-30" : "z-0",
         !editable && "pointer-events-none",
       )}
       style={{ pointerEvents: "none" }}
@@ -100,6 +99,7 @@ export function CanvasFreeTextLayer({
           key={item.id}
           item={item}
           scale={scale}
+          renderLayer={renderLayer}
           editable={editable}
           interactive={interactive}
           selected={
@@ -139,6 +139,7 @@ export function CanvasFreeTextLayer({
 interface CanvasFreeTextBoxProps {
   item: CanvasTextItem
   scale: number
+  renderLayer: "front" | "behind"
   editable: boolean
   interactive: boolean
   selected: boolean
@@ -151,6 +152,7 @@ interface CanvasFreeTextBoxProps {
 function CanvasFreeTextBox({
   item,
   scale,
+  renderLayer,
   editable,
   interactive,
   selected,
@@ -304,7 +306,8 @@ function CanvasFreeTextBox({
         top: `${item.y}%`,
         width: `${item.width}%`,
         pointerEvents: editable ? "auto" : "none",
-        zIndex: selected ? 40 : 30,
+        // Keep the saved layer order, but lift selected text while editing.
+        zIndex: selected ? 40 : renderLayer === "front" ? 30 : 0,
       }}
       onPointerDown={editable ? startMove : undefined}
       onClick={

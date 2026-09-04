@@ -132,7 +132,7 @@ function MinimalistCard({
 
   const labelLayer = card.labelLayer
   const labelResizable = editable && selected
-  const labelEditable = labelResizable && labelLayer === "front"
+  const labelEditable = labelResizable && (labelLayer === "front" || labelSelected)
   const labelMovable = labelResizable
 
   const startLabelMove = useCallback(
@@ -214,7 +214,11 @@ function MinimalistCard({
               "absolute flex items-start p-0",
               labelMovable && "cursor-move",
             )}
-            style={{ ...labelBoxStyle, zIndex: Z_LABEL_BEHIND }}
+            style={{
+              ...labelBoxStyle,
+              zIndex: Z_LABEL_BEHIND,
+              visibility: labelSelected ? "hidden" : undefined,
+            }}
             onPointerDown={labelMovable ? startLabelMove : undefined}
           >
             {labelContent}
@@ -298,13 +302,13 @@ function MinimalistCard({
 
       {labelMovable && labelLayer === "behind" && (
         <div
-          aria-hidden
+          aria-hidden={labelSelected ? undefined : true}
           className="absolute z-[15] cursor-move rounded-sm"
           style={labelBoxStyleFit}
           onPointerDown={startLabelMove}
         >
           {/* Duplikat teks invisible = pengukur tinggi supaya proxy fit teks (ala CTA). */}
-          <div className="invisible">{labelContent}</div>
+          <div className={cn(!labelSelected && "invisible")}>{labelContent}</div>
           {resizeHandles}
         </div>
       )}

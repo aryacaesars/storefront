@@ -49,7 +49,7 @@ Layer teks (front / behind gambar):
 |------|------|
 | **Ubah ukuran font** | Tarik **handle ungu** (tepi/sudut box judul) |
 | **Pindah posisi** | Drag **area teks** (box judul) |
-| **Edit teks** | Klik langsung di canvas (layer front) atau panel kiri |
+| **Edit teks** | Klik langsung di canvas (layer front maupun behind) atau panel kiri |
 | **Layer** | Front / Behind — panel kiri (`SegmentedControl`) |
 
 ### Sidebar

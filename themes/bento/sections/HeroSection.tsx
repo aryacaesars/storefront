@@ -117,7 +117,7 @@ function HeroTitleLine({
   onSelectMedia,
 }: HeroTitleLineProps) {
   const labelResizable = editable && mediaInteractive
-  const labelEditable = labelResizable && layer === "front"
+  const labelEditable = labelResizable && (layer === "front" || lineSelected)
   const labelMovable = labelResizable
 
   const labelBoxHeightPx = frameHeightPx * (labelLayout.hPct / 100)
@@ -215,7 +215,11 @@ function HeroTitleLine({
             "absolute z-2 flex items-start overflow-hidden",
             labelMovable && "cursor-move",
           )}
-          style={{ ...labelBoxStyle, zIndex }}
+          style={{
+            ...labelBoxStyle,
+            zIndex,
+            visibility: lineSelected ? "hidden" : undefined,
+          }}
           onPointerDown={handleLabelPointerDown}
           onClick={handleLabelClick}
         >
@@ -225,7 +229,7 @@ function HeroTitleLine({
 
       {labelMovable && layer === "behind" && (
         <div
-          aria-hidden
+          aria-hidden={lineSelected ? undefined : true}
           data-canvas-element={domKey}
           className="absolute z-15 cursor-move rounded-sm"
           style={labelBoxStyleFit}
@@ -233,7 +237,7 @@ function HeroTitleLine({
           onClick={handleLabelClick}
         >
           {/* Duplikat teks invisible = pengukur tinggi supaya proxy fit teks (ala CTA). */}
-          <div className="invisible">{labelContent}</div>
+          <div className={cn(!lineSelected && "invisible")}>{labelContent}</div>
           {resizeHandles}
         </div>
       )}
