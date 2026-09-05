@@ -41,6 +41,8 @@ import {
 } from "@/themes/engine/section-page-utils"
 import { applyDevicePatch } from "@/themes/engine/device-settings"
 import { DEFAULT_IMAGE_TRANSFORM } from "@/themes/bento/sections/category-grid-layout"
+import { getBlockDefinition } from "@/themes/engine/block-registry"
+import type { BlockInstance } from "@/themes/engine/schema"
 
 const DEFAULT_HERO: HeroConfig = heroConfigSchema.parse({})
 
@@ -385,6 +387,55 @@ export function CustomizeWorkspace({
     [selectedPage, setConfig],
   )
 
+  const addSectionBlock = useCallback(
+    (sectionId: string, blockType: string) => {
+      const pageType = selectedPage as SectionPageType
+      setConfig((prev) => {
+        const template = materializePageTemplate(prev, pageType)
+        const section = template.sections[sectionId]
+        if (!section) return prev
+        const def = getBlockDefinition(prev.templateId, section.type, blockType)
+        if (!def) return prev
+        const newBlock: BlockInstance = {
+          id: `${blockType}-${Date.now()}`,
+          type: blockType,
+          settings: { ...def.defaultSettings },
+        }
+        const blocks = [...(section.blocks ?? []), newBlock]
+        return applyPageTemplate(
+          prev,
+          pageType,
+          updateSectionBlocks(template, sectionId, blocks),
+        )
+      })
+      setStatus(null)
+    },
+    [selectedPage, setConfig],
+  )
+
+  const removeSectionBlock = useCallback(
+    (sectionId: string, blockId: string) => {
+      const pageType = selectedPage as SectionPageType
+      setConfig((prev) => {
+        const template = materializePageTemplate(prev, pageType)
+        const section = template.sections[sectionId]
+        const blocks = section?.blocks
+        if (!blocks) return prev
+        return applyPageTemplate(
+          prev,
+          pageType,
+          updateSectionBlocks(
+            template,
+            sectionId,
+            blocks.filter((b) => b.id !== blockId),
+          ),
+        )
+      })
+      setStatus(null)
+    },
+    [selectedPage, setConfig],
+  )
+
   const sectionEditor = useMemo(() => {
     if (mode !== "edit" || !showSectionsTab) {
       return undefined
@@ -635,6 +686,8 @@ export function CustomizeWorkspace({
     onUpdateBlockSetting: patchBlockSetting,
     onUpdateSectionSetting: patchSectionSetting,
     onReorderBlocks: reorderBlocks,
+    onAddBlock: addSectionBlock,
+    onRemoveBlock: removeSectionBlock,
     onConfigKeyChange: updateConfig,
     onHeroChange: updateHero,
     onCloseColor: () => {

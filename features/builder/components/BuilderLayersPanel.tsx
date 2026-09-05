@@ -15,6 +15,8 @@ import {
   Layers,
   MousePointerClick,
   Palette,
+  Plus,
+  Trash2,
   Type,
 } from "lucide-react"
 import {
@@ -24,7 +26,8 @@ import {
 } from "@/features/builder/components/SettingsSection"
 import { resolvePageTemplate } from "@/themes/engine/page-template"
 import { getSectionDefinition } from "@/themes/engine/section-registry"
-import { getBlockDefinition } from "@/themes/engine/block-registry"
+import { getBlockDefinition, getBlockDefinitions } from "@/themes/engine/block-registry"
+import { MAX_CATEGORY_CARDS } from "@/themes/bento/sections/category-grid-layout"
 import { resolveDeviceSettings } from "@/themes/engine/device-settings"
 import {
   isSameSelectedElement,
@@ -68,6 +71,8 @@ interface BuilderLayersPanelProps {
     patch: Record<string, unknown>,
   ) => void
   onReorderBlocks: (sectionId: string, fromIndex: number, toIndex: number) => void
+  onAddBlock?: (sectionId: string, blockType: string) => void
+  onRemoveBlock?: (sectionId: string, blockId: string) => void
 }
 
 /** One selectable row in the layers list. */
@@ -278,11 +283,25 @@ export function BuilderLayersPanel({
   onSelectElement,
   onPatchBlock,
   onReorderBlocks,
+  onAddBlock,
+  onRemoveBlock,
 }: BuilderLayersPanelProps) {
   const t = useMessages().pages.builder.layersPanel
   const layerData = selectedSectionId
     ? collectLayerRows(config, selectedPage, selectedSectionId, device === "mobile", t)
     : null
+
+  const resolvedTemplate = resolvePageTemplate(config, selectedPage)
+  const sectionInstance = selectedSectionId ? resolvedTemplate.sections[selectedSectionId] : null
+  const isCardSection =
+    sectionInstance?.type === "category-grid" || sectionInstance?.type === "category-cards"
+  const cardBlockDefs = sectionInstance
+    ? getBlockDefinitions(config.templateId, sectionInstance.type)
+    : {}
+  const cardBlockType = Object.keys(cardBlockDefs)[0]
+  const cardBlockDef = cardBlockType ? cardBlockDefs[cardBlockType] : undefined
+  const cardCount = sectionInstance?.blocks?.length ?? 0
+  const atCardLimit = isCardSection && cardCount >= MAX_CATEGORY_CARDS
 
   const selectRow = (row: LayerRow) => {
     if (!selectedSectionId) return
@@ -307,12 +326,30 @@ export function BuilderLayersPanel({
   return (
     <div className="flex flex-col gap-4 p-4">
       <div>
-        <h2 className="text-sm font-semibold text-gray-900">{t.title}</h2>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-gray-900">{t.title}</h2>
+          {isCardSection && cardBlockType && cardBlockDef && (
+            <button
+              type="button"
+              onClick={() => selectedSectionId && onAddBlock?.(selectedSectionId, cardBlockType)}
+              disabled={atCardLimit}
+              className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2 py-1 text-[10px] font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Plus className="h-3 w-3" />
+              Add Card
+            </button>
+          )}
+        </div>
         <p className="mt-1 text-xs text-gray-400">
           {layerData
             ? t.elementsIn.replace("{section}", layerData.sectionLabel)
             : t.selectSection}
         </p>
+        {isCardSection && (
+          <p className="mt-1 text-[10px] text-gray-400">
+            {cardCount}/{MAX_CATEGORY_CARDS} cards
+          </p>
+        )}
       </div>
 
       {!selectedSectionId || !layerData ? (
@@ -654,6 +691,41 @@ export function BuilderLayersPanel({
                     </div>
                   )
                 })()}
+
+                {isSelected &&
+                  row.block.type === "category-card" &&
+                  row.element.itemId === "label" && (
+                    <div className="space-y-3 border-t border-gray-100 px-3 py-3">
+                      <SettingsField label={t.cardLabel}>
+                        <SettingsInput
+                          value={typeof resolved?.label === "string" ? resolved.label : ""}
+                          onChange={(e) =>
+                            onPatchBlock(selectedSectionId, row.block.id, {
+                              label: e.target.value,
+                            })
+                          }
+                        />
+                      </SettingsField>
+                      <SettingsField label="Slug" hint="Dipakai buat link filter kategori di storefront">
+                        <SettingsInput
+                          value={typeof resolved?.slug === "string" ? resolved.slug : ""}
+                          onChange={(e) =>
+                            onPatchBlock(selectedSectionId, row.block.id, {
+                              slug: e.target.value,
+                            })
+                          }
+                        />
+                      </SettingsField>
+                      <button
+                        type="button"
+                        onClick={() => onRemoveBlock?.(selectedSectionId, row.block.id)}
+                        className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-600 hover:bg-red-100"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Hapus Card
+                      </button>
+                    </div>
+                  )}
 
                 {isSelected && row.element.kind === "text" && (
                   <div className="border-t border-gray-100 px-3 py-3">

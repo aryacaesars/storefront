@@ -31,12 +31,12 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         <div className="flex items-center justify-between">
           <div>
             <h1
-              className="text-2xl font-bold text-[var(--theme-text)]"
+              className="text-2xl font-bold text-gray-900"
               style={{ fontFamily: "var(--theme-heading-font)" }}
             >
               Pesanan #{order.id.slice(-8).toUpperCase()}
             </h1>
-            <p className="mt-1 text-sm text-[var(--theme-muted)]">
+            <p className="mt-1 text-sm text-gray-500">
               {STATUS_LABEL[order.status] ?? order.status}
             </p>
           </div>
@@ -60,10 +60,10 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                 </div>
                 <div className="flex flex-1 items-center justify-between">
                   <div>
-                    <p className="text-sm font-bold text-[var(--theme-text)]">{item.product.name}</p>
-                    <p className="text-xs text-[var(--theme-muted)]">Qty: {item.quantity}</p>
+                    <p className="text-sm font-bold text-gray-900">{item.product.name}</p>
+                    <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                   </div>
-                  <p className="text-sm font-semibold text-[var(--theme-text)]">
+                  <p className="text-sm font-semibold text-gray-900">
                     {formatIdr(item.price * item.quantity)}
                   </p>
                 </div>
@@ -72,7 +72,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           })}
         </ul>
 
-        <div className="mt-6 flex justify-between text-base font-bold text-[var(--theme-text)]">
+        <div className="mt-6 flex justify-between text-base font-bold text-gray-900">
           <span>Total</span>
           <span>{formatIdr(order.total)}</span>
         </div>

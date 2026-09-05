@@ -50,6 +50,8 @@ export interface BuilderToolPanelsProps {
     fromIndex: number,
     toIndex: number,
   ) => void
+  onAddBlock?: (sectionId: string, blockType: string) => void
+  onRemoveBlock?: (sectionId: string, blockId: string) => void
   onConfigKeyChange: <K extends keyof ThemeConfig>(
     key: K,
     value: ThemeConfig[K],
@@ -80,6 +82,8 @@ export function BuilderToolPanels({
   onUpdateBlockSetting,
   onUpdateSectionSetting,
   onReorderBlocks,
+  onAddBlock,
+  onRemoveBlock,
   onConfigKeyChange,
   onHeroChange,
   onCloseColor,
@@ -142,6 +146,8 @@ export function BuilderToolPanels({
         onSelectElement={onSelectElement}
         onPatchBlock={onPatchBlock}
         onReorderBlocks={onReorderBlocks}
+        onAddBlock={onAddBlock}
+        onRemoveBlock={onRemoveBlock}
       />
     )
   }

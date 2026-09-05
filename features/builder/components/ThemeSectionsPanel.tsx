@@ -1,7 +1,25 @@
 "use client"
 
 import { useState } from "react"
-import { Eye, EyeOff, GripVertical, Plus, Trash2 } from "lucide-react"
+import {
+  BookOpen,
+  Eye,
+  EyeOff,
+  GripVertical,
+  Images,
+  LayoutGrid,
+  LayoutTemplate,
+  Layers,
+  Mail,
+  Megaphone,
+  PanelBottom,
+  Plus,
+  ShoppingBag,
+  Sparkles,
+  Trash2,
+  Users,
+  type LucideIcon,
+} from "lucide-react"
 import { useMessages } from "@/features/i18n/LocaleProvider"
 import {
   materializePageTemplate,
@@ -28,6 +46,24 @@ interface ThemeSectionsPanelProps {
   onConfigChange: (config: ThemeConfig) => void
   selectedSectionId: string | null
   onSelectSection: (sectionId: string | null) => void
+}
+
+const SECTION_ICONS: Record<string, LucideIcon> = {
+  hero: LayoutTemplate,
+  "image-layers": Images,
+  "category-grid": LayoutGrid,
+  "category-cards": LayoutGrid,
+  "product-grid": ShoppingBag,
+  "call-to-action": Megaphone,
+  footer: PanelBottom,
+  "brand-story": BookOpen,
+  "community-gallery": Users,
+  "signature-series": Sparkles,
+  "newsletter-cta": Mail,
+}
+
+function getSectionIcon(type: string): LucideIcon {
+  return SECTION_ICONS[type] ?? Layers
 }
 
 function withPageTemplate(
@@ -133,6 +169,7 @@ export function ThemeSectionsPanel({
             const label = definition?.label ?? instance.type
             const disabled = Boolean(instance.disabled)
             const isSelected = selectedSectionId === sectionId
+            const Icon = getSectionIcon(instance.type)
 
             return (
               <li
@@ -159,10 +196,11 @@ export function ThemeSectionsPanel({
                   <button
                     type="button"
                     onClick={() => onSelectSection(isSelected ? null : sectionId)}
-                    className={`flex-1 text-left text-sm font-medium ${
+                    className={`flex flex-1 items-center gap-2 text-left text-sm font-medium ${
                       disabled ? "text-gray-400 line-through" : "text-gray-800"
                     }`}
                   >
+                    <Icon className="h-3.5 w-3.5 shrink-0 text-gray-400" />
                     {label}
                   </button>
 
@@ -197,17 +235,25 @@ export function ThemeSectionsPanel({
         </ul>
 
         <div className="mt-4 flex gap-2">
-          <select
-            value={sectionTypeToAdd}
-            onChange={(event) => setSectionTypeToAdd(event.target.value)}
-            className="h-9 flex-1 rounded-lg border border-gray-200 bg-white px-2 text-sm text-gray-800 outline-none focus:border-indigo-400"
-          >
-            {Object.values(registry).map((definition) => (
-              <option key={definition.type} value={definition.type}>
-                {definition.label}
-              </option>
-            ))}
-          </select>
+          <div className="relative flex-1">
+            {(() => {
+              const AddIcon = getSectionIcon(sectionTypeToAdd)
+              return (
+                <AddIcon className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+              )
+            })()}
+            <select
+              value={sectionTypeToAdd}
+              onChange={(event) => setSectionTypeToAdd(event.target.value)}
+              className="h-9 w-full rounded-lg border border-gray-200 bg-white pl-8 pr-2 text-sm text-gray-800 outline-none focus:border-indigo-400"
+            >
+              {Object.values(registry).map((definition) => (
+                <option key={definition.type} value={definition.type}>
+                  {definition.label}
+                </option>
+              ))}
+            </select>
+          </div>
           <button
             type="button"
             onClick={addSection}
